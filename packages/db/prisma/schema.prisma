@@ -1,0 +1,212 @@
+// Prisma schema — CampaignOS
+// Documentación: https://pris.ly/d/prisma-schema
+//
+// TODO: En una versión futura, separar en dos archivos:
+//   - prisma/superadmin.schema.prisma  → modelos del panel de administración
+//   - prisma/tenant.schema.prisma      → modelos de cada campaña (tenant)
+// Por ahora ambos conjuntos de modelos conviven en este único schema.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_SUPERADMIN")
+}
+
+// ─── ENUMERACIONES ────────────────────────────────────────────────────────────
+
+/// Roles del sistema. Define qué rutas y datos puede acceder cada usuario.
+enum UserRole {
+  SUPERADMIN    // Acceso total a la plataforma y todos los tenants
+  ADMIN_CAMPANA // Administrador de una campaña específica
+  COORDINADOR   // Coordinador de zona o municipio
+  LIDER         // Líder comunitario con red de electores
+  TESTIGO       // Testigo electoral en mesa de votación
+}
+
+/// Estado de compromiso de voto de un elector
+enum CommitmentStatus {
+  COMPROMETIDO    // Voto seguro
+  PROBABLE        // Alta probabilidad de voto
+  DUDOSO          // En proceso de convencimiento
+  NO_COMPROMETIDO // No apoya la campaña
+}
+
+/// Tipo de división político-administrativa
+enum CommuneType {
+  COMUNA         // Zona urbana
+  CORREGIMIENTO  // Zona rural
+}
+
+/// Estado operativo de un líder en la campaña
+enum LeaderStatus {
+  ACTIVO     // Operando normalmente
+  INACTIVO   // Temporalmente fuera de operación
+  SUSPENDIDO // Suspendido de la campaña
+}
+
+// ─── MODELOS SUPERADMIN ───────────────────────────────────────────────────────
+// Estos modelos viven en la DB del superadmin y gestionan la plataforma.
+
+/// Tenant = una campaña electoral registrada en la plataforma.
+/// Cada tenant tiene su propia base de datos aislada en Neon.
+model Tenant {
+  id       String  @id @default(cuid())
+  slug     String  @unique // Identificador URL amigable (ej: "campana-gomez-2026")
+  name     String          // Nombre visible de la campaña
+  domain   String? @unique // Dominio propio del cliente (opcional)
+  // CIFRADO: este campo se cifra con AES-256 antes de persistir. Ver lib/crypto.ts
+  connectionString String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  modules TenantModule[]
+}
+
+/// Módulos activos para cada tenant. Se inyectan en la sesión del usuario.
+/// Los módulos inactivos no son accesibles aunque el usuario intente la ruta.
+model TenantModule {
+  id        String  @id @default(cuid())
+  tenantId  String
+  moduleKey String  // Ej: "CORE", "ANALYTICS", "DIA_E", "FORMACION", etc.
+  isActive  Boolean @default(true)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, moduleKey])
+}
+
+// ─── MODELOS TENANT — MÓDULO CORE ────────────────────────────────────────────
+// Estos modelos se replican en la DB de cada tenant.
+// Son obligatorios y siempre están presentes.
+
+/// Usuario del sistema. Pertenece a un tenant específico.
+/// La autenticación se hace contra la DB del tenant correspondiente.
+model User {
+  id           String   @id @default(cuid())
+  tenantId     String
+  email        String
+  passwordHash String   // Nunca almacenar contraseña en texto plano
+  role         UserRole
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@unique([tenantId, email])
+}
+
+/// Líder político. Estructura jerárquica autorreferenciada.
+/// Un líder puede tener sub-líderes formando un árbol de comandos.
+model Leader {
+  id             String       @id @default(cuid())
+  tenantId       String
+  name           String
+  // CIFRADO: campo PII — se cifra con AES-256 antes de persistir. Ver lib/crypto.ts
+  phone          String?
+  zone           String?      // Zona geográfica bajo su responsabilidad
+  parentLeaderId String?      // Referencia al líder superior en la jerarquía
+  targetVotes    Int          @default(0) // Meta de votos a conseguir
+  status         LeaderStatus @default(ACTIVO)
+  createdAt      DateTime     @default(now())
+
+  parent   Leader?  @relation("JerarquiaLideres", fields: [parentLeaderId], references: [id])
+  children Leader[] @relation("JerarquiaLideres")
+  voters   Voter[]
+}
+
+/// Elector registrado en la campaña.
+/// Los campos PII (cédula, teléfono) van cifrados en la capa de aplicación.
+model Voter {
+  id               String           @id @default(cuid())
+  tenantId         String
+  // CIFRADO: campo PII (número de cédula) — se cifra con AES-256 antes de persistir. Ver lib/crypto.ts
+  cedula           String
+  name             String
+  // CIFRADO: campo PII — se cifra con AES-256 antes de persistir. Ver lib/crypto.ts
+  phone            String?
+  leaderId         String?          // Líder responsable de este elector
+  votingTableId    String?          // Mesa donde está inscrito
+  commitmentStatus CommitmentStatus @default(PROBABLE)
+  lastContact      DateTime?        // Último contacto registrado
+  createdAt        DateTime         @default(now())
+
+  leader      Leader?      @relation(fields: [leaderId], references: [id])
+  votingTable VotingTable? @relation(fields: [votingTableId], references: [id])
+
+  // Un elector no puede estar duplicado dentro del mismo tenant
+  @@unique([tenantId, cedula])
+}
+
+// ─── ESTRUCTURA TERRITORIAL DIVIPOLA ─────────────────────────────────────────
+// Jerarquía: Departamento → Municipio → Comuna/Corregimiento → Barrio/Vereda
+// Los códigos DIVIPOLA son los oficiales del DANE de Colombia.
+
+/// Departamento de Colombia. Código DIVIPOLA de 2 dígitos.
+model Department {
+  id   String @id @default(cuid())
+  code String @unique // Ej: "05" para Antioquia
+  name String          // Ej: "Antioquia"
+
+  municipalities Municipality[]
+}
+
+/// Municipio con código DIVIPOLA. Unidad básica electoral en Colombia.
+model Municipality {
+  id           String @id @default(cuid())
+  divipola     String @unique // Código de 5 dígitos. Ej: "05001" para Medellín
+  name         String
+  departmentId String
+
+  department     Department      @relation(fields: [departmentId], references: [id])
+  communes       Commune[]
+  votingStations VotingStation[]
+}
+
+/// Comuna (zona urbana) o corregimiento (zona rural) dentro de un municipio.
+model Commune {
+  id             String      @id @default(cuid())
+  name           String
+  type           CommuneType // COMUNA o CORREGIMIENTO
+  municipalityId String
+
+  municipality  Municipality   @relation(fields: [municipalityId], references: [id])
+  neighborhoods Neighborhood[]
+}
+
+/// Barrio (zona urbana) o vereda (zona rural) dentro de una comuna/corregimiento.
+model Neighborhood {
+  id        String @id @default(cuid())
+  name      String
+  communeId String
+
+  commune Commune @relation(fields: [communeId], references: [id])
+}
+
+/// Puesto de votación. Lugar físico donde se instalan las mesas.
+model VotingStation {
+  id             String @id @default(cuid())
+  name           String          // Ej: "Institución Educativa San José"
+  address        String
+  municipalityId String
+  lat            Float? // Latitud para mapa de calor
+  lng            Float? // Longitud para mapa de calor
+
+  municipality Municipality  @relation(fields: [municipalityId], references: [id])
+  tables       VotingTable[]
+}
+
+/// Mesa de votación dentro de un puesto. Unidad mínima del sistema electoral.
+model VotingTable {
+  id            String @id @default(cuid())
+  number        Int    // Número de mesa dentro del puesto
+  stationId     String
+  voterCapacity Int    @default(0) // Capacidad máxima de electores por mesa
+
+  station VotingStation @relation(fields: [stationId], references: [id])
+  voters  Voter[]
+
+  // No puede haber dos mesas con el mismo número en el mismo puesto
+  @@unique([stationId, number])
+}

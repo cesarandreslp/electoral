@@ -1,0 +1,70 @@
+/**
+ * Punto de entrada del paquete @campaignos/db.
+ * Exporta los clientes Prisma para el superadmin y para los tenants.
+ *
+ * TODO: En una versión futura, separar en dos schemas independientes:
+ *   - prisma/superadmin.schema.prisma  (Tenant, TenantModule)
+ *   - prisma/tenant.schema.prisma      (User, Leader, Voter, territorios, etc.)
+ * Por ahora ambos conjuntos de modelos conviven en un único schema y se
+ * acceden mediante clientes Prisma apuntando a bases de datos distintas.
+ */
+
+import { neonConfig, Pool } from '@neondatabase/serverless'
+import { PrismaNeon } from '@prisma/adapter-neon'
+import { PrismaClient } from '@prisma/client'
+import ws from 'ws'
+
+// Configurar WebSocket para uso en Node.js (hot reload en dev, scripts de seed)
+// En el edge runtime de Vercel esto no es necesario (usa fetch nativo)
+if (typeof WebSocket === 'undefined') {
+  neonConfig.webSocketConstructor = ws
+}
+
+// ── Cliente del superadmin ────────────────────────────────────────────────────
+// Singleton para evitar múltiples conexiones durante el hot reload en desarrollo.
+
+const globalForPrisma = globalThis as unknown as {
+  superadminDb: PrismaClient | undefined
+}
+
+function crearClienteSuperadmin(): PrismaClient {
+  const connectionString = process.env.DATABASE_URL_SUPERADMIN
+  if (!connectionString) {
+    throw new Error(
+      'DATABASE_URL_SUPERADMIN no está definida. ' +
+        'Verifica tu archivo .env en la raíz del monorepo.'
+    )
+  }
+  const pool = new Pool({ connectionString })
+  const adapter = new PrismaNeon(pool)
+  return new PrismaClient({ adapter })
+}
+
+/** Cliente Prisma para la base de datos del superadmin. Usar en Server Actions y Server Components. */
+export const superadminDb =
+  globalForPrisma.superadminDb ?? crearClienteSuperadmin()
+
+if (process.env.NODE_ENV !== 'production') {
+  // Persistir el singleton entre recargas en desarrollo
+  globalForPrisma.superadminDb = superadminDb
+}
+
+// ── Cliente dinámico por tenant ───────────────────────────────────────────────
+
+/**
+ * Crea un cliente Prisma para la base de datos de un tenant específico.
+ *
+ * IMPORTANTE: La connectionString debe llegar DESCIFRADA desde la capa de aplicación.
+ * Nunca pasar la cadena cifrada directamente — usar decrypt() de lib/crypto.ts primero.
+ *
+ * @param connectionString - Cadena de conexión PostgreSQL ya descifrada del tenant
+ * @returns Cliente Prisma configurado para la DB del tenant
+ */
+export function getTenantDb(connectionString: string): PrismaClient {
+  const pool = new Pool({ connectionString })
+  const adapter = new PrismaNeon(pool)
+  return new PrismaClient({ adapter })
+}
+
+// Re-exportar PrismaClient para uso en otros paquetes si es necesario
+export { PrismaClient }

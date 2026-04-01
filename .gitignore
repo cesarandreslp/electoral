@@ -1,0 +1,26 @@
+# Variables de entorno — NUNCA commitear
+.env*
+!.env.example
+
+# Dependencias
+node_modules
+
+# Turbo cache
+.turbo
+
+# Next.js
+.next
+out
+
+# Build outputs
+dist
+
+# Prisma
+prisma/migrations/*.sql.bak
+
+# Claude Code — configuración local del IDE
+.claude/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
