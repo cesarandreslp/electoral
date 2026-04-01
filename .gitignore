@@ -18,6 +18,10 @@ dist
 # Prisma
 prisma/migrations/*.sql.bak
 
+# Archivos con credenciales generados por clientes externos (Neon, psql, etc.)
+env.txt
+*.pgpass
+
 # Claude Code — configuración local del IDE
 .claude/
 

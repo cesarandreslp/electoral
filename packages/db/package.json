@@ -6,22 +6,22 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "db:push": "dotenv-cli -e ../../.env -- prisma db push --schema=./prisma/schema.prisma",
-    "db:migrate": "dotenv-cli -e ../../.env -- prisma migrate dev --schema=./prisma/schema.prisma",
-    "db:seed": "dotenv-cli -e ../../.env -- tsx prisma/seed.ts",
-    "db:studio": "dotenv-cli -e ../../.env -- prisma studio --schema=./prisma/schema.prisma",
+    "db:push": "dotenv -e ../../.env -- prisma db push --schema=./prisma/schema.prisma",
+    "db:migrate": "dotenv -e ../../.env -- prisma migrate dev --schema=./prisma/schema.prisma",
+    "db:seed": "dotenv -e ../../.env -- tsx prisma/seed.ts",
+    "db:studio": "dotenv -e ../../.env -- prisma studio --schema=./prisma/schema.prisma",
     "generate": "prisma generate --schema=./prisma/schema.prisma"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10",
     "@prisma/adapter-neon": "^6",
     "@prisma/client": "^6",
+    "prisma": "^6",
     "ws": "^8"
   },
   "devDependencies": {
     "@types/ws": "^8",
-    "dotenv-cli": "^7",
-    "prisma": "^6",
+    "dotenv": "^7",
     "tsx": "^4",
     "typescript": "^5"
   }

@@ -68,3 +68,16 @@ export function getTenantDb(connectionString: string): PrismaClient {
 
 // Re-exportar PrismaClient para uso en otros paquetes si es necesario
 export { PrismaClient }
+
+// ── Librería de cifrado ───────────────────────────────────────────────────────
+// Única fuente de cifrado/descifrado en todo el proyecto
+export { encrypt, decrypt, CryptoError } from './crypto'
+export type {} from './crypto' // Los tipos se exportan via las clases
+
+// ── Provisionador de tenants ──────────────────────────────────────────────────
+export {
+  provisionTenantDatabase,
+  mockProvisionTenantDatabase,
+  TenantProvisionError,
+  SlugTakenError,
+} from './neon-provisioner'

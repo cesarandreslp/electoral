@@ -1,36 +1,83 @@
-import { superadminDb } from '@campaignos/db'
+/**
+ * Resolución de tenant desde el host.
+ * Usado por el middleware y por Server Components que necesiten el contexto del tenant.
+ *
+ * Implementa un caché en memoria con TTL de 5 minutos para evitar
+ * consultas repetidas a la DB del superadmin en cada request.
+ *
+ * Nota sobre el caché en producción:
+ * En Vercel (serverless), cada instancia de función tiene su propio caché en memoria.
+ * Esto es aceptable para el MVP — las invalidaciones se propagan en máximo 5 min.
+ */
 
-/** Información del tenant que se inyecta en la sesión y los Server Components */
-export interface TenantInfo {
-  id: string
-  slug: string
-  name: string
-  /**
-   * La connectionString llega cifrada de la DB.
-   * Debe descifrarse con decrypt() de lib/crypto.ts antes de pasarla a getTenantDb().
-   */
+import { superadminDb, decrypt } from '@campaignos/db'
+
+// ── Tipos ─────────────────────────────────────────────────────────────────────
+
+/** Contexto del tenant disponible en Server Components y middleware */
+export interface TenantContext {
+  id:               string
+  slug:             string
+  name:             string
+  /** connectionString YA descifrada — lista para pasar a getTenantDb() */
   connectionString: string
-  /** Claves de los módulos activos para este tenant (ej: ["CORE", "ANALYTICS"]) */
-  activeModules: string[]
+  /** Claves de módulos activos (ej: ["CORE", "ANALYTICS"]) */
+  activeModules:    string[]
 }
 
+// ── Caché en memoria con TTL ──────────────────────────────────────────────────
+
+const TTL_MS = 5 * 60 * 1000 // 5 minutos
+
+interface EntradaCache {
+  data:      TenantContext
+  expiresAt: number
+}
+
+/** Caché en memoria. Clave: slug o dominio propio del tenant */
+const cache = new Map<string, EntradaCache>()
+
+function leerCache(host: string): TenantContext | null {
+  const entrada = cache.get(host)
+  if (!entrada) return null
+  if (Date.now() > entrada.expiresAt) {
+    // Expirado — eliminar para evitar acumulación
+    cache.delete(host)
+    return null
+  }
+  return entrada.data
+}
+
+function escribirCache(host: string, data: TenantContext): void {
+  cache.set(host, { data, expiresAt: Date.now() + TTL_MS })
+}
+
+// ── Función principal ─────────────────────────────────────────────────────────
+
 /**
- * Busca un tenant por su slug o por su dominio propio.
+ * Busca un tenant por su slug o dominio propio.
  *
- * Usado principalmente en:
- *   - El middleware (para validar que el tenant existe antes de continuar)
- *   - Server Components del nivel raíz (para obtener el nombre y módulos)
+ * Flujo:
+ *   1. Revisar caché (TTL 5 min) — evita consultas repetidas a superadminDB
+ *   2. Consultar superadminDb.tenant por slug o domain
+ *   3. Descifrar la connectionString con decrypt() de @campaignos/db
+ *   4. Cachear el resultado y retornar TenantContext
  *
  * @param host - Slug del subdominio (ej: "campana-demo") o dominio propio
- *               (ej: "campana2026.com"). Nunca incluye el dominio base.
- * @returns TenantInfo si el tenant existe y está activo, null en caso contrario
+ *               (ej: "campana2026.com"). Sin dominio base ni protocolo.
+ * @returns TenantContext con connectionString descifrada, o null si no existe/inactivo
  */
-export async function getTenant(host: string): Promise<TenantInfo | null> {
+export async function getTenant(host: string): Promise<TenantContext | null> {
+  // 1. Revisar caché
+  const cached = leerCache(host)
+  if (cached) return cached
+
+  // 2. Consultar la DB del superadmin
   const tenant = await superadminDb.tenant.findFirst({
     where: {
       isActive: true,
       OR: [
-        { slug: host },
+        { slug:   host },
         { domain: host },
       ],
     },
@@ -44,13 +91,46 @@ export async function getTenant(host: string): Promise<TenantInfo | null> {
 
   if (!tenant) return null
 
-  return {
-    id:   tenant.id,
-    slug: tenant.slug,
-    name: tenant.name,
-    // IMPORTANTE: connectionString está cifrada aquí.
-    // Descifrar con decrypt() de lib/crypto.ts antes de llamar a getTenantDb()
-    connectionString: tenant.connectionString,
-    activeModules: tenant.modules.map((m) => m.moduleKey),
+  // 3. Descifrar la connectionString
+  //    encrypt() la cifró con AES-256-GCM al guardar en DB
+  //    decrypt() la restaura para uso en getTenantDb()
+  let connectionString: string
+  try {
+    connectionString = decrypt(tenant.connectionString)
+  } catch (err) {
+    // Error de descifrado es crítico — indica ENCRYPTION_KEY incorrecta o dato corrompido
+    console.error(
+      `[getTenant] Error al descifrar connectionString del tenant "${tenant.slug}". ` +
+      `Verificar ENCRYPTION_KEY y la integridad del dato en DB.`,
+      err instanceof Error ? err.message : err
+    )
+    return null
   }
+
+  // 4. Construir contexto y cachear
+  const contexto: TenantContext = {
+    id:               tenant.id,
+    slug:             tenant.slug,
+    name:             tenant.name,
+    connectionString, // Ya descifrada
+    activeModules:    tenant.modules.map(m => m.moduleKey),
+  }
+
+  escribirCache(host, contexto)
+  // También cachear por dominio propio si existe, para búsquedas futuras
+  if (tenant.domain && tenant.domain !== host) {
+    escribirCache(tenant.domain, contexto)
+  }
+
+  return contexto
+}
+
+/**
+ * Invalida la entrada del caché para un host específico.
+ * Llamar después de actualizar el estado de un tenant (activar, desactivar, etc.)
+ *
+ * @param host - Slug o dominio del tenant a invalidar
+ */
+export function invalidarCacheTenant(host: string): void {
+  cache.delete(host)
 }

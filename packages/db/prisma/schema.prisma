@@ -13,7 +13,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL_SUPERADMIN")
+  // DATABASE_URL es el estándar de Prisma para comandos CLI (migrate dev, migrate deploy, studio)
+  // El cliente de runtime en src/index.ts usa DATABASE_URL_SUPERADMIN directamente (ver Pool constructor)
+  url      = env("DATABASE_URL")
 }
 
 // ─── ENUMERACIONES ────────────────────────────────────────────────────────────
