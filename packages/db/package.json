@@ -10,7 +10,7 @@
     "db:migrate": "dotenv -e ../../.env -- prisma migrate dev --schema=./prisma/schema.prisma",
     "db:seed": "dotenv -e ../../.env -- tsx prisma/seed.ts",
     "db:studio": "dotenv -e ../../.env -- prisma studio --schema=./prisma/schema.prisma",
-    "db:create-superadmin": "dotenv -e ../../.env -- tsx src/create-superadmin.ts",
+    "db:create-superadmin": "tsx src/create-superadmin.ts",
     "generate": "prisma generate --schema=./prisma/schema.prisma"
   },
   "dependencies": {

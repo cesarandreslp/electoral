@@ -1,4 +1,7 @@
 #!/usr/bin/env tsx
+import { config } from 'dotenv'
+config({ path: '../../.env' })
+
 /**
  * Script para crear el primer usuario SUPERADMIN en la base de datos del superadmin.
  * Los credentials NUNCA se guardan en código fuente ni en archivos de semilla.
