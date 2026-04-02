@@ -1,59 +1,116 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import { getToken } from 'next-auth/jwt'
 import { getTenant } from '@/lib/tenant'
 
+// Runtime Node.js requerido: este middleware importa @campaignos/db → ws (módulo Node.js)
+// incompatible con el Edge Runtime de Vercel.
+export const runtime = 'nodejs'
+
+// ── Rutas públicas por tipo de host ──────────────────────────────────────────
+// Las rutas públicas NO requieren sesión activa.
+
+const RUTAS_PUBLICAS_SUPERADMIN = ['/superadmin/login']
+const RUTAS_PUBLICAS_TENANT     = ['/login']
+
+// Rutas que siempre se permiten sin importar el host (API de auth, archivos, etc.)
+const RUTAS_SIEMPRE_PERMITIDAS  = ['/api/auth']
+
 /**
- * Middleware de resolución de tenant.
+ * Middleware de resolución de tenant + verificación de sesión.
  *
- * Flujo completo:
- *   1. Extraer el hostname del header Host
- *   2. Normalizar según entorno (dev vs producción)
- *   3. Detectar panel superadmin → reescribir a /superadmin/...
- *   4. Buscar tenant en DB (con caché TTL 5 min) → 404 si no existe
- *   5. Inyectar contexto del tenant en headers para Server Components
+ * Casos:
+ *   A) Host = admin.* → panel superadmin
+ *      - Inyectar x-is-superadmin: 'true'
+ *      - Reescribir a /superadmin/...
+ *      - Verificar sesión con rol SUPERADMIN (excepto /superadmin/login)
+ *
+ *   B) Host = [slug].* → portal de tenant
+ *      - Resolver tenant en DB superadmin
+ *      - 404 si no existe o está inactivo
+ *      - Inyectar x-tenant-id, x-tenant-slug, x-tenant-name, x-tenant-modules
+ *      - Verificar sesión activa (excepto /login)
+ *
+ *   C) Host desconocido → 404
  */
 export async function middleware(request: NextRequest) {
-  // ── Paso 1: Extraer hostname ──────────────────────────────────────────────
-  const host = request.headers.get('host') ?? ''
+  const { pathname } = request.nextUrl
+  const host         = request.headers.get('host') ?? ''
 
-  // ── Paso 2: Normalizar el host según entorno ──────────────────────────────
-  // TODO: mover NEXT_PUBLIC_BASE_DOMAIN a variable de entorno
+  // Siempre permitir rutas de la API de auth y similares
+  if (RUTAS_SIEMPRE_PERMITIDAS.some((r) => pathname.startsWith(r))) {
+    return NextResponse.next()
+  }
+
+  // ── Normalizar el host según entorno ──────────────────────────────────────
   const dominioBase = process.env.NODE_ENV === 'development'
     ? '.localhost:3000'
     : '.campaignos.co'
 
   const slug = host.replace(dominioBase, '')
 
-  // ── Paso 3: Detectar panel del superadmin ─────────────────────────────────
+  // ── CASO A: Panel del superadmin ──────────────────────────────────────────
   if (slug === 'admin') {
-    // Reescribir a /superadmin/... para que Next.js sirva app/superadmin/
-    const url      = request.nextUrl.clone()
-    url.pathname   = `/superadmin${request.nextUrl.pathname === '/' ? '' : request.nextUrl.pathname}`
-    return NextResponse.rewrite(url)
+    const urlReescrita    = request.nextUrl.clone()
+    urlReescrita.pathname = `/superadmin${pathname === '/' ? '' : pathname}`
+
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-is-superadmin', 'true')
+
+    // Ruta pública de superadmin → pasar sin verificar sesión
+    if (RUTAS_PUBLICAS_SUPERADMIN.some((r) => pathname.startsWith(r))) {
+      return NextResponse.rewrite(urlReescrita, { request: { headers: requestHeaders } })
+    }
+
+    // Verificar sesión con rol SUPERADMIN
+    const token = await getToken({ req: request })
+
+    if (!token || token.role !== 'SUPERADMIN') {
+      const loginUrl      = request.nextUrl.clone()
+      loginUrl.pathname   = '/superadmin/login'
+      loginUrl.searchParams.set('callbackUrl', pathname)
+      // Redirigir SIN reescribir (el redirect siempre apunta al mismo host)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    return NextResponse.rewrite(urlReescrita, { request: { headers: requestHeaders } })
   }
 
-  // ── Paso 4: Resolver el tenant en la DB del superadmin ────────────────────
-  // getTenant() usa caché en memoria con TTL de 5 minutos
-  // La connectionString retornada ya está descifrada
-  const tenant = await getTenant(slug)
+  // ── CASO B: Portal de tenant ──────────────────────────────────────────────
+  if (slug && slug !== host) {
+    // Ruta pública del tenant → resolver tenant igual pero omitir verificación de sesión
+    const esPublica = RUTAS_PUBLICAS_TENANT.some((r) => pathname.startsWith(r))
 
-  if (!tenant) {
-    // Tenant no encontrado o inactivo — retornar 404
-    return new NextResponse('Campaña no encontrada', { status: 404 })
+    const tenant = await getTenant(slug)
+
+    if (!tenant) {
+      return new NextResponse('Campaña no encontrada', { status: 404 })
+    }
+
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-tenant-id',      tenant.id)
+    requestHeaders.set('x-tenant-slug',    tenant.slug)
+    requestHeaders.set('x-tenant-name',    tenant.name)
+    requestHeaders.set('x-tenant-modules', tenant.activeModules.join(','))
+
+    if (esPublica) {
+      return NextResponse.next({ request: { headers: requestHeaders } })
+    }
+
+    // Verificar sesión activa del tenant
+    const token = await getToken({ req: request })
+
+    if (!token || token.tenantId !== tenant.id) {
+      const loginUrl    = request.nextUrl.clone()
+      loginUrl.pathname = '/login'
+      loginUrl.searchParams.set('callbackUrl', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    return NextResponse.next({ request: { headers: requestHeaders } })
   }
 
-  // ── Paso 5: Inyectar contexto del tenant en headers ───────────────────────
-  // Los Server Components leen estos headers con headers() de next/headers.
-  // IMPORTANTE: la connectionString NO se inyecta en headers (seguridad).
-  //             Solo se usa internamente en getTenantDb() desde Server Actions.
-  const requestHeaders = new Headers(request.headers)
-  requestHeaders.set('x-tenant-id',      tenant.id)
-  requestHeaders.set('x-tenant-slug',    tenant.slug)
-  requestHeaders.set('x-tenant-name',    tenant.name)
-  requestHeaders.set('x-tenant-modules', tenant.activeModules.join(','))
-
-  return NextResponse.next({
-    request: { headers: requestHeaders },
-  })
+  // ── CASO C: Host desconocido ──────────────────────────────────────────────
+  return new NextResponse('No encontrado', { status: 404 })
 }
 
 export const config = {

@@ -7,7 +7,7 @@
  */
 
 import { useState, useTransition } from 'react'
-import { createTenant, type ModuleKey } from '../../actions'
+import { createTenant, type ModuleKey } from '../../../actions'
 import { SlugInput } from './_components/slug-input'
 
 // Módulos disponibles para activar en una nueva campaña

@@ -1,5 +1,5 @@
 import { DataTable } from '@campaignos/ui'
-import { listTenants, toggleTenantStatus, type TenantSummary } from '../actions'
+import { listTenants, toggleTenantStatus, type TenantSummary } from '../../actions'
 
 export const metadata = { title: 'Clientes — Superadmin' }
 

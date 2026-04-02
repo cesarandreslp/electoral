@@ -6,7 +6,6 @@
  * La connectionString NUNCA aparece en ningún valor de retorno.
  */
 
-import { auth } from '@campaignos/auth'
 import {
   superadminDb,
   getTenantDb,
@@ -16,6 +15,7 @@ import {
 } from '@campaignos/db'
 import bcrypt from 'bcryptjs'
 import { revalidatePath } from 'next/cache'
+import { requireAuth } from '@/lib/auth-helpers'
 
 // ── Tipos exportados ──────────────────────────────────────────────────────────
 
@@ -45,16 +45,6 @@ export interface TenantSummary {
   createdAt:     Date
 }
 
-// ── Helper de autorización ────────────────────────────────────────────────────
-
-/** Lanza si el caller no tiene rol SUPERADMIN */
-async function verificarSuperadmin(): Promise<void> {
-  const session = await auth()
-  if (!session?.user || session.user.role !== 'SUPERADMIN') {
-    throw new Error('No autorizado. Esta acción requiere rol SUPERADMIN.')
-  }
-}
-
 // ── Server Actions ────────────────────────────────────────────────────────────
 
 /**
@@ -67,7 +57,7 @@ export async function createTenant(
   data: CreateTenantInput
 ): Promise<{ success: true; tenantId: string } | { success: false; error: string }> {
   try {
-    await verificarSuperadmin()
+    await requireAuth(['SUPERADMIN'])
 
     // Validar slug: solo minúsculas, números y guiones, mínimo 3 caracteres
     const regexSlug = /^[a-z0-9-]{3,}$/
@@ -127,7 +117,7 @@ export async function createTenant(
  * NUNCA incluye connectionString en el retorno.
  */
 export async function listTenants(): Promise<TenantSummary[]> {
-  await verificarSuperadmin()
+  await requireAuth(['SUPERADMIN'])
 
   const tenants = await superadminDb.tenant.findMany({
     orderBy: { createdAt: 'desc' },
@@ -161,7 +151,7 @@ export async function toggleTenantStatus(
   tenantId: string
 ): Promise<{ success: boolean; isActive: boolean }> {
   try {
-    await verificarSuperadmin()
+    await requireAuth(['SUPERADMIN'])
 
     const actual = await superadminDb.tenant.findUnique({
       where:  { id: tenantId },

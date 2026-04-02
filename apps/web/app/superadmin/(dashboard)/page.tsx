@@ -1,4 +1,4 @@
-import { listTenants } from './actions'
+import { listTenants } from '../actions'
 
 export const metadata = { title: 'Dashboard — Superadmin' }
 

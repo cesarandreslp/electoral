@@ -16,6 +16,13 @@ const nextConfig: NextConfig = {
   // Activar React Strict Mode para detectar efectos secundarios en desarrollo
   reactStrictMode: true,
 
+  experimental: {
+    // Habilitar runtime Node.js en el middleware.
+    // Necesario porque middleware.ts importa @campaignos/db → ws (módulo Node.js puro).
+    // Sin esto, Next.js intenta correr el middleware en Edge Runtime y falla.
+    nodeMiddleware: true,
+  },
+
   // Configuración de headers de seguridad
   async headers() {
     return [
