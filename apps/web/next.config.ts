@@ -10,6 +10,11 @@ const withSerwist = withSerwistInit({
   swDest: 'public/sw.js',
   // Deshabilitar PWA en desarrollo para facilitar el hot reload
   disable: process.env.NODE_ENV === 'development',
+  // Rutas a pre-cachear al instalar el service worker
+  additionalPrecacheEntries: [
+    { url: '/pwa', revision: null },
+    { url: '/login', revision: null },
+  ],
 })
 
 const nextConfig: NextConfig = {

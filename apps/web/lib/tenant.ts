@@ -134,3 +134,37 @@ export async function getTenant(host: string): Promise<TenantContext | null> {
 export function invalidarCacheTenant(host: string): void {
   cache.delete(host)
 }
+
+// ── Caché de connectionStrings por tenantId ───────────────────────────────────
+// Separado del caché por host para acceso directo desde Server Actions.
+
+const cacheConexion = new Map<string, { connectionString: string; expiresAt: number }>()
+
+/**
+ * Obtiene la connectionString descifrada de un tenant por su ID.
+ * Usa un caché en memoria con TTL de 5 minutos.
+ * Usado por las Server Actions del Core para obtener la DB del tenant.
+ *
+ * @param tenantId - ID del tenant (viene de session.user.tenantId)
+ * @returns connectionString ya descifrada, lista para getTenantDb()
+ * @throws Error si el tenant no existe o está inactivo
+ */
+export async function getTenantConnection(tenantId: string): Promise<string> {
+  const entrada = cacheConexion.get(tenantId)
+  if (entrada && Date.now() < entrada.expiresAt) {
+    return entrada.connectionString
+  }
+
+  const tenant = await superadminDb.tenant.findUnique({
+    where: { id: tenantId, isActive: true },
+    select: { connectionString: true },
+  })
+
+  if (!tenant) {
+    throw new Error(`Tenant "${tenantId}" no encontrado o inactivo.`)
+  }
+
+  const connectionString = decrypt(tenant.connectionString)
+  cacheConexion.set(tenantId, { connectionString, expiresAt: Date.now() + TTL_MS })
+  return connectionString
+}

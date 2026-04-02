@@ -29,12 +29,13 @@ enum UserRole {
   TESTIGO       // Testigo electoral en mesa de votación
 }
 
-/// Estado de compromiso de voto de un elector
+/// Estado de compromiso de voto de un elector — funnel de contacto
 enum CommitmentStatus {
-  COMPROMETIDO    // Voto seguro
-  PROBABLE        // Alta probabilidad de voto
-  DUDOSO          // En proceso de convencimiento
-  NO_COMPROMETIDO // No apoya la campaña
+  SIN_CONTACTAR  // Aún no se ha hecho ningún contacto
+  CONTACTADO     // Se hizo contacto pero sin posición definida
+  SIMPATIZANTE   // Muestra interés positivo en la campaña
+  COMPROMETIDO   // Ha prometido su voto
+  VOTO_SEGURO    // Compromiso firme y confirmado
 }
 
 /// Tipo de división político-administrativa
@@ -116,6 +117,9 @@ model Leader {
   parent   Leader?  @relation("JerarquiaLideres", fields: [parentLeaderId], references: [id])
   children Leader[] @relation("JerarquiaLideres")
   voters   Voter[]
+
+  @@index([tenantId])
+  @@index([tenantId, parentLeaderId])
 }
 
 /// Elector registrado en la campaña.
@@ -130,8 +134,9 @@ model Voter {
   phone            String?
   leaderId         String?          // Líder responsable de este elector
   votingTableId    String?          // Mesa donde está inscrito
-  commitmentStatus CommitmentStatus @default(PROBABLE)
+  commitmentStatus CommitmentStatus @default(SIN_CONTACTAR)
   lastContact      DateTime?        // Último contacto registrado
+  notes            String?          // Notas del líder sobre el elector
   createdAt        DateTime         @default(now())
 
   leader      Leader?      @relation(fields: [leaderId], references: [id])
@@ -139,6 +144,8 @@ model Voter {
 
   // Un elector no puede estar duplicado dentro del mismo tenant
   @@unique([tenantId, cedula])
+  @@index([tenantId, leaderId])
+  @@index([tenantId, commitmentStatus])
 }
 
 // ─── ESTRUCTURA TERRITORIAL DIVIPOLA ─────────────────────────────────────────
