@@ -24,6 +24,7 @@ interface Elector {
   commitmentStatus: CommitmentStatus
   lastContact:      string | null
   notes:            string | null
+  qrTokenUsed:      string | null
 }
 
 const ESTADOS: { value: CommitmentStatus; label: string; color: string; bg: string }[] = [
@@ -47,6 +48,7 @@ export default function FichaElectorPwaPage() {
 
   const [notas,     setNotas]     = useState('')
   const [feedback,  setFeedback]  = useState<{ tipo: 'ok' | 'error'; msg: string } | null>(null)
+  const [copiado,   setCopiado]   = useState(false)
 
   const [isPending, startTransition] = useTransition()
 
@@ -140,6 +142,43 @@ export default function FichaElectorPwaPage() {
           >
             📞 Llamar
           </a>
+        )}
+
+        {/* Botón link de referido */}
+        {elector.qrTokenUsed && (
+          <button
+            onClick={() => {
+              const link = `${window.location.origin}/registro/${elector.qrTokenUsed}?ref=${elector.id}`
+              navigator.clipboard.writeText(link).then(() => {
+                setCopiado(true)
+                setTimeout(() => setCopiado(false), 2500)
+              }).catch(() => {
+                const el = document.createElement('input')
+                el.value = link
+                document.body.appendChild(el)
+                el.select()
+                document.execCommand('copy')
+                document.body.removeChild(el)
+                setCopiado(true)
+                setTimeout(() => setCopiado(false), 2500)
+              })
+            }}
+            style={{
+              display:      'inline-block',
+              marginTop:    '0.5rem',
+              marginLeft:   elector.phone ? '0.5rem' : '0',
+              background:   copiado ? '#dcfce7' : '#f1f5f9',
+              color:        copiado ? '#166534' : '#475569',
+              border:       'none',
+              padding:      '0.5rem 1rem',
+              borderRadius: '8px',
+              fontSize:     '0.875rem',
+              fontWeight:   600,
+              cursor:       'pointer',
+            }}
+          >
+            {copiado ? '¡Copiado!' : '🔗 Copiar link de referido'}
+          </button>
         )}
       </div>
 

@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 import Link        from 'next/link'
-import { requireAuthOrRedirect } from '@/lib/auth-helpers'
+import { requireAuthOrRedirect }  from '@/lib/auth-helpers'
+import { BadgeNotificaciones }    from './_components/badge-notificaciones'
 
 // Next.js requiere default export en layout.tsx
 export default async function CoreLayout({ children }: { children: React.ReactNode }) {
@@ -26,14 +27,14 @@ export default async function CoreLayout({ children }: { children: React.ReactNo
       {/* Sidebar de navegación */}
       <aside
         style={{
-          width:          '220px',
-          background:     '#0f172a',
-          color:          '#fff',
-          padding:        '1.5rem 1rem',
-          display:        'flex',
-          flexDirection:  'column',
-          gap:            '0.5rem',
-          flexShrink:     0,
+          width:         '220px',
+          background:    '#0f172a',
+          color:         '#fff',
+          padding:       '1.5rem 1rem',
+          display:       'flex',
+          flexDirection: 'column',
+          gap:           '0.5rem',
+          flexShrink:    0,
         }}
       >
         <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '1.5rem' }}>
@@ -48,6 +49,12 @@ export default async function CoreLayout({ children }: { children: React.ReactNo
           <NavLink href="/core/lideres">Líderes</NavLink>
           <NavLink href="/core/electores">Electores</NavLink>
           {esAdmin && <NavLink href="/core/importar">Importar</NavLink>}
+          {esAdmin && <NavLink href="/core/qr">QR de captación</NavLink>}
+          {/* Badge de notificaciones junto al link de alertas */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <NavLink href="/core/alertas">Alertas</NavLink>
+            <BadgeNotificaciones />
+          </div>
         </nav>
 
         <div style={{ marginTop: 'auto', fontSize: '0.75rem', opacity: 0.5 }}>

@@ -58,6 +58,7 @@ export async function GET(request: NextRequest) {
         lastContact:      true,
         votingTableId:    true,
         notes:            true,
+        qrTokenUsed:      true,   // Token del QR usado en el registro — permite construir el link de referido
         // cedula: NUNCA
       },
       orderBy: [

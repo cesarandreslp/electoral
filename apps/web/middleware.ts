@@ -10,7 +10,7 @@ export const runtime = 'nodejs'
 // Las rutas públicas NO requieren sesión activa.
 
 const RUTAS_PUBLICAS_SUPERADMIN = ['/superadmin/login']
-const RUTAS_PUBLICAS_TENANT     = ['/login']
+const RUTAS_PUBLICAS_TENANT     = ['/login', '/registro/']
 
 // Rutas que siempre se permiten sin importar el host (API de auth, archivos, etc.)
 const RUTAS_SIEMPRE_PERMITIDAS  = ['/api/auth']

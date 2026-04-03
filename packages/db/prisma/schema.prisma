@@ -129,23 +129,78 @@ model Voter {
   tenantId         String
   // CIFRADO: campo PII (número de cédula) — se cifra con AES-256 antes de persistir. Ver lib/crypto.ts
   cedula           String
+  // SHA-256 de la cédula en texto plano. Permite deduplicación sin exponer el valor original.
+  // Se calcula con: createHash('sha256').update(cedula.trim()).digest('hex')
+  cedulaHash       String?
   name             String
   // CIFRADO: campo PII — se cifra con AES-256 antes de persistir. Ver lib/crypto.ts
   phone            String?
+  address          String?          // Dirección física del elector
   leaderId         String?          // Líder responsable de este elector
   votingTableId    String?          // Mesa donde está inscrito
   commitmentStatus CommitmentStatus @default(SIN_CONTACTAR)
   lastContact      DateTime?        // Último contacto registrado
   notes            String?          // Notas del líder sobre el elector
+  // Árbol de captación por referidos
+  referredById     String?          // FK al Voter que refirió a esta persona
+  captureDepth     Int              @default(0) // Nivel en el árbol de captación (0 = directo del líder)
+  qrTokenUsed      String?          // Token del QR que usó para registrarse
   createdAt        DateTime         @default(now())
 
   leader      Leader?      @relation(fields: [leaderId], references: [id])
   votingTable VotingTable? @relation(fields: [votingTableId], references: [id])
+  referredBy  Voter?       @relation("VoterReferrals", fields: [referredById], references: [id])
+  referrals   Voter[]      @relation("VoterReferrals")
 
-  // Un elector no puede estar duplicado dentro del mismo tenant
+  // Un elector no puede estar duplicado dentro del mismo tenant (por cédula cifrada)
   @@unique([tenantId, cedula])
+  // Deduplicación por SHA-256 de cédula — permite búsqueda rápida de duplicados
+  @@unique([tenantId, cedulaHash])
   @@index([tenantId, leaderId])
   @@index([tenantId, commitmentStatus])
+}
+
+/// QR de captación generado por un líder. El token genera la URL pública de registro.
+model QrRegistration {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  leaderId           String
+  token              String    @unique  // crypto.randomUUID() — siempre generado en el servidor
+  isActive           Boolean   @default(true)
+  expiresAt          DateTime?           // null = sin vencimiento
+  registrationsCount Int       @default(0) // Incrementa con cada registro exitoso
+  createdAt          DateTime  @default(now())
+
+  @@index([tenantId, leaderId])
+  @@unique([tenantId, token])
+}
+
+/// Alerta de cédula duplicada entre dos líderes.
+/// Nunca contiene la cédula en texto plano — solo su SHA-256.
+model VoterDuplicateAlert {
+  id                  String   @id @default(cuid())
+  tenantId            String
+  cedulaHash          String   // SHA-256 de la cédula — NUNCA la cédula en plano
+  firstLeaderId       String   // Líder que la registró primero
+  duplicateLeaderId   String   // Líder que intentó registrarla después
+  status              String   @default("PENDIENTE") // PENDIENTE | REVISADA
+  detectedAt          DateTime @default(now())
+
+  @@index([tenantId, cedulaHash])
+}
+
+/// Notificación para un usuario del tenant.
+model Notification {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  type      String   // DUPLICADO_ELECTOR | QR_REGISTRO | etc.
+  message   String
+  isRead    Boolean  @default(false)
+  metadata  Json?    // Datos adicionales según el tipo
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, userId, isRead])
 }
 
 // ─── ESTRUCTURA TERRITORIAL DIVIPOLA ─────────────────────────────────────────

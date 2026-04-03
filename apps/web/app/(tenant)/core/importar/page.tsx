@@ -1,219 +1,239 @@
 'use client'
 
 /**
- * Página de importación masiva de electores desde CSV.
+ * Página de importación de electores — Excel bidireccional.
+ *
  * Flujo:
- *   1. El usuario sube un archivo CSV
- *   2. Se parsea el CSV en el browser y se muestra preview de las primeras 5 filas
- *   3. Al confirmar, se envía al Server Action importVoters()
- *   4. Se muestra el resultado: creados, omitidos, errores
+ *   1. Descargar plantilla Excel (.xlsx)
+ *   2. Rellenar y subir el archivo
+ *   3. Preview de las primeras 5 filas (POST ?preview=true — sin persistir)
+ *   4. Confirmar → POST sin flag → procesa e importa
+ *   5. Resultado: creados · saltados · duplicados · errores
  */
 
 import { useState, useRef, useTransition } from 'react'
-import { importVoters, type ImportVoterRow, type ImportResult } from '../actions'
+import Link from 'next/link'
 
-// Columnas esperadas en el CSV
-const COLUMNAS = ['cedula', 'name', 'phone', 'leaderName', 'commitmentStatus']
+interface Preview {
+  headers: string[]
+  rows:    string[][]
+  total:   number
+}
+
+interface ImportResult {
+  created:    number
+  skipped:    number
+  duplicates: number
+  errors:     string[]
+}
 
 export default function ImportarPage() {
-  const [filas,       setFilas]       = useState<ImportVoterRow[]>([])
-  const [preview,     setPreview]     = useState<string[][]>([])
-  const [archivoNom,  setArchivoNom]  = useState('')
-  const [resultado,   setResultado]   = useState<ImportResult | null>(null)
-  const [error,       setError]       = useState<string | null>(null)
+  const [leaderId,   setLeaderId]   = useState('')
+  const [preview,    setPreview]    = useState<Preview | null>(null)
+  const [archivoNom, setArchivoNom] = useState('')
+  const [archivo,    setArchivo]    = useState<File | null>(null)
+  const [resultado,  setResultado]  = useState<ImportResult | null>(null)
+  const [error,      setError]      = useState<string | null>(null)
 
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef                    = useRef<HTMLInputElement>(null)
   const [isPending, startTransition] = useTransition()
 
-  function parsearCSV(texto: string): string[][] {
-    return texto
-      .split('\n')
-      .map(l => l.trim())
-      .filter(Boolean)
-      .map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g, '')))
-  }
-
   function handleArchivo(e: React.ChangeEvent<HTMLInputElement>) {
-    const archivo = e.target.files?.[0]
-    if (!archivo) return
-
-    setArchivoNom(archivo.name)
+    const f = e.target.files?.[0]
+    if (!f) return
+    setArchivo(f)
+    setArchivoNom(f.name)
+    setPreview(null)
     setResultado(null)
     setError(null)
+  }
 
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const texto = ev.target?.result as string
-      const tabla = parsearCSV(texto)
+  async function handlePreview() {
+    if (!archivo) return
+    setError(null)
 
-      if (tabla.length < 2) {
-        setError('El archivo parece estar vacío o sin datos.')
+    const fd = new FormData()
+    fd.append('file',     archivo)
+    fd.append('leaderId', leaderId || '__none__')
+
+    startTransition(async () => {
+      const res = await fetch('/api/core/importar-excel?preview=true', { method: 'POST', body: fd })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error ?? 'Error al leer el archivo.')
         return
       }
-
-      // Verificar encabezados
-      const encabezados = tabla[0].map(h => h.toLowerCase())
-      const cedulaIdx   = encabezados.indexOf('cedula')
-      const nameIdx     = encabezados.indexOf('name') !== -1 ? encabezados.indexOf('name') : encabezados.indexOf('nombre')
-
-      if (cedulaIdx === -1 || nameIdx === -1) {
-        setError('El archivo debe tener columnas "cedula" y "name" (o "nombre").')
+      const data: Preview = await res.json()
+      if (!data.total) {
+        setError('El archivo no contiene datos válidos.')
         return
       }
-
-      const filasDatos = tabla.slice(1)
-      const rows: ImportVoterRow[] = filasDatos.map(fila => ({
-        cedula:     fila[cedulaIdx]  ?? '',
-        name:       fila[nameIdx]    ?? '',
-        phone:      fila[encabezados.indexOf('phone')]        || undefined,
-        leaderName: fila[encabezados.indexOf('leadername')]   || undefined,
-        commitmentStatus: (fila[encabezados.indexOf('commitmentstatus')] as any) || undefined,
-      }))
-
-      setFilas(rows)
-      setPreview(tabla.slice(0, 6)) // Encabezado + 5 filas
-    }
-    reader.readAsText(archivo, 'UTF-8')
+      setPreview(data)
+    })
   }
 
   function handleImportar() {
-    if (filas.length === 0) return
+    if (!archivo || !leaderId) return
+    setError(null)
+
+    const fd = new FormData()
+    fd.append('file',     archivo)
+    fd.append('leaderId', leaderId)
+
     startTransition(async () => {
-      const res = await importVoters(filas)
-      setResultado(res)
-      setFilas([])
-      setPreview([])
+      const res = await fetch('/api/core/importar-excel', { method: 'POST', body: fd })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error ?? 'Error al importar.')
+        return
+      }
+      const data: ImportResult = await res.json()
+      setResultado(data)
+      setPreview(null)
+      setArchivo(null)
       setArchivoNom('')
       if (inputRef.current) inputRef.current.value = ''
     })
   }
 
-  // Generar y descargar template CSV
-  function descargarTemplate() {
-    const contenido = [
-      'cedula,name,phone,leaderName,commitmentStatus',
-      '12345678,María García,3001234567,Juan Pérez,SIN_CONTACTAR',
-      '87654321,Carlos López,,Ana Martínez,CONTACTADO',
-    ].join('\n')
-
-    const blob = new Blob([contenido], { type: 'text/csv;charset=utf-8;' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
-    a.download = 'plantilla-electores.csv'
-    a.click()
-    URL.revokeObjectURL(url)
+  function limpiar() {
+    setArchivo(null); setArchivoNom(''); setPreview(null); setResultado(null); setError(null)
+    if (inputRef.current) inputRef.current.value = ''
   }
 
   return (
     <div style={{ maxWidth: '800px' }}>
       <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Importar electores</h1>
       <p style={{ color: '#64748b', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-        Sube un archivo CSV con los electores. La cédula se cifrará automáticamente.
-        Los electores con cédula duplicada se omitirán.
+        Descarga la plantilla, complétala y súbela. Las cédulas se cifran automáticamente.
+        Los duplicados entre líderes generan alertas automáticas.
       </p>
 
-      {/* Botón de template */}
+      {/* Botón descargar plantilla */}
       <div style={{ marginBottom: '1.5rem' }}>
-        <button
-          onClick={descargarTemplate}
+        <a
+          href="/api/core/plantilla-excel"
+          download
           style={{
-            background: '#f1f5f9', color: '#475569', padding: '0.5rem 1rem',
-            borderRadius: '6px', border: '1px solid #e2e8f0', cursor: 'pointer', fontSize: '0.875rem',
+            display: 'inline-block', background: '#f1f5f9', color: '#475569',
+            padding: '0.5rem 1rem', borderRadius: '6px', border: '1px solid #e2e8f0',
+            textDecoration: 'none', fontSize: '0.875rem',
           }}
         >
-          Descargar plantilla CSV
-        </button>
+          Descargar plantilla Excel
+        </a>
       </div>
 
       {/* Columnas esperadas */}
       <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.75rem 1rem', marginBottom: '1.5rem' }}>
-        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '0.5rem' }}>Columnas del CSV:</div>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {COLUMNAS.map((c) => (
-            <code key={c} style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.8rem' }}>
-              {c}
-            </code>
+        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', marginBottom: '0.4rem' }}>Columnas del Excel (en este orden):</div>
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          {['nombre', 'cedula', 'telefono', 'direccion', 'lider_id', 'puesto_id', 'mesa_id'].map((c) => (
+            <code key={c} style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '0.1rem 0.4rem', borderRadius: '4px', fontSize: '0.78rem' }}>{c}</code>
           ))}
         </div>
-        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
-          Solo cedula y name son obligatorios. commitmentStatus: SIN_CONTACTAR | CONTACTADO | SIMPATIZANTE | COMPROMETIDO | VOTO_SEGURO
-        </div>
+        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.4rem' }}>Solo nombre y cedula son obligatorios.</div>
+      </div>
+
+      {/* Selector de líder asignado */}
+      <div style={{ marginBottom: '1rem' }}>
+        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.25rem' }}>
+          ID del líder asignado a estos electores *
+        </label>
+        <input
+          type="text"
+          value={leaderId}
+          onChange={e => setLeaderId(e.target.value)}
+          placeholder="Pegar el ID del líder desde la ficha del líder"
+          style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.875rem', boxSizing: 'border-box' }}
+        />
       </div>
 
       {/* Upload */}
       <div
         style={{
-          border:       '2px dashed #cbd5e1', borderRadius: '8px', padding: '2rem',
-          textAlign:    'center', marginBottom: '1.5rem', background: '#fafafa',
+          border: '2px dashed #cbd5e1', borderRadius: '8px', padding: '2rem',
+          textAlign: 'center', marginBottom: '1rem', background: '#fafafa',
         }}
       >
-        <input
-          ref={inputRef} type="file" accept=".csv,.txt"
-          onChange={handleArchivo}
-          style={{ display: 'none' }} id="csv-input"
-        />
-        <label htmlFor="csv-input" style={{ cursor: 'pointer' }}>
-          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📂</div>
+        <input ref={inputRef} type="file" accept=".xlsx,.xls" onChange={handleArchivo} style={{ display: 'none' }} id="xlsx-input" />
+        <label htmlFor="xlsx-input" style={{ cursor: 'pointer' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📊</div>
           <div style={{ fontSize: '0.875rem', color: '#475569' }}>
-            {archivoNom || 'Haz clic para seleccionar un archivo CSV'}
+            {archivoNom || 'Haz clic para seleccionar archivo Excel (.xlsx)'}
           </div>
         </label>
       </div>
 
+      {/* Botones de acción */}
+      {archivo && !preview && (
+        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+          <button
+            onClick={handlePreview} disabled={isPending}
+            style={{
+              background: isPending ? '#94a3b8' : '#0f172a', color: '#fff',
+              padding: '0.625rem 1.25rem', borderRadius: '6px', border: 'none',
+              cursor: isPending ? 'not-allowed' : 'pointer', fontSize: '0.875rem', fontWeight: 600,
+            }}
+          >
+            {isPending ? 'Leyendo...' : 'Ver preview'}
+          </button>
+          <button onClick={limpiar} style={{ background: 'transparent', color: '#64748b', padding: '0.625rem 1.25rem', borderRadius: '6px', border: '1px solid #e2e8f0', cursor: 'pointer', fontSize: '0.875rem' }}>
+            Cancelar
+          </button>
+        </div>
+      )}
+
       {/* Preview */}
-      {preview.length > 0 && (
+      {preview && (
         <div style={{ marginBottom: '1.5rem' }}>
           <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.75rem' }}>
-            Vista previa ({filas.length} registros a importar)
+            Vista previa — {preview.total} registros a importar
           </div>
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto', marginBottom: '1rem' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
               <thead>
                 <tr style={{ background: '#f8fafc' }}>
-                  {preview[0].map((col, i) => (
-                    <th key={i} style={{ padding: '0.5rem 0.75rem', textAlign: 'left', color: '#64748b', fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>
-                      {col}
-                    </th>
+                  {preview.headers.map((h, i) => (
+                    <th key={i} style={{ padding: '0.5rem 0.75rem', textAlign: 'left', color: '#64748b', fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {preview.slice(1).map((fila, i) => (
+                {preview.rows.map((fila, i) => (
                   <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    {fila.map((cel, j) => (
-                      <td key={j} style={{ padding: '0.5rem 0.75rem' }}>{cel}</td>
-                    ))}
+                    {fila.map((cel, j) => <td key={j} style={{ padding: '0.5rem 0.75rem' }}>{cel}</td>)}
                   </tr>
                 ))}
               </tbody>
             </table>
+            {preview.total > 5 && (
+              <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem', textAlign: 'center' }}>
+                Mostrando 5 de {preview.total} filas
+              </div>
+            )}
           </div>
 
-          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
             <button
-              onClick={handleImportar} disabled={isPending}
+              onClick={handleImportar} disabled={isPending || !leaderId}
               style={{
-                background: isPending ? '#94a3b8' : '#0f172a', color: '#fff',
+                background: (isPending || !leaderId) ? '#94a3b8' : '#0f172a', color: '#fff',
                 padding: '0.625rem 1.25rem', borderRadius: '6px', border: 'none',
-                cursor: isPending ? 'not-allowed' : 'pointer', fontSize: '0.875rem', fontWeight: 600,
+                cursor: (isPending || !leaderId) ? 'not-allowed' : 'pointer', fontSize: '0.875rem', fontWeight: 600,
               }}
             >
-              {isPending ? 'Importando...' : `Importar ${filas.length} registros`}
+              {isPending ? 'Importando...' : `Confirmar e importar ${preview.total} registros`}
             </button>
-            <button
-              onClick={() => { setFilas([]); setPreview([]); setArchivoNom(''); if (inputRef.current) inputRef.current.value = '' }}
-              style={{
-                background: 'transparent', color: '#64748b', padding: '0.625rem 1.25rem',
-                borderRadius: '6px', border: '1px solid #e2e8f0', cursor: 'pointer', fontSize: '0.875rem',
-              }}
-            >
+            <button onClick={limpiar} style={{ background: 'transparent', color: '#64748b', padding: '0.625rem 1.25rem', borderRadius: '6px', border: '1px solid #e2e8f0', cursor: 'pointer', fontSize: '0.875rem' }}>
               Cancelar
             </button>
           </div>
+          {!leaderId && <div style={{ fontSize: '0.75rem', color: '#ef4444', marginTop: '0.5rem' }}>Debes ingresar el ID del líder antes de importar.</div>}
         </div>
       )}
 
+      {/* Error */}
       {error && (
         <div style={{ padding: '0.75rem 1rem', background: '#fee2e2', color: '#991b1b', borderRadius: '6px', fontSize: '0.875rem', marginBottom: '1rem' }}>
           {error}
@@ -225,16 +245,25 @@ export default function ImportarPage() {
         <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.25rem' }}>
           <div style={{ fontWeight: 600, marginBottom: '1rem' }}>Resultado de la importación</div>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-            <Stat label="Creados"  valor={resultado.created} color="#166534" />
-            <Stat label="Omitidos" valor={resultado.skipped} color="#854d0e" />
-            <Stat label="Errores"  valor={resultado.errors.length} color="#991b1b" />
+            <StatCard label="Creados"     valor={resultado.created}    color="#166534" bg="#dcfce7" />
+            <StatCard label="Saltados"    valor={resultado.skipped}    color="#854d0e" bg="#fef9c3" />
+            <StatCard label="Duplicados"  valor={resultado.duplicates} color="#991b1b" bg="#fee2e2" />
+            <StatCard label="Errores"     valor={resultado.errors.length} color="#475569" bg="#f1f5f9" />
           </div>
+
+          {resultado.duplicates > 0 && (
+            <div style={{ background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '6px', padding: '0.75rem 1rem', marginBottom: '0.75rem', fontSize: '0.875rem', color: '#9a3412' }}>
+              Se detectaron {resultado.duplicates} cédula(s) ya registradas con otro líder.{' '}
+              <Link href="/core/alertas" style={{ color: '#1e40af' }}>Ver alertas de duplicados →</Link>
+            </div>
+          )}
+
           {resultado.errors.length > 0 && (
             <div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#991b1b', marginBottom: '0.5rem' }}>Errores:</div>
-              <ul style={{ fontSize: '0.8rem', color: '#991b1b', paddingLeft: '1.25rem' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#991b1b', marginBottom: '0.5rem' }}>Errores de validación:</div>
+              <ul style={{ fontSize: '0.8rem', color: '#991b1b', paddingLeft: '1.25rem', margin: 0 }}>
                 {resultado.errors.slice(0, 20).map((e, i) => <li key={i}>{e}</li>)}
-                {resultado.errors.length > 20 && <li>...y {resultado.errors.length - 20} errores más.</li>}
+                {resultado.errors.length > 20 && <li>...y {resultado.errors.length - 20} más.</li>}
               </ul>
             </div>
           )}
@@ -244,9 +273,9 @@ export default function ImportarPage() {
   )
 }
 
-function Stat({ label, valor, color }: { label: string; valor: number; color: string }) {
+function StatCard({ label, valor, color, bg }: { label: string; valor: number; color: string; bg: string }) {
   return (
-    <div style={{ textAlign: 'center', padding: '0.75rem 1rem', background: '#f8fafc', borderRadius: '6px', minWidth: '100px' }}>
+    <div style={{ textAlign: 'center', padding: '0.75rem 1rem', background: bg, borderRadius: '6px', minWidth: '100px' }}>
       <div style={{ fontSize: '1.5rem', fontWeight: 700, color }}>{valor}</div>
       <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{label}</div>
     </div>

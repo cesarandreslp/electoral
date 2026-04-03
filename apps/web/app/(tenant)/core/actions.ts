@@ -8,10 +8,16 @@
  *   - Nunca retornan cédula ni connectionString al cliente
  */
 
+import { createHash }                 from 'crypto'
 import { requireAuth, requireModule } from '@/lib/auth-helpers'
 import { getTenantConnection }        from '@/lib/tenant'
 import { getTenantDb, encrypt }       from '@campaignos/db'
 import { revalidatePath }             from 'next/cache'
+
+/** Calcula el SHA-256 de una cédula normalizada. Nunca exponer el resultado fuera de server. */
+export function calcularCedulaHash(cedula: string): string {
+  return createHash('sha256').update(cedula.trim()).digest('hex')
+}
 
 // ── Tipos exportados ──────────────────────────────────────────────────────────
 
@@ -311,14 +317,29 @@ export async function createVoter(
       if (!mesa) return { success: false, error: 'La mesa de votación no existe.' }
     }
 
-    // Cifrar campos PII
-    const cedulaCifrada = encrypt(data.cedula)
+    // Cifrar campos PII y calcular hash de cédula para deduplicación
+    const cedulaNorm    = data.cedula.trim()
+    const cedulaHash    = calcularCedulaHash(cedulaNorm)
+    const cedulaCifrada = encrypt(cedulaNorm)
     const phoneCifrado  = data.phone ? encrypt(data.phone) : undefined
+
+    // Verificar duplicado antes de crear (usa cedulaHash, nunca la cédula cifrada)
+    const existente = await db.voter.findFirst({
+      where: { tenantId: session.user.tenantId, cedulaHash },
+      select: { id: true, leaderId: true },
+    })
+    if (existente) {
+      if (existente.leaderId === data.leaderId) {
+        return { success: false, error: 'Ya existe un elector con esa cédula asignado a este líder.' }
+      }
+      return { success: false, error: 'Ya existe un elector con esa cédula en esta campaña.' }
+    }
 
     const elector = await db.voter.create({
       data: {
         tenantId:         session.user.tenantId,
         cedula:           cedulaCifrada,
+        cedulaHash,
         name:             data.name,
         phone:            phoneCifrado,
         leaderId:         data.leaderId,
@@ -495,4 +516,62 @@ export async function importVoters(rows: ImportVoterRow[]): Promise<ImportResult
 
   revalidatePath('/core/electores')
   return { created, skipped, errors }
+}
+
+// ── Alerta de duplicados ──────────────────────────────────────────────────────
+
+interface AlertaDuplicadoInput {
+  tenantId:          string
+  cedulaHash:        string
+  firstLeaderId:     string   // Líder que registró primero
+  duplicateLeaderId: string   // Líder que intentó registrar después
+  // userId de cada líder para enviarles la notificación
+  firstUserId?:      string
+  duplicateUserId?:  string
+}
+
+/**
+ * Crea un VoterDuplicateAlert y dos Notifications (una por líder involucrado).
+ * Función reutilizada por importación Excel y por registro por QR.
+ * La cédula NUNCA aparece aquí — solo su SHA-256.
+ */
+export async function crearAlertaDuplicado(
+  data:   AlertaDuplicadoInput,
+  db:     ReturnType<typeof getTenantDb>,
+): Promise<void> {
+  // Crear alerta
+  await db.voterDuplicateAlert.create({
+    data: {
+      tenantId:          data.tenantId,
+      cedulaHash:        data.cedulaHash,
+      firstLeaderId:     data.firstLeaderId,
+      duplicateLeaderId: data.duplicateLeaderId,
+    },
+  })
+
+  // Crear notificación para el líder original (el que registró primero)
+  if (data.firstUserId) {
+    await db.notification.create({
+      data: {
+        tenantId: data.tenantId,
+        userId:   data.firstUserId,
+        type:     'DUPLICADO_ELECTOR',
+        message:  'La persona que registraste también aparece en la lista de otro líder. Eres el registrador original.',
+        metadata: { cedulaHash: data.cedulaHash, duplicateLeaderId: data.duplicateLeaderId },
+      },
+    })
+  }
+
+  // Crear notificación para el líder que intentó duplicar
+  if (data.duplicateUserId) {
+    await db.notification.create({
+      data: {
+        tenantId: data.tenantId,
+        userId:   data.duplicateUserId,
+        type:     'DUPLICADO_ELECTOR',
+        message:  'La persona que intentaste registrar ya está vinculada a otro líder. No fue agregada a tu lista.',
+        metadata: { cedulaHash: data.cedulaHash, firstLeaderId: data.firstLeaderId },
+      },
+    })
+  }
 }

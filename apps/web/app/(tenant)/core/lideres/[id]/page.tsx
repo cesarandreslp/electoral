@@ -50,17 +50,29 @@ export default async function FichaLiderPage({ params }: Props) {
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem' }}>{lider.name}</h1>
           {lider.zone && <div style={{ color: '#64748b', fontSize: '0.875rem' }}>{lider.zone}</div>}
         </div>
-        {esAdmin && (
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
           <Link
-            href={`/core/lideres/${id}/editar`}
+            href={`/core/lideres/${id}/arbol`}
             style={{
-              background: '#0f172a', color: '#fff', padding: '0.5rem 1rem',
+              background: '#f1f5f9', color: '#475569', padding: '0.5rem 1rem',
               borderRadius: '6px', textDecoration: 'none', fontSize: '0.875rem',
+              border: '1px solid #e2e8f0',
             }}
           >
-            Editar
+            Árbol de captación →
           </Link>
-        )}
+          {esAdmin && (
+            <Link
+              href={`/core/lideres/${id}/editar`}
+              style={{
+                background: '#0f172a', color: '#fff', padding: '0.5rem 1rem',
+                borderRadius: '6px', textDecoration: 'none', fontSize: '0.875rem',
+              }}
+            >
+              Editar
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Métricas */}
