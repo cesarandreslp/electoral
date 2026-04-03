@@ -9,7 +9,7 @@
  * acceden mediante clientes Prisma apuntando a bases de datos distintas.
  */
 
-import { neonConfig, Pool } from '@neondatabase/serverless'
+import { neonConfig } from '@neondatabase/serverless'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import { PrismaClient } from '@prisma/client'
 import ws from 'ws'
@@ -35,8 +35,7 @@ function crearClienteSuperadmin(): PrismaClient {
         'Verifica tu archivo .env en la raíz del monorepo.'
     )
   }
-  const pool = new Pool({ connectionString })
-  const adapter = new PrismaNeon(pool)
+  const adapter = new PrismaNeon({ connectionString })
   return new PrismaClient({ adapter })
 }
 
@@ -61,8 +60,7 @@ if (process.env.NODE_ENV !== 'production') {
  * @returns Cliente Prisma configurado para la DB del tenant
  */
 export function getTenantDb(connectionString: string): PrismaClient {
-  const pool = new Pool({ connectionString })
-  const adapter = new PrismaNeon(pool)
+  const adapter = new PrismaNeon({ connectionString })
   return new PrismaClient({ adapter })
 }
 

@@ -25,6 +25,7 @@ const nextConfig: NextConfig = {
     // Habilitar runtime Node.js en el middleware.
     // Necesario porque middleware.ts importa @campaignos/db → ws (módulo Node.js puro).
     // Sin esto, Next.js intenta correr el middleware en Edge Runtime y falla.
+    // @ts-expect-error — nodeMiddleware existe en Next 15.x pero aún no está en los tipos publicados
     nodeMiddleware: true,
   },
 

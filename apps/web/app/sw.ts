@@ -1,5 +1,8 @@
-import { defaultCache } from '@serwist/next/worker'
-import { Serwist }      from 'serwist'
+/// <reference lib="webworker" />
+/// <reference types="@serwist/next/typings" />
+
+import { defaultCache }  from '@serwist/next/worker'
+import { Serwist, NetworkFirst } from 'serwist'
 
 /**
  * Service worker de CampaignOS.
@@ -11,7 +14,8 @@ import { Serwist }      from 'serwist'
  *   - Las rutas estáticas y assets usan el caché predeterminado de Serwist.
  */
 
-declare const self: ServiceWorkerGlobalScope
+import type { PrecacheEntry } from 'serwist'
+declare const self: ServiceWorkerGlobalScope & { __SW_MANIFEST: (PrecacheEntry | string)[] }
 
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
@@ -21,36 +25,28 @@ const serwist = new Serwist({
   runtimeCaching: [
     // ── API Core — NetworkFirst para soporte offline ───────────────────────
     {
-      matcher:  /^\/api\/core\//,
-      handler:  'NetworkFirst',
-      options: {
-        cacheName:        'api-core-cache',
+      matcher: /^\/api\/core\//,
+      handler: new NetworkFirst({
+        cacheName:             'api-core-cache',
         networkTimeoutSeconds: 5,   // Si la red tarda más de 5s, usar caché
-        expiration: {
-          maxEntries:       200,
-          maxAgeSeconds:    24 * 60 * 60, // 1 día
-        },
-        cacheableResponse: {
-          statuses: [0, 200],
-        },
-      },
+        plugins: [
+          { cacheWillUpdate: async ({ response }) =>
+            response?.status === 200 ? response : null },
+        ],
+      }),
     },
 
     // ── Páginas de la PWA (/pwa/) — NetworkFirst ──────────────────────────
     {
-      matcher:  /^\/pwa\//,
-      handler:  'NetworkFirst',
-      options: {
-        cacheName:        'pwa-pages-cache',
+      matcher: /^\/pwa\//,
+      handler: new NetworkFirst({
+        cacheName:             'pwa-pages-cache',
         networkTimeoutSeconds: 3,
-        expiration: {
-          maxEntries:       50,
-          maxAgeSeconds:    7 * 24 * 60 * 60, // 7 días
-        },
-        cacheableResponse: {
-          statuses: [0, 200],
-        },
-      },
+        plugins: [
+          { cacheWillUpdate: async ({ response }) =>
+            response?.status === 200 ? response : null },
+        ],
+      }),
     },
 
     // ── Assets estáticos de Next.js — CacheFirst (cambian con hash) ───────

@@ -15,7 +15,8 @@ export interface DataTableProps<TRow> {
 
 // TODO: implementar con paginación, ordenamiento y filtros cuando se construya
 // la pantalla de gestión de líderes y electores
-export function DataTable<TRow extends Record<string, unknown>>({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function DataTable<TRow extends Record<string, any>>({
   columns,
   rows,
   keyField,

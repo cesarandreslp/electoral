@@ -8,6 +8,7 @@
 
 import { auth } from '@campaignos/auth'
 import { type UserRole } from '@campaignos/auth'
+import { type Session } from 'next-auth'
 import { redirect } from 'next/navigation'
 
 // ── Errores tipados ───────────────────────────────────────────────────────────
@@ -37,8 +38,11 @@ export class ModuloInactivoError extends Error {
 }
 
 // ── Tipo de sesión verificada ─────────────────────────────────────────────────
+// NextAuth v5 exporta `auth` como función sobrecargada (middleware + session getter).
+// ReturnType<typeof auth> resuelve al tipo de middleware, no al de sesión.
+// Usamos Session directamente para evitar el problema.
 
-type SessionVerificada = Awaited<ReturnType<typeof auth>> & object
+type SessionVerificada = Session & { user: NonNullable<Session['user']> }
 
 // ── requireAuth ───────────────────────────────────────────────────────────────
 
@@ -65,7 +69,7 @@ export async function requireAuth(rolesPermitidos: UserRole[] = []): Promise<Ses
     throw new NoAutorizadoError(rolesPermitidos)
   }
 
-  return session as SessionVerificada
+  return session as unknown as SessionVerificada
 }
 
 // ── requireModule ─────────────────────────────────────────────────────────────
@@ -114,5 +118,5 @@ export async function requireAuthOrRedirect(
     redirect('/no-autorizado')
   }
 
-  return session as SessionVerificada
+  return session as unknown as SessionVerificada
 }

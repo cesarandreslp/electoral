@@ -459,12 +459,13 @@ export async function listVoters(
  * La cédula se cifra por cada registro.
  */
 export async function importVoters(rows: ImportVoterRow[]): Promise<ImportResult> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
-  const db      = await obtenerDbTenant(session.user.tenantId)
+  const session  = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const tenantId = session.user.tenantId
+  const db       = await obtenerDbTenant(tenantId)
 
   // Construir mapa nombre → id de líderes para resolución rápida
   const lideres = await db.leader.findMany({
-    where:  { tenantId: session.user.tenantId },
+    where:  { tenantId },
     select: { id: true, name: true },
   })
   const mapaLideres = new Map(lideres.map((l) => [l.name.toLowerCase(), l.id]))
@@ -478,11 +479,13 @@ export async function importVoters(rows: ImportVoterRow[]): Promise<ImportResult
   for (let i = 0; i < rows.length; i += BATCH) {
     const lote = rows.slice(i, i + BATCH)
 
-    const datos = lote.map((row, idx) => {
-      const lineaNum = i + idx + 1
+    for (let j = 0; j < lote.length; j++) {
+      const row      = lote[j]
+      const lineaNum = i + j + 1
+
       if (!row.cedula?.trim() || !row.name?.trim()) {
         errors.push(`Fila ${lineaNum}: cédula y nombre son obligatorios.`)
-        return null
+        continue
       }
 
       const leaderId = row.leaderName
@@ -493,25 +496,49 @@ export async function importVoters(rows: ImportVoterRow[]): Promise<ImportResult
         errors.push(`Fila ${lineaNum}: líder "${row.leaderName}" no encontrado — se importa sin líder.`)
       }
 
-      return {
-        tenantId:         session.user.tenantId,
-        cedula:           encrypt(row.cedula.trim()),
-        name:             row.name.trim(),
-        phone:            row.phone ? encrypt(row.phone) : undefined,
-        leaderId:         leaderId ?? undefined,
-        commitmentStatus: row.commitmentStatus ?? 'SIN_CONTACTAR' as const,
+      const cedulaNorm   = row.cedula.trim()
+      const cedulaHash   = calcularCedulaHash(cedulaNorm)
+      const cedulaCifrada = encrypt(cedulaNorm)
+
+      // Verificación explícita por cedulaHash para distinguir:
+      //   mismo líder  → skip silencioso
+      //   otro líder   → alerta de duplicado
+      const existente = await db.voter.findFirst({
+        where:  { tenantId: session.user.tenantId, cedulaHash },
+        select: { id: true, leaderId: true },
+      })
+
+      if (existente) {
+        if (existente.leaderId !== (leaderId ?? null)) {
+          await crearAlertaDuplicado(
+            {
+              tenantId:          session.user.tenantId,
+              cedulaHash,
+              firstLeaderId:     existente.leaderId ?? (leaderId ?? ''),
+              duplicateLeaderId: leaderId ?? existente.leaderId ?? '',
+            },
+            db as any,
+          )
+          errors.push(`Fila ${lineaNum}: cédula ya existe bajo otro líder — se generó alerta de duplicado.`)
+        }
+        skipped++
+        continue
       }
-    }).filter(Boolean) as any[]
 
-    if (datos.length === 0) continue
-
-    const resultado = await db.voter.createMany({
-      data:           datos,
-      skipDuplicates: true,   // Omite cédulas ya existentes en el tenant
-    })
-
-    created += resultado.count
-    skipped += datos.length - resultado.count
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (db.voter.create as any)({
+        data: {
+          tenantId,
+          cedula:           cedulaCifrada,
+          cedulaHash,
+          name:             row.name.trim(),
+          phone:            row.phone ? encrypt(row.phone) : undefined,
+          leaderId:         leaderId ?? undefined,
+          commitmentStatus: row.commitmentStatus ?? 'SIN_CONTACTAR',
+        },
+      })
+      created++
+    }
   }
 
   revalidatePath('/core/electores')

@@ -10,8 +10,8 @@
 import { createHash }         from 'crypto'
 import * as XLSX              from 'xlsx'
 import { encrypt }            from '@campaignos/db'
-import { crearAlertaDuplicado } from '../actions'
-import type { PrismaClient }  from '@prisma/client'
+import { crearAlertaDuplicado } from '../../actions'
+import type { PrismaClient }  from '@campaignos/db'
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
 
