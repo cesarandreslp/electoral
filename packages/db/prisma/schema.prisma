@@ -451,3 +451,104 @@ model Certificate {
   @@unique([tenantId, userId, quizId])
   @@index([tenantId, userId])
 }
+
+// ─── MODELOS TENANT — MÓDULO DÍA E ──────────────────────────────────────────
+// Modelos específicos del módulo de Operación Electoral.
+
+/// Candidato configurado para la elección del tenant.
+/// El orden determina cómo aparecen en el formulario E-14.
+model Candidate {
+  id       String  @id @default(cuid())
+  tenantId String
+  name     String
+  party    String?
+  isOwn    Boolean @default(false) // true = nuestro candidato
+  order    Int     @default(0)
+
+  @@index([tenantId])
+}
+
+/// Asignación de un testigo a una mesa de votación.
+/// isPrimary=true es el testigo titular, false es suplente.
+model WitnessAssignment {
+  id            String    @id @default(cuid())
+  tenantId      String
+  userId        String    // testigo asignado
+  votingTableId String    // mesa asignada
+  isPrimary     Boolean   @default(true) // false = suplente
+  confirmedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@unique([tenantId, votingTableId, isPrimary])
+  @@index([tenantId, userId])
+}
+
+/// Transmisión del formulario E-14 para una mesa de votación.
+/// Almacena datos manuales, datos extraídos por IA, y verificación cruzada.
+/// groqResult y zhipuResult son para auditoría — NUNCA se retornan al cliente.
+model E14Transmission {
+  id              String   @id @default(cuid())
+  tenantId        String
+  votingTableId   String   @unique // una transmisión por mesa
+  witnessUserId   String
+
+  // Datos digitados manualmente por el testigo
+  manualData        Json?     // { candidateId: string, votes: number }[]
+  manualTotal       Int?
+  manualSubmittedAt DateTime?
+
+  // Datos extraídos de la foto por IA
+  photoUrl             String?  // URL en Vercel Blob
+  extractedData        Json?    // { candidateId: string, votes: number }[]
+  extractedTotal       Int?
+  extractionConfidence String?  // ALTA | MEDIA | BAJA
+  groqResult           Json?    // resultado crudo de Groq — solo auditoría
+  zhipuResult          Json?    // resultado crudo de Zhipu — solo auditoría
+  photoSubmittedAt     DateTime?
+
+  // Verificación cruzada
+  verificationStatus String @default("PENDIENTE")
+  // PENDIENTE | SOLO_MANUAL | SOLO_FOTO | VERIFICADO | ADVERTENCIA | BAJA_CONFIANZA
+  discrepancies Json? // qué candidatos difieren entre manual y foto
+
+  // Estado final
+  finalData   Json?      // datos definitivos a reportar
+  finalizedAt DateTime?
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, verificationStatus])
+}
+
+/// Incidente reportado desde campo durante la jornada electoral.
+model Incident {
+  id            String    @id @default(cuid())
+  tenantId      String
+  reportedBy    String    // userId
+  votingTableId String?
+  type          String    // IRREGULARIDAD | VIOLENCIA | FALTA_MATERIAL | AUSENCIA_TESTIGO | OTRO
+  description   String
+  severity      String    @default("MEDIA") // ALTA | MEDIA | BAJA
+  photoUrl      String?
+  status        String    @default("ABIERTO") // ABIERTO | EN_REVISION | RESUELTO
+  resolvedAt    DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([tenantId, status, severity])
+}
+
+/// Resultados electorales agregados por candidato (cache materializado).
+/// Se recalcula a partir de E14Transmission con estado final.
+model ElectionResult {
+  id            String   @id @default(cuid())
+  tenantId      String
+  candidateId   String   // identificador interno del candidato
+  candidateName String
+  totalVotes    Int      @default(0)
+  tableCount    Int      @default(0) // mesas reportadas
+  updatedAt     DateTime @updatedAt
+
+  @@unique([tenantId, candidateId])
+}
