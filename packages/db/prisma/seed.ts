@@ -120,6 +120,24 @@ async function main() {
   })
 
   console.log(`✓ Puesto de votación: ${puesto.name} (1 mesa)`)
+
+  // ── Material global de formación de ejemplo ────────────────────────────────
+  const materialGlobal = await db.globalTrainingMaterial.upsert({
+    where: { id: 'seed-material-guia-testigos' },
+    update: {},
+    create: {
+      id: 'seed-material-guia-testigos',
+      title: 'Guía para testigos electorales',
+      description: 'Material oficial de formación para testigos electorales y de escrutinio',
+      type: 'SLIDES',
+      fileUrl: 'https://gamma.app/docs/guia-para-Testigos-Electorales-8drs4myl6ufr7ep',
+      fileSize: null,
+      order: 1,
+      isActive: true,
+    },
+  })
+
+  console.log(`✓ Material global: ${materialGlobal.title}`)
   console.log('\nSeed completado correctamente.')
 
   await db.$disconnect()

@@ -107,6 +107,7 @@ model GlobalTrainingMaterial {
 model User {
   id           String   @id @default(cuid())
   tenantId     String
+  name         String?  // Nombre completo (opcional para no romper registros existentes)
   email        String
   passwordHash String   // Nunca almacenar contraseña en texto plano
   role         UserRole
@@ -336,4 +337,117 @@ model TenantMaterialPreference {
   customOrder      Int?
 
   @@unique([tenantId, globalMaterialId])
+}
+
+/// Material de formación propio del tenant (subido por ADMIN_CAMPANA).
+/// Se muestra DESPUÉS de los materiales globales en la vista del testigo.
+model TrainingMaterial {
+  id          String   @id @default(cuid())
+  tenantId    String
+  title       String
+  description String?
+  type        String   // SLIDES | PDF | VIDEO | INFOGRAFIA
+  fileUrl     String   // URL de Vercel Blob o URL externa
+  fileSize    Int?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+/// Sesión de capacitación programada por el admin del tenant.
+model TrainingSession {
+  id          String   @id @default(cuid())
+  tenantId    String
+  title       String
+  description String?
+  date        DateTime // Fecha y hora de la sesión
+  location    String?  // Lugar físico o "Virtual"
+  maxCapacity Int?     // null = sin límite
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  attendances TrainingAttendance[]
+
+  @@index([tenantId])
+}
+
+/// Registro de asistencia a una sesión de capacitación.
+model TrainingAttendance {
+  id        String   @id @default(cuid())
+  tenantId  String
+  sessionId String
+  userId    String   // Usuario que asistió (rol TESTIGO normalmente)
+  attended  Boolean  @default(false) // Confirmado por el admin
+  createdAt DateTime @default(now())
+
+  session TrainingSession @relation(fields: [sessionId], references: [id])
+
+  @@unique([sessionId, userId])
+  @@index([tenantId, userId])
+}
+
+/// Evaluación / Quiz creado por el admin del tenant.
+/// Las preguntas se almacenan en QuizQuestion.
+model Quiz {
+  id              String   @id @default(cuid())
+  tenantId        String
+  title           String
+  description     String?
+  passingScore    Int      @default(60) // Porcentaje mínimo para aprobar (0-100)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+
+  @@index([tenantId])
+}
+
+/// Pregunta de un quiz. correctIndex NUNCA se envía al cliente.
+/// El endpoint getQuizForUser excluye este campo explícitamente.
+model QuizQuestion {
+  id           String @id @default(cuid())
+  quizId       String
+  text         String           // Enunciado de la pregunta
+  options      Json             // String[] con las opciones (4 típicamente)
+  correctIndex Int              // Índice de la respuesta correcta (0-based)
+  order        Int   @default(0)
+
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([quizId])
+}
+
+/// Intento de un usuario en un quiz. Se permite múltiples intentos.
+/// Las respuestas y el scoring se procesan server-side.
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  tenantId  String
+  quizId    String
+  userId    String
+  answers   Json     // Int[] — índice seleccionado por pregunta (en orden)
+  score     Int      // Porcentaje obtenido (0-100)
+  passed    Boolean  // score >= quiz.passingScore
+  createdAt DateTime @default(now())
+
+  quiz Quiz @relation(fields: [quizId], references: [id])
+
+  @@index([tenantId, userId])
+  @@index([quizId, userId])
+}
+
+/// Certificado emitido a un testigo que aprobó una evaluación.
+/// El PDF se genera con @react-pdf/renderer y se almacena en Vercel Blob.
+model Certificate {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  quizId    String
+  pdfUrl    String   // URL del PDF en Vercel Blob
+  issuedAt  DateTime @default(now())
+
+  @@unique([tenantId, userId, quizId])
+  @@index([tenantId, userId])
 }
