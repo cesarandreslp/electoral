@@ -274,3 +274,35 @@ model VotingTable {
   // No puede haber dos mesas con el mismo número en el mismo puesto
   @@unique([stationId, number])
 }
+
+// ─── MODELOS TENANT — MÓDULO ANALYTICS ───────────────────────────────────────
+// Modelos específicos del módulo de Analítica e Inteligencia.
+
+/// Análisis de fidelidad de un líder generado por el agente IA (Zhipu Flash).
+/// Se cachea por 24 horas — si ya existe uno reciente, no se vuelve a llamar a la IA.
+model LeaderAnalysis {
+  id                String   @id @default(cuid())
+  tenantId          String
+  leaderId          String
+  perfilTipo        String   // Leal | Oportunista | Transaccional | Maximizador | DesertorPotencial
+  indiceFidelidad   Int      // 0-100
+  indiceRiesgo      Int      // 0-100
+  veredicto         String   // FIDELIZAR | MONITOREAR | PRESCINDIR
+  planAccion        Json?    // null si veredicto es PRESCINDIR
+  senalesDetectadas Json     // Array de { señal, peso: ALTO|MEDIO|BAJO }
+  justificacion     String
+  generadoEn        DateTime @default(now())
+
+  @@index([tenantId, leaderId, generadoEn])
+}
+
+/// Configuración del tenant para el módulo de Analytics.
+/// Almacena parámetros configurables por campaña: fechas, metas, históricos.
+model TenantConfig {
+  id                    String    @id @default(cuid())
+  tenantId              String    @unique
+  fechaEleccion         DateTime?
+  metaVotos             Int?
+  votosEleccionAnterior Int?
+  updatedAt             DateTime  @updatedAt
+}

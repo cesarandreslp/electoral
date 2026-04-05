@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@campaignos/ai": "workspace:*",
     "@campaignos/auth": "workspace:*",
     "@campaignos/db": "workspace:*",
     "@campaignos/ui": "workspace:*",
@@ -19,6 +20,7 @@
     "qrcode": "^1.5.4",
     "react": "^19",
     "react-dom": "^19",
+    "recharts": "^3.8.1",
     "serwist": "^9",
     "swr": "^2.4.1",
     "xlsx": "^0.18.5"
