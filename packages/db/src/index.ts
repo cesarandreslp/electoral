@@ -64,8 +64,9 @@ export function getTenantDb(connectionString: string): PrismaClient {
   return new PrismaClient({ adapter })
 }
 
-// Re-exportar PrismaClient para uso en otros paquetes si es necesario
+// Re-exportar PrismaClient y Prisma namespace para uso en otros paquetes
 export { PrismaClient }
+export { Prisma } from '@prisma/client'
 
 // ── Librería de cifrado ───────────────────────────────────────────────────────
 // Única fuente de cifrado/descifrado en todo el proyecto

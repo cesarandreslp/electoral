@@ -8,7 +8,7 @@
 
 import { requireModule }       from '@/lib/auth-helpers'
 import { getTenantConnection } from '@/lib/tenant'
-import { getTenantDb }         from '@campaignos/db'
+import { getTenantDb, Prisma }  from '@campaignos/db'
 import {
   extractE14WithGroq,
   extractE14WithZhipu,
@@ -471,9 +471,9 @@ export async function submitPhotoE14(
       extractedData,
       extractedTotal,
       extractionConfidence: confidence,
-      groqResult:           groqResult ? { rawResponse: groqResult.rawResponse } : null,
-      zhipuResult:          zhipuResult ? { rawResponse: zhipuResult.rawResponse } : null,
-      discrepancies:        discrepanciesArr.length > 0 ? discrepanciesArr : null,
+      groqResult:           groqResult ? { rawResponse: groqResult.rawResponse } : Prisma.DbNull,
+      zhipuResult:          zhipuResult ? { rawResponse: zhipuResult.rawResponse } : Prisma.DbNull,
+      discrepancies:        discrepanciesArr.length > 0 ? discrepanciesArr : Prisma.DbNull,
       photoSubmittedAt:     new Date(),
     }
 
@@ -755,7 +755,7 @@ export async function getElectionResults(): Promise<ElectionResultView[]> {
     where: {
       tenantId,
       verificationStatus: { in: ['VERIFICADO', 'SOLO_MANUAL', 'SOLO_FOTO'] },
-      finalData: { not: null },
+      finalData: { not: Prisma.DbNull },
     },
   })
 
