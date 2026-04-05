@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { DataTable } from '@campaignos/ui'
 import { listTenants, toggleTenantStatus, type TenantSummary } from '../../actions'
 
@@ -88,7 +89,15 @@ export default async function ClientesPage() {
               render: (_, row) => {
                 const tenant = row as TenantSummary
                 return (
-                  <ToggleForm tenantId={tenant.id} isActive={tenant.isActive} />
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <Link
+                      href={`/clientes/${tenant.id}/modulos`}
+                      style={{ color: '#1e40af', fontSize: '0.75rem', textDecoration: 'none' }}
+                    >
+                      Módulos
+                    </Link>
+                    <ToggleForm tenantId={tenant.id} isActive={tenant.isActive} />
+                  </div>
                 )
               },
             },

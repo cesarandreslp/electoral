@@ -51,6 +51,9 @@ export default async function SuperadminDashboardLayout({
           <Link href="/clientes/nuevo" style={{ color: '#bfdbfe', textDecoration: 'none', padding: '0.5rem' }}>
             + Nuevo cliente
           </Link>
+          <Link href="/formacion" style={{ color: '#bfdbfe', textDecoration: 'none', padding: '0.5rem' }}>
+            Formación
+          </Link>
         </nav>
 
         <div style={{ marginTop: 'auto', fontSize: '0.75rem', opacity: 0.6 }}>

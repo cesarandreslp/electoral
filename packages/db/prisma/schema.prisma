@@ -82,6 +82,22 @@ model TenantModule {
   @@unique([tenantId, moduleKey])
 }
 
+/// Material global de formación gestionado desde el panel superadmin.
+/// Se almacena en Vercel Blob bajo formacion/global/{filename}.
+/// Los tenants con módulo FORMACION activo pueden ver estos materiales,
+/// y opcionalmente ocultarlos o reordenarlos via TenantMaterialPreference.
+model GlobalTrainingMaterial {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  type        String   // SLIDES | PDF | VIDEO | INFOGRAFIA
+  fileUrl     String
+  fileSize    Int?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
 // ─── MODELOS TENANT — MÓDULO CORE ────────────────────────────────────────────
 // Estos modelos se replican en la DB de cada tenant.
 // Son obligatorios y siempre están presentes.
@@ -305,4 +321,19 @@ model TenantConfig {
   metaVotos             Int?
   votosEleccionAnterior Int?
   updatedAt             DateTime  @updatedAt
+}
+
+// ─── MODELOS TENANT — MÓDULO FORMACIÓN ───────────────────────────────────────
+// Modelos específicos del módulo de Formación y Capacitación.
+
+/// Preferencia de un tenant sobre un material global de formación.
+/// Permite ocultar materiales globales o cambiar su orden de presentación.
+model TenantMaterialPreference {
+  id               String  @id @default(cuid())
+  tenantId         String
+  globalMaterialId String  // Referencia al GlobalTrainingMaterial en la DB superadmin
+  isHidden         Boolean @default(false)
+  customOrder      Int?
+
+  @@unique([tenantId, globalMaterialId])
 }
