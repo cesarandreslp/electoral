@@ -321,6 +321,7 @@ model TenantConfig {
   fechaEleccion         DateTime?
   metaVotos             Int?
   votosEleccionAnterior Int?
+  smtpConfig            Json?     // { host, port, secure, user, passwordEncrypted, from }
   updatedAt             DateTime  @updatedAt
 }
 
@@ -551,4 +552,89 @@ model ElectionResult {
   updatedAt     DateTime @updatedAt
 
   @@unique([tenantId, candidateId])
+}
+
+// ─── MODELOS TENANT — MÓDULO COMUNICACIONES ─────────────────────────────────
+// Modelos específicos del módulo de Comunicaciones (email, SMS, WhatsApp).
+
+/// Plantilla de mensaje reutilizable. Soporta variables con sintaxis {{nombre}}.
+model MessageTemplate {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  channel   String   // EMAIL | SMS | WHATSAPP
+  subject   String?  // solo para EMAIL
+  body      String   // texto con variables {{nombre}}, {{municipio}}, etc.
+  variables Json     // string[] — lista de variables usadas en el body
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, channel, isActive])
+}
+
+/// Campaña de envío masivo de mensajes.
+/// Flujo: BORRADOR → PROGRAMADA → ENVIANDO → COMPLETADA | FALLIDA
+model MessageCampaign {
+  id              String    @id @default(cuid())
+  tenantId        String
+  name            String
+  channel         String    // EMAIL | SMS | WHATSAPP
+  templateId      String
+  segmentFilters  Json      // { leaderId?, zone?, commitmentStatus?, role?, municipalityId? }
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  status          String    @default("BORRADOR")
+  // BORRADOR | PROGRAMADA | ENVIANDO | COMPLETADA | FALLIDA
+  totalRecipients Int       @default(0)
+  totalSent       Int       @default(0)
+  totalFailed     Int       @default(0)
+  createdAt       DateTime  @default(now())
+
+  messages Message[]
+
+  @@index([tenantId, status])
+}
+
+/// Mensaje individual enviado a un destinatario.
+/// El campo `to` siempre va CIFRADO con AES-256 — se descifra solo en el momento del envío.
+model Message {
+  id            String    @id @default(cuid())
+  tenantId      String
+  campaignId    String?
+  channel       String    // EMAIL | SMS | WHATSAPP
+  recipientId   String    // userId o voterId según recipientType
+  recipientType String    // USER | VOTER
+  // CIFRADO: campo PII — contiene email o teléfono cifrado con AES-256
+  to            String
+  subject       String?
+  body          String
+  status        String    @default("PENDIENTE")
+  // PENDIENTE | ENVIADO | FALLIDO | REBOTADO
+  provider      String?   // nombre del proveedor que lo envió
+  providerMsgId String?   // ID del mensaje en el proveedor externo
+  sentAt        DateTime?
+  failReason    String?
+  createdAt     DateTime  @default(now())
+
+  campaign MessageCampaign? @relation(fields: [campaignId], references: [id])
+
+  @@index([tenantId, campaignId, status])
+  @@index([tenantId, recipientId])
+}
+
+/// Regla de automatización de mensajes.
+/// Se dispara ante eventos del sistema (nuevo elector, cambio de compromiso, etc.)
+model AutomationRule {
+  id           String   @id @default(cuid())
+  tenantId     String
+  name         String
+  trigger      String   // NUEVO_ELECTOR | CAMBIO_COMPROMISO | DIA_ELECCION | RECORDATORIO_VOTO
+  channel      String   // EMAIL | SMS | WHATSAPP
+  templateId   String
+  isActive     Boolean  @default(true)
+  delayMinutes Int      @default(0)
+  conditions   Json?    // condiciones adicionales del trigger
+  createdAt    DateTime @default(now())
+
+  @@index([tenantId, trigger, isActive])
 }

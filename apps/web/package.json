@@ -12,6 +12,7 @@
     "@campaignos/ai": "workspace:*",
     "@campaignos/auth": "workspace:*",
     "@campaignos/db": "workspace:*",
+    "@campaignos/messaging": "workspace:*",
     "@campaignos/ui": "workspace:*",
     "@react-pdf/renderer": "^4.3.3",
     "@serwist/next": "^9",
