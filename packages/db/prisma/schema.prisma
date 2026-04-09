@@ -638,3 +638,84 @@ model AutomationRule {
 
   @@index([tenantId, trigger, isActive])
 }
+
+// ─── MODELOS TENANT — MÓDULO FINANZAS ───────────────────────────────────────
+// Modelos específicos del módulo de Finanzas y Cumplimiento Electoral.
+// Marco legal: Ley 1475/2011, Resoluciones del CNE.
+
+/// Configuración financiera del tenant: datos del candidato, tesorero y tope legal.
+/// cedulaTesorero y cuentaBancaria siempre CIFRADOS con AES-256.
+model FinanceConfig {
+  id                 String    @id @default(cuid())
+  tenantId           String    @unique
+  cargoPostulado     String?   // Alcalde | Concejal | Diputado | Gobernador | Senador | Representante | Otro
+  municipio          String?
+  topeGastos         Float?    // tope legal en pesos colombianos (COP)
+  fechaInicioCampana DateTime?
+  fechaFinCampana    DateTime?
+  nombreTesorero     String?
+  cedulaTesorero     String?   // CIFRADO con encrypt() — nunca en texto plano
+  cuentaBancaria     String?   // CIFRADO con encrypt() — nunca en texto plano
+  updatedAt          DateTime  @updatedAt
+}
+
+/// Gasto de campaña registrado por un usuario.
+/// Categorías: PUBLICIDAD | TRANSPORTE | LOGISTICA | PERSONAL | TECNOLOGIA | EVENTOS | JURIDICO | OTRO
+model Expense {
+  id            String   @id @default(cuid())
+  tenantId      String
+  category      String   // PUBLICIDAD | TRANSPORTE | LOGISTICA | PERSONAL | TECNOLOGIA | EVENTOS | JURIDICO | OTRO
+  description   String
+  amount        Float    // en pesos colombianos (COP)
+  date          DateTime
+  vendor        String?  // proveedor o beneficiario
+  invoiceNumber String?  // número de factura
+  invoiceUrl    String?  // URL del comprobante en Vercel Blob
+  paymentMethod String?  // EFECTIVO | TRANSFERENCIA | CHEQUE
+  status        String   @default("REGISTRADO") // REGISTRADO | VERIFICADO | OBSERVADO
+  registeredBy  String   // userId que registró el gasto
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  @@index([tenantId, category])
+  @@index([tenantId, date])
+}
+
+/// Donación recibida por la campaña.
+/// donorId (cédula o NIT) siempre CIFRADO — nunca se retorna en respuestas.
+model Donation {
+  id            String   @id @default(cuid())
+  tenantId      String
+  donorName     String
+  donorId       String?  // cédula o NIT — CIFRADO con encrypt()
+  donorType     String   @default("PERSONA_NATURAL") // PERSONA_NATURAL | PERSONA_JURIDICA | APORTE_PROPIO
+  amount        Float    // en pesos colombianos (COP)
+  date          DateTime
+  paymentMethod String?
+  bankReference String?
+  receiptUrl    String?  // URL del comprobante en Vercel Blob
+  isVerified    Boolean  @default(false)
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  @@index([tenantId, date])
+}
+
+/// Informe financiero generado para presentación al CNE u otro fin.
+/// El PDF se genera con @react-pdf/renderer y se almacena en Vercel Blob.
+model FinanceReport {
+  id             String    @id @default(cuid())
+  tenantId       String
+  type           String    // PARCIAL | FINAL | CNE
+  period         String    // ej: "2026-Q1" o "FINAL"
+  totalExpenses  Float
+  totalDonations Float
+  balance        Float     // donaciones - gastos
+  status         String    @default("BORRADOR") // BORRADOR | GENERADO | PRESENTADO
+  fileUrl        String?   // URL del PDF en Vercel Blob
+  generatedAt    DateTime?
+  presentedAt    DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([tenantId, type])
+}
