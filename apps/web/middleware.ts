@@ -12,6 +12,7 @@ const RUTAS_PUBLICAS = [
   '/no-autorizado',
   '/api/auth',
   '/api/resolve-tenant',
+  '/api/debug/',
 ]
 
 /** La landing en `/` es siempre pública. La página decide si redirigir. */
