@@ -201,7 +201,7 @@ export async function getAnalyticsDashboard(): Promise<DashboardKpi> {
     diasRestantes,
     registrosHoy,
     registrosSemana,
-    serieTemporal: serieTemporal.map(r => ({
+    serieTemporal: serieTemporal.map((r: { dia: Date; total: bigint }) => ({
       dia:   new Date(r.dia).toISOString().slice(0, 10),
       total: Number(r.total),
     })),
@@ -702,7 +702,9 @@ export async function getProjectionData(): Promise<ProjectionData> {
     db.tenantConfig.findUnique({ where: { tenantId } }),
   ])
 
-  const statusMap = new Map(byStatus.map(s => [s.commitmentStatus, s._count]))
+  const statusMap = new Map<string, number>(
+    byStatus.map((s: { commitmentStatus: string; _count: number }) => [s.commitmentStatus, Number(s._count)] as const),
+  )
 
   const votoSeguro    = statusMap.get('VOTO_SEGURO') ?? 0
   const comprometido  = statusMap.get('COMPROMETIDO') ?? 0
