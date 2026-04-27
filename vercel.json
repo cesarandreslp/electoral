@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm turbo run build --filter=@campaignos/web...",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "outputDirectory": "apps/web/.next",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- apps/web packages",
+  "env": {
+    "MONOREPO_ROOT":     "/vercel/path0",
+    "PRISMA_SCHEMA_PATH": "/vercel/path0/packages/db/prisma/schema.prisma"
+  }
+}

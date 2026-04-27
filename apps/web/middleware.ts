@@ -42,9 +42,17 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── Normalizar el host según entorno ──────────────────────────────────────
-  const dominioBase = process.env.NODE_ENV === 'development'
-    ? '.localhost:3000'
-    : '.campaignos.co'
+  // Producción: TENANT_BASE_DOMAIN debe definirse en el entorno (ej: ".tu-dominio.co").
+  // Desarrollo: por defecto .localhost:3000 — sobrescribible con TENANT_BASE_DOMAIN.
+  const dominioBase = process.env.TENANT_BASE_DOMAIN
+    ?? (process.env.NODE_ENV === 'development' ? '.localhost:3000' : '')
+
+  if (!dominioBase) {
+    // Sin dominio base configurado en producción no hay forma de resolver tenants.
+    // Mejor responder 500 explícito que mapear hosts a slugs erróneos.
+    console.error('[middleware] TENANT_BASE_DOMAIN no está definido en producción')
+    return new NextResponse('Configuración de tenant inválida', { status: 500 })
+  }
 
   const slug = host.replace(dominioBase, '')
 
