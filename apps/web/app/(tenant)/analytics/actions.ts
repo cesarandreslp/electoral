@@ -162,7 +162,9 @@ export async function getAnalyticsDashboard(): Promise<DashboardKpi> {
   ])
 
   // Mapear distribución por estado
-  const statusMap = new Map(byStatus.map(s => [s.commitmentStatus, s._count]))
+  const statusMap = new Map(
+    byStatus.map((s: { commitmentStatus: string; _count: number }) => [s.commitmentStatus, s._count]),
+  )
   const comprometidos = (statusMap.get('COMPROMETIDO') ?? 0) + (statusMap.get('VOTO_SEGURO') ?? 0)
   const votoSeguro    = statusMap.get('VOTO_SEGURO') ?? 0
   const sinContactar  = statusMap.get('SIN_CONTACTAR') ?? 0
