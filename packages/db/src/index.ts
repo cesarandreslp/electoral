@@ -14,11 +14,18 @@ import { PrismaNeon } from '@prisma/adapter-neon'
 import { PrismaClient } from '@prisma/client'
 import ws from 'ws'
 
-// Configurar el WebSocket constructor que usa @neondatabase/serverless.
-// Node 21+ trae WebSocket nativo, pero NO es compatible con Neon (le falta
-// `binaryType` y otros métodos del paquete `ws`). Por eso seteamos siempre,
-// no condicionalmente. En Edge runtime este módulo no se carga.
+// Configurar @neondatabase/serverless para entornos serverless (Vercel).
+//
+// En serverless usamos HTTP fetch en lugar de WebSocket: las funciones
+// son efímeras y los WebSockets se cierran antes de tiempo, dando errores
+// "Connection terminated unexpectedly". `poolQueryViaFetch` rutea las
+// queries del Pool al endpoint HTTP de Neon (sin transacciones, suficiente
+// para nuestros usos en authorize y la mayoría de Server Actions).
+//
+// `webSocketConstructor` queda configurado por compatibilidad con scripts
+// locales (seed, create-superadmin) que sí usan WebSocket.
 neonConfig.webSocketConstructor = ws
+neonConfig.poolQueryViaFetch    = true
 
 // ── Cliente del superadmin ────────────────────────────────────────────────────
 // Singleton lazy: el cliente NO se construye al importar este módulo, sino
