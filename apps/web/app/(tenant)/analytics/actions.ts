@@ -165,7 +165,7 @@ export async function getAnalyticsDashboard(): Promise<DashboardKpi> {
   // Prisma tipa `_count: true` como número en runtime, pero la inferencia del Map
   // a veces colapsa a `unknown`/`{}` durante next build → tipamos explícito.
   const statusMap = new Map<string, number>(
-    byStatus.map((s: { commitmentStatus: string; _count: number }) => [s.commitmentStatus, Number(s._count)] as const),
+    byStatus.map((s) => [s.commitmentStatus, Number(s._count)] as const),
   )
   const comprometidos = (statusMap.get('COMPROMETIDO') ?? 0) + (statusMap.get('VOTO_SEGURO') ?? 0)
   const votoSeguro    = statusMap.get('VOTO_SEGURO') ?? 0
@@ -201,7 +201,7 @@ export async function getAnalyticsDashboard(): Promise<DashboardKpi> {
     diasRestantes,
     registrosHoy,
     registrosSemana,
-    serieTemporal: serieTemporal.map((r: { dia: Date; total: bigint }) => ({
+    serieTemporal: serieTemporal.map((r) => ({
       dia:   new Date(r.dia).toISOString().slice(0, 10),
       total: Number(r.total),
     })),
@@ -703,7 +703,7 @@ export async function getProjectionData(): Promise<ProjectionData> {
   ])
 
   const statusMap = new Map<string, number>(
-    byStatus.map((s: { commitmentStatus: string; _count: number }) => [s.commitmentStatus, Number(s._count)] as const),
+    byStatus.map((s) => [s.commitmentStatus, Number(s._count)] as const),
   )
 
   const votoSeguro    = statusMap.get('VOTO_SEGURO') ?? 0

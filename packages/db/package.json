@@ -11,7 +11,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio --schema=./prisma/schema.prisma",
     "db:create-superadmin": "tsx src/create-superadmin.ts",
-    "generate": "prisma generate --schema=./prisma/schema.prisma"
+    "generate": "prisma generate --schema=./prisma/schema.prisma",
+    "postinstall": "prisma generate --schema=./prisma/schema.prisma"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10",
