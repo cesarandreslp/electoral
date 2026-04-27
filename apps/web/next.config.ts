@@ -1,3 +1,4 @@
+import path from 'node:path'
 import type { NextConfig } from 'next'
 import withSerwistInit from '@serwist/next'
 
@@ -23,6 +24,24 @@ const nextConfig: NextConfig = {
 
   // El runtime Node.js del middleware se declara directamente en middleware.ts
   // mediante `export const runtime = 'nodejs'` (estable desde Next 15.5).
+
+  // Monorepo: trazar dependencias desde la raíz del repo, no desde apps/web.
+  // Sin esto, Next.js no encuentra los archivos de Prisma generados en
+  // `<root>/node_modules/.pnpm/@prisma+client@*/...` y deja el binario fuera
+  // del bundle del lambda.
+  outputFileTracingRoot: path.join(__dirname, '../..'),
+
+  // Forzar la inclusión del query engine de Prisma en TODAS las rutas server.
+  // Sin este include, Vercel reporta "Could not locate the Query Engine for
+  // runtime rhel-openssl-3.0.x" en runtime.
+  outputFileTracingIncludes: {
+    '/**/*': [
+      '../../node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/**/*',
+      '../../node_modules/.pnpm/@prisma+client@*/node_modules/@prisma/client/**/*',
+      '../../node_modules/.prisma/client/**/*',
+      '../../node_modules/@prisma/client/**/*',
+    ],
+  },
 
   // Configuración de headers de seguridad
   async headers() {

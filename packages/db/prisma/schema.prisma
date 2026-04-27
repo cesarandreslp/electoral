@@ -7,12 +7,11 @@
 // Por ahora ambos conjuntos de modelos conviven en este único schema.
 
 generator client {
-  provider        = "prisma-client-js"
-  // queryCompiler: en Prisma 6 con driverAdapters, las queries las traduce
-  // un compilador WASM y el binary del query-engine YA NO es necesario en runtime.
-  // Resuelve el "Could not locate the Query Engine for rhel-openssl-3.0.x"
-  // en Vercel serverless (el bundler no copia el .so.node al lambda).
-  previewFeatures = ["driverAdapters", "queryCompiler"]
+  provider      = "prisma-client-js"
+  // driverAdapters es estable desde Prisma 6 — sin preview flag.
+  // binaryTargets incluye el target de Vercel serverless (rhel-openssl-3.0.x)
+  // además del nativo para desarrollo local.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
