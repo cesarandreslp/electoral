@@ -14,7 +14,8 @@
     "ZHIPU_API_KEY",
     "TENANT_BASE_DOMAIN",
     "MONOREPO_ROOT",
-    "PRISMA_SCHEMA_PATH"
+    "PRISMA_SCHEMA_PATH",
+    "AUTH_TRUST_HOST"
   ],
   "tasks": {
     "build": {

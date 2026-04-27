@@ -14,11 +14,11 @@ import { PrismaNeon } from '@prisma/adapter-neon'
 import { PrismaClient } from '@prisma/client'
 import ws from 'ws'
 
-// Configurar WebSocket para uso en Node.js (hot reload en dev, scripts de seed)
-// En el edge runtime de Vercel esto no es necesario (usa fetch nativo)
-if (typeof WebSocket === 'undefined') {
-  neonConfig.webSocketConstructor = ws
-}
+// Configurar el WebSocket constructor que usa @neondatabase/serverless.
+// Node 21+ trae WebSocket nativo, pero NO es compatible con Neon (le falta
+// `binaryType` y otros métodos del paquete `ws`). Por eso seteamos siempre,
+// no condicionalmente. En Edge runtime este módulo no se carga.
+neonConfig.webSocketConstructor = ws
 
 // ── Cliente del superadmin ────────────────────────────────────────────────────
 // Singleton lazy: el cliente NO se construye al importar este módulo, sino
