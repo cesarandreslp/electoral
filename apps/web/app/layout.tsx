@@ -6,18 +6,32 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: {
-    default: 'CampaignOS',
+    default: 'CampaignOS — Inteligencia electoral para Colombia',
     template: '%s | CampaignOS',
   },
-  description: 'Plataforma de gestión integral de campañas electorales en Colombia',
+  description: 'Plataforma SaaS multi-tenant para la gestión integral de campañas electorales en Colombia. Líderes, electores, mapa de calor, transmisión E-14 y agentes de IA.',
   manifest: '/manifest.json',
-  // Los metadatos específicos de tenant se sobrescriben en layouts anidados
+  applicationName: 'CampaignOS',
+  appleWebApp: {
+    capable:         true,
+    statusBarStyle:  'default',
+    title:           'CampaignOS',
+  },
+  icons: {
+    icon:     [{ url: '/icons/icon.svg', type: 'image/svg+xml' }],
+    apple:    [{ url: '/icons/icon.svg', type: 'image/svg+xml' }],
+    shortcut: ['/icons/icon.svg'],
+  },
+  formatDetection: { telephone: false },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#1e40af',
-  width: 'device-width',
+  themeColor:   '#1e40af',
+  width:        'device-width',
   initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit:  'cover',
 }
 
 interface RootLayoutProps {

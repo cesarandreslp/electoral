@@ -14,6 +14,11 @@ const RUTAS_PUBLICAS = [
   '/api/resolve-tenant',
 ]
 
+/** La landing en `/` es siempre pública. La página decide si redirigir. */
+function esLanding(pathname: string): boolean {
+  return pathname === '/'
+}
+
 const SUBDOMINIOS_RESERVADOS = new Set(['www', 'api', 'admin'])
 
 function esRutaPublica(pathname: string): boolean {
@@ -46,9 +51,16 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const hostname     = request.nextUrl.hostname
 
-  // Permitir siempre rutas públicas y assets internos
-  if (esRutaPublica(pathname)) {
-    return NextResponse.next()
+  // Permitir siempre rutas públicas, landing pública y assets internos.
+  // Para subdominios (modo 2), la lógica más abajo intercepta antes de llegar acá
+  // sólo si hostname !== baseDomain.
+  if (esRutaPublica(pathname) || esLanding(pathname)) {
+    // En modo subdominio, dejamos que el bloque de subdominio lo procese:
+    // sólo cortamos acá si estamos en el host base o sin baseDomain.
+    const baseDomain = (process.env.TENANT_BASE_DOMAIN ?? '').replace(/^\./, '')
+    if (!baseDomain || hostname === baseDomain) {
+      return NextResponse.next()
+    }
   }
 
   // Normalizar el dominio base. Sin él operamos en single-host.
