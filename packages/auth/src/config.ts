@@ -1,7 +1,7 @@
 import NextAuth, { type DefaultSession, type NextAuthResult } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
-import { superadminDb, getTenantDb, decrypt } from '@campaignos/db'
+import { superadminDb } from '@campaignos/db'
 
 // ── Tipos de sesión ───────────────────────────────────────────────────────────
 // Extender las interfaces de NextAuth para incluir los campos del dominio.
@@ -21,13 +21,17 @@ export const SUPERADMIN_TENANT_ID = '__superadmin__'
 declare module 'next-auth' {
   interface Session {
     user: {
-      /** ID del usuario en la DB correspondiente */
+      /** ID del usuario en la DB del superadmin */
       userId: string
-      /** ID del tenant al que pertenece el usuario */
+      /** ID del tenant al que pertenece el usuario, o '__superadmin__' */
       tenantId: string
+      /** Slug del tenant (null para SUPERADMIN). Útil para construir URLs con subdominio. */
+      tenantSlug: string | null
+      /** Nombre visible del tenant (null para SUPERADMIN). Para mostrar en UI. */
+      tenantName: string | null
       /** Rol del usuario dentro de la campaña */
       role: UserRole
-      /** Claves de módulos activos para este tenant (ej: ["CORE", "ANALYTICS"]) */
+      /** Claves de módulos activos para este tenant (vacío para SUPERADMIN) */
       activeModules: string[]
     } & DefaultSession['user']
   }
@@ -35,47 +39,54 @@ declare module 'next-auth' {
   interface JWT {
     userId: string
     tenantId: string
+    tenantSlug: string | null
+    tenantName: string | null
     role: UserRole
     activeModules: string[]
   }
 }
 
-// ── Autenticación contra la DB del superadmin ─────────────────────────────────
+// ── Autenticación universal ───────────────────────────────────────────────────
+// Un solo authorize que busca al user por email globalmente en superadminDb.
+// El subdominio del request es irrelevante para la autenticación: la fuente de
+// verdad del tenant es el JWT que se emite tras un login exitoso.
 
-async function autenticarSuperadmin(
-  email: string,
-  password: string,
-): Promise<{ id: string; email: string; role: UserRole; tenantId: string; name: string } | null> {
-  const usuario = await superadminDb.user.findUnique({
-    where: {
-      tenantId_email: { tenantId: SUPERADMIN_TENANT_ID, email },
-    },
-  })
+interface ResultadoAuth {
+  id:            string
+  email:         string
+  name:          string
+  role:          UserRole
+  tenantId:      string
+  tenantSlug:    string | null
+  tenantName:    string | null
+  activeModules: string[]
+}
+
+async function autenticarUsuario(email: string, password: string): Promise<ResultadoAuth | null> {
+  const usuario = await superadminDb.user.findUnique({ where: { email } })
 
   if (!usuario || !usuario.isActive) return null
 
   const passwordValida = await bcrypt.compare(password, usuario.passwordHash)
   if (!passwordValida) return null
 
-  return {
-    id:       usuario.id,
-    email:    usuario.email,
-    role:     usuario.role as UserRole,
-    tenantId: SUPERADMIN_TENANT_ID,
-    name:     usuario.email,
+  // SUPERADMIN no tiene tenant asociado; sus módulos son vacíos.
+  if (usuario.tenantId === SUPERADMIN_TENANT_ID) {
+    return {
+      id:            usuario.id,
+      email:         usuario.email,
+      name:          usuario.name ?? usuario.email,
+      role:          usuario.role as UserRole,
+      tenantId:      SUPERADMIN_TENANT_ID,
+      tenantSlug:    null,
+      tenantName:    null,
+      activeModules: [],
+    }
   }
-}
 
-// ── Autenticación contra la DB de un tenant ───────────────────────────────────
-
-async function autenticarTenantUser(
-  email: string,
-  password: string,
-  tenantId: string,
-): Promise<{ id: string; email: string; role: UserRole; tenantId: string; name: string; activeModules: string[] } | null> {
-  // Obtener el tenant y su connectionString cifrada desde la DB del superadmin
+  // Usuario de tenant: traer slug + módulos activos para inyectar en el JWT.
   const tenant = await superadminDb.tenant.findUnique({
-    where: { id: tenantId },
+    where: { id: usuario.tenantId },
     include: {
       modules: {
         where:  { isActive: true },
@@ -84,43 +95,23 @@ async function autenticarTenantUser(
     },
   })
 
+  // Tenant inactivo o eliminado → bloquear login.
   if (!tenant || !tenant.isActive) return null
 
-  // Descifrar la connectionString antes de usarla
-  const connectionString = decrypt(tenant.connectionString)
-  const tenantDb = getTenantDb(connectionString)
-
-  try {
-    const usuario = await tenantDb.user.findUnique({
-      where: {
-        tenantId_email: { tenantId, email },
-      },
-    })
-
-    if (!usuario || !usuario.isActive) return null
-
-    const passwordValida = await bcrypt.compare(password, usuario.passwordHash)
-    if (!passwordValida) return null
-
-    const activeModules = tenant.modules.map((m) => m.moduleKey)
-
-    return {
-      id:       usuario.id,
-      email:    usuario.email,
-      role:     usuario.role as UserRole,
-      tenantId,
-      name:     usuario.email,
-      activeModules,
-    }
-  } finally {
-    await tenantDb.$disconnect()
+  return {
+    id:            usuario.id,
+    email:         usuario.email,
+    name:          usuario.name ?? usuario.email,
+    role:          usuario.role as UserRole,
+    tenantId:      tenant.id,
+    tenantSlug:    tenant.slug,
+    tenantName:    tenant.name,
+    activeModules: tenant.modules.map((m) => m.moduleKey),
   }
 }
 
 // ── Configuración de NextAuth v5 ──────────────────────────────────────────────
 
-// Anotación explícita: pnpm coloca next-auth bajo .pnpm/, lo que impide
-// a TypeScript inferir un tipo "portable" para las funciones destructuradas.
 const nextAuth: NextAuthResult = NextAuth({
   providers: [
     Credentials({
@@ -129,55 +120,37 @@ const nextAuth: NextAuthResult = NextAuth({
         email:    { label: 'Correo electrónico', type: 'email' },
         password: { label: 'Contraseña',         type: 'password' },
       },
-      async authorize(credentials, request) {
+      async authorize(credentials) {
         const email    = credentials?.email    as string | undefined
         const password = credentials?.password as string | undefined
 
         if (!email || !password) return null
 
-        // El tenantId y el flag de superadmin NUNCA vienen del cliente.
-        // El middleware los inyecta en los headers según el hostname resuelto.
-        const esSuperadmin = request.headers.get('x-is-superadmin') === 'true'
-        const tenantId     = request.headers.get('x-tenant-id')
-
-        if (esSuperadmin) {
-          const usuario = await autenticarSuperadmin(email, password)
-          if (!usuario) return null
-          return { ...usuario, activeModules: [] }
-        }
-
-        if (tenantId) {
-          return autenticarTenantUser(email, password, tenantId)
-        }
-
-        // Si no hay header de contexto, rechazar
-        return null
+        return autenticarUsuario(email, password)
       },
     }),
   ],
 
   callbacks: {
-    // Copiar campos personalizados del usuario al token JWT al iniciar sesión
     async jwt({ token, user }) {
       if (user) {
-        const u = user as typeof user & {
-          tenantId:     string
-          role:         UserRole
-          activeModules: string[]
-        }
-        token.userId       = u.id ?? ''
-        token.tenantId     = u.tenantId
-        token.role         = u.role
-        token.activeModules = u.activeModules ?? []
+        const u = user as ResultadoAuth
+        token.userId        = u.id
+        token.tenantId      = u.tenantId
+        token.tenantSlug    = u.tenantSlug
+        token.tenantName    = u.tenantName
+        token.role          = u.role
+        token.activeModules = u.activeModules
       }
       return token
     },
 
-    // Inyectar los campos del token JWT en la sesión que llega al cliente
     async session({ session, token }) {
-      session.user.userId       = token.userId       as string
-      session.user.tenantId     = token.tenantId     as string
-      session.user.role         = token.role         as UserRole
+      session.user.userId        = token.userId        as string
+      session.user.tenantId      = token.tenantId      as string
+      session.user.tenantSlug    = token.tenantSlug    as string | null
+      session.user.tenantName    = token.tenantName    as string | null
+      session.user.role          = token.role          as UserRole
       session.user.activeModules = token.activeModules as string[]
       return session
     },

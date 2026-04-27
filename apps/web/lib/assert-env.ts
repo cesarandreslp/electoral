@@ -44,14 +44,11 @@ const VARS_PRODUCCION: VarRequerida[] = [
     descripcion: 'Token de Vercel Blob para actas E-14, certificados y comprobantes',
     minLength:   10,
   },
-  {
-    nombre:      'TENANT_BASE_DOMAIN',
-    descripcion: 'Dominio base con punto inicial (ej: ".tu-dominio.co"). Usado por el middleware para mapear host → slug',
-    minLength:   3,
-  },
+  // TENANT_BASE_DOMAIN es OPCIONAL: si no está, el middleware opera en
+  // single-host (un solo hostname). Si está, habilita subdominios decorativos.
   {
     nombre:      'NEXTAUTH_URL',
-    descripcion: 'URL canónica del panel superadmin (ej: "https://admin.tu-dominio.co"). Requerida por NextAuth en producción',
+    descripcion: 'URL canónica de la app (ej: "https://tu-dominio.co"). Requerida por NextAuth en producción',
     minLength:   10,
   },
 ]

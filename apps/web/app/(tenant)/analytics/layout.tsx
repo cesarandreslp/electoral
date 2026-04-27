@@ -1,4 +1,4 @@
-import { headers } from 'next/headers'
+
 import Link        from 'next/link'
 import { redirect } from 'next/navigation'
 import { requireAuthOrRedirect } from '@/lib/auth-helpers'
@@ -15,8 +15,7 @@ export default async function AnalyticsLayout({ children }: { children: React.Re
     redirect('/no-autorizado')
   }
 
-  const headersList = await headers()
-  const tenantName  = headersList.get('x-tenant-name') ?? 'Campaña'
+  const tenantName = session.user.tenantName ?? 'Campaña'
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>

@@ -8,7 +8,6 @@
 
 import {
   superadminDb,
-  getTenantDb,
   provisionTenantDatabase,
   mockProvisionTenantDatabase,
   SlugTakenError,
@@ -89,16 +88,16 @@ export async function createTenant(
       skipDuplicates: true,
     })
 
-    // Crear usuario administrador en la DB del TENANT (no del superadmin)
-    const tenantDb      = getTenantDb(connectionStringPlana)
-    const passwordHash  = await bcrypt.hash(data.adminPassword, 12)
-    await tenantDb.user.create({
+    // Crear usuario administrador en la DB del SUPERADMIN (control plane).
+    // Ya no se replica User en cada tenant DB — la autenticación es global.
+    const passwordHash = await bcrypt.hash(data.adminPassword, 12)
+    await superadminDb.user.create({
       data: {
-        tenantId:     tenant.id,
-        email:        data.adminEmail,
+        tenantId: tenant.id,
+        email:    data.adminEmail,
         passwordHash,
-        role:         'ADMIN_CAMPANA',
-        isActive:     true,
+        role:     'ADMIN_CAMPANA',
+        isActive: true,
       },
     })
 

@@ -1,4 +1,4 @@
-import { headers } from 'next/headers'
+
 import Link        from 'next/link'
 import { requireAuthOrRedirect }  from '@/lib/auth-helpers'
 import { BadgeNotificaciones }    from './_components/badge-notificaciones'
@@ -17,8 +17,7 @@ export default async function CoreLayout({ children }: { children: React.ReactNo
     redirect('/no-autorizado')
   }
 
-  const headersList = await headers()
-  const tenantName  = headersList.get('x-tenant-name') ?? 'Campaña'
+  const tenantName = session.user.tenantName ?? 'Campaña'
 
   const esAdmin = ['ADMIN_CAMPANA', 'COORDINADOR'].includes(session.user.role)
 

@@ -102,19 +102,23 @@ model GlobalTrainingMaterial {
 // Estos modelos se replican en la DB de cada tenant.
 // Son obligatorios y siempre están presentes.
 
-/// Usuario del sistema. Pertenece a un tenant específico.
-/// La autenticación se hace contra la DB del tenant correspondiente.
+/// Usuario del sistema. Vive ÚNICAMENTE en la DB del superadmin (control plane).
+/// Su tenantId apunta al Tenant correspondiente, o al sentinel '__superadmin__'
+/// para el rol SUPERADMIN.
+///
+/// La autenticación es global: un email pertenece a UN solo tenant en toda la
+/// plataforma. El authorize busca el user por email sin necesidad de subdominio.
 model User {
   id           String   @id @default(cuid())
   tenantId     String
   name         String?  // Nombre completo (opcional para no romper registros existentes)
-  email        String
+  email        String   @unique // Único en toda la plataforma — login universal
   passwordHash String   // Nunca almacenar contraseña en texto plano
   role         UserRole
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
 
-  @@unique([tenantId, email])
+  @@index([tenantId])
 }
 
 /// Líder político. Estructura jerárquica autorreferenciada.

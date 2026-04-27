@@ -1,4 +1,4 @@
-import { headers } from 'next/headers'
+
 import Link        from 'next/link'
 import { redirect } from 'next/navigation'
 import { requireAuthOrRedirect } from '@/lib/auth-helpers'
@@ -13,10 +13,9 @@ export default async function ComunicacionesLayout({ children }: { children: Rea
     redirect('/no-autorizado')
   }
 
-  const headersList = await headers()
-  const tenantName  = headersList.get('x-tenant-name') ?? 'Campaña'
-  const role        = session.user.role
-  const isAdmin     = role === 'ADMIN_CAMPANA'
+  const tenantName = session.user.tenantName ?? 'Campaña'
+  const role       = session.user.role
+  const isAdmin    = role === 'ADMIN_CAMPANA'
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>

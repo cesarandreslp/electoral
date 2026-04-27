@@ -1,4 +1,4 @@
-import { headers } from 'next/headers'
+
 import Link        from 'next/link'
 import { redirect } from 'next/navigation'
 import { requireAuthOrRedirect } from '@/lib/auth-helpers'
@@ -14,10 +14,9 @@ export default async function DiaELayout({ children }: { children: React.ReactNo
     redirect('/no-autorizado')
   }
 
-  const headersList = await headers()
-  const tenantName  = headersList.get('x-tenant-name') ?? 'Campaña'
-  const role        = session.user.role
-  const isTestigo   = role === 'TESTIGO'
+  const tenantName = session.user.tenantName ?? 'Campaña'
+  const role       = session.user.role
+  const isTestigo  = role === 'TESTIGO'
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
