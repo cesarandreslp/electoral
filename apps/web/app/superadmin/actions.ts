@@ -18,6 +18,7 @@ import bcrypt from 'bcryptjs'
 import { revalidatePath } from 'next/cache'
 import { requireAuth } from '@/lib/auth-helpers'
 import { invalidarCacheTenant } from '@/lib/tenant'
+import { ALL_MODULES } from './modules'
 
 // ── Tipos exportados ──────────────────────────────────────────────────────────
 
@@ -178,17 +179,8 @@ export async function toggleTenantStatus(
 }
 
 // ── Gestión de módulos por tenant ─────────────────────────────────────────────
-
-const ALL_MODULES: { key: ModuleKey; label: string; descripcion: string }[] = [
-  { key: 'CORE',           label: 'CORE',           descripcion: 'Obligatorio — territorios, líderes, electores' },
-  { key: 'ANALYTICS',      label: 'Analytics',      descripcion: 'KPIs, ranking de líderes, proyección de votos, agente IA' },
-  { key: 'FORMACION',      label: 'Formación',      descripcion: 'Capacitación testigos, evaluaciones, simulacros' },
-  { key: 'DIA_E',          label: 'Día E',          descripcion: 'Transmisión E-14, sala de situación, reclamaciones' },
-  { key: 'COMUNICACIONES', label: 'Comunicaciones', descripcion: 'SMS/WhatsApp/email segmentado' },
-  { key: 'FINANZAS',       label: 'Finanzas',       descripcion: 'Control de gastos, donaciones, límites legales' },
-]
-
-export { ALL_MODULES }
+// El catálogo `ALL_MODULES` se exporta desde `./modules` para no violar la
+// restricción de Next.js de que `'use server'` solo exporte funciones async.
 
 export interface TenantModuleStatus {
   key:         ModuleKey

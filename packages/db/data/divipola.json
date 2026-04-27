@@ -1,0 +1,6756 @@
+{
+  "departments": [
+    {
+      "code": "05",
+      "name": "ANTIOQUIA"
+    },
+    {
+      "code": "08",
+      "name": "ATLÁNTICO"
+    },
+    {
+      "code": "11",
+      "name": "CUNDINAMARCA"
+    },
+    {
+      "code": "13",
+      "name": "BOLÍVAR"
+    },
+    {
+      "code": "15",
+      "name": "BOYACÁ"
+    },
+    {
+      "code": "17",
+      "name": "CALDAS"
+    },
+    {
+      "code": "18",
+      "name": "CAQUETÁ"
+    },
+    {
+      "code": "19",
+      "name": "CAUCA"
+    },
+    {
+      "code": "20",
+      "name": "CESAR"
+    },
+    {
+      "code": "23",
+      "name": "CÓRDOBA"
+    },
+    {
+      "code": "25",
+      "name": "CUNDINAMARCA"
+    },
+    {
+      "code": "27",
+      "name": "CHOCÓ"
+    },
+    {
+      "code": "41",
+      "name": "HUILA"
+    },
+    {
+      "code": "44",
+      "name": "LA GUAJIRA"
+    },
+    {
+      "code": "47",
+      "name": "MAGDALENA"
+    },
+    {
+      "code": "50",
+      "name": "META"
+    },
+    {
+      "code": "52",
+      "name": "NARIÑO"
+    },
+    {
+      "code": "54",
+      "name": "NORTE DE SANTANDER"
+    },
+    {
+      "code": "63",
+      "name": "QUINDÍO"
+    },
+    {
+      "code": "66",
+      "name": "RISARALDA"
+    },
+    {
+      "code": "68",
+      "name": "SANTANDER"
+    },
+    {
+      "code": "70",
+      "name": "SUCRE"
+    },
+    {
+      "code": "73",
+      "name": "TOLIMA"
+    },
+    {
+      "code": "76",
+      "name": "VALLE DEL CAUCA"
+    },
+    {
+      "code": "81",
+      "name": "ARAUCA"
+    },
+    {
+      "code": "85",
+      "name": "CASANARE"
+    },
+    {
+      "code": "86",
+      "name": "PUTUMAYO"
+    },
+    {
+      "code": "88",
+      "name": "ARCHIPIÉLAGO DE SAN ANDRÉS. PROVIDENCIA Y SANTA CATALINA"
+    },
+    {
+      "code": "91",
+      "name": "AMAZONAS"
+    },
+    {
+      "code": "94",
+      "name": "GUAINÍA"
+    },
+    {
+      "code": "95",
+      "name": "GUAVIARE"
+    },
+    {
+      "code": "97",
+      "name": "VAUPÉS"
+    },
+    {
+      "code": "99",
+      "name": "VICHADA"
+    }
+  ],
+  "municipalities": [
+    {
+      "divipola": "05001",
+      "name": "MEDELLÍN",
+      "deptCode": "05",
+      "isCapital": true
+    },
+    {
+      "divipola": "05002",
+      "name": "ABEJORRAL",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05004",
+      "name": "ABRIAQUÍ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05021",
+      "name": "ALEJANDRÍA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05030",
+      "name": "AMAGÁ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05031",
+      "name": "AMALFI",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05034",
+      "name": "ANDES",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05036",
+      "name": "ANGELÓPOLIS",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05038",
+      "name": "ANGOSTURA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05040",
+      "name": "ANORÍ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05042",
+      "name": "SANTA FÉ DE ANTIOQUIA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05044",
+      "name": "ANZÁ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05045",
+      "name": "APARTADÓ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05051",
+      "name": "ARBOLETES",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05055",
+      "name": "ARGELIA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05059",
+      "name": "ARMENIA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05079",
+      "name": "BARBOSA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05086",
+      "name": "BELMIRA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05088",
+      "name": "BELLO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05091",
+      "name": "BETANIA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05093",
+      "name": "BETULIA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05101",
+      "name": "CIUDAD BOLÍVAR",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05107",
+      "name": "BRICEÑO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05113",
+      "name": "BURITICÁ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05120",
+      "name": "CÁCERES",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05125",
+      "name": "CAICEDO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05129",
+      "name": "CALDAS",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05134",
+      "name": "CAMPAMENTO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05138",
+      "name": "CAÑASGORDAS",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05142",
+      "name": "CARACOLÍ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05145",
+      "name": "CARAMANTA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05147",
+      "name": "CAREPA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05148",
+      "name": "EL CARMEN DE VIBORAL",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05150",
+      "name": "CAROLINA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05154",
+      "name": "CAUCASIA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05172",
+      "name": "CHIGORODÓ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05190",
+      "name": "CISNEROS",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05197",
+      "name": "COCORNÁ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05206",
+      "name": "CONCEPCIÓN",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05209",
+      "name": "CONCORDIA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05212",
+      "name": "COPACABANA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05234",
+      "name": "DABEIBA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05237",
+      "name": "DONMATÍAS",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05240",
+      "name": "EBÉJICO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05250",
+      "name": "EL BAGRE",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05264",
+      "name": "ENTRERRÍOS",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05266",
+      "name": "ENVIGADO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05282",
+      "name": "FREDONIA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05284",
+      "name": "FRONTINO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05306",
+      "name": "GIRALDO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05308",
+      "name": "GIRARDOTA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05310",
+      "name": "GÓMEZ PLATA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05313",
+      "name": "GRANADA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05315",
+      "name": "GUADALUPE",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05318",
+      "name": "GUARNE",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05321",
+      "name": "GUATAPÉ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05347",
+      "name": "HELICONIA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05353",
+      "name": "HISPANIA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05360",
+      "name": "ITAGÜÍ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05361",
+      "name": "ITUANGO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05364",
+      "name": "JARDÍN",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05368",
+      "name": "JERICÓ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05376",
+      "name": "LA CEJA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05380",
+      "name": "LA ESTRELLA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05390",
+      "name": "LA PINTADA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05400",
+      "name": "LA UNIÓN",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05411",
+      "name": "LIBORINA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05425",
+      "name": "MACEO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05440",
+      "name": "MARINILLA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05467",
+      "name": "MONTEBELLO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05475",
+      "name": "MURINDÓ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05480",
+      "name": "MUTATÁ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05483",
+      "name": "NARIÑO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05490",
+      "name": "NECOCLÍ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05495",
+      "name": "NECHÍ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05501",
+      "name": "OLAYA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05541",
+      "name": "PEÑOL",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05543",
+      "name": "PEQUE",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05576",
+      "name": "PUEBLORRICO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05579",
+      "name": "PUERTO BERRÍO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05585",
+      "name": "PUERTO NARE",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05591",
+      "name": "PUERTO TRIUNFO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05604",
+      "name": "REMEDIOS",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05607",
+      "name": "RETIRO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05615",
+      "name": "RIONEGRO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05628",
+      "name": "SABANALARGA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05631",
+      "name": "SABANETA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05642",
+      "name": "SALGAR",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05647",
+      "name": "SAN ANDRÉS DE CUERQUÍA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05649",
+      "name": "SAN CARLOS",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05652",
+      "name": "SAN FRANCISCO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05656",
+      "name": "SAN JERÓNIMO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05658",
+      "name": "SAN JOSÉ DE LA MONTAÑA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05659",
+      "name": "SAN JUAN DE URABÁ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05660",
+      "name": "SAN LUIS",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05664",
+      "name": "SAN PEDRO DE LOS MILAGROS",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05665",
+      "name": "SAN PEDRO DE URABÁ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05667",
+      "name": "SAN RAFAEL",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05670",
+      "name": "SAN ROQUE",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05674",
+      "name": "SAN VICENTE FERRER",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05679",
+      "name": "SANTA BÁRBARA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05686",
+      "name": "SANTA ROSA DE OSOS",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05690",
+      "name": "SANTO DOMINGO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05697",
+      "name": "EL SANTUARIO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05736",
+      "name": "SEGOVIA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05756",
+      "name": "SONSÓN",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05761",
+      "name": "SOPETRÁN",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05789",
+      "name": "TÁMESIS",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05790",
+      "name": "TARAZÁ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05792",
+      "name": "TARSO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05809",
+      "name": "TITIRIBÍ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05819",
+      "name": "TOLEDO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05837",
+      "name": "TURBO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05842",
+      "name": "URAMITA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05847",
+      "name": "URRAO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05854",
+      "name": "VALDIVIA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05856",
+      "name": "VALPARAÍSO",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05858",
+      "name": "VEGACHÍ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05861",
+      "name": "VENECIA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05873",
+      "name": "VIGÍA DEL FUERTE",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05885",
+      "name": "YALÍ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05887",
+      "name": "YARUMAL",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05890",
+      "name": "YOLOMBÓ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05893",
+      "name": "YONDÓ",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "05895",
+      "name": "ZARAGOZA",
+      "deptCode": "05",
+      "isCapital": false
+    },
+    {
+      "divipola": "08001",
+      "name": "BARRANQUILLA",
+      "deptCode": "08",
+      "isCapital": true
+    },
+    {
+      "divipola": "08078",
+      "name": "BARANOA",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08137",
+      "name": "CAMPO DE LA CRUZ",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08141",
+      "name": "CANDELARIA",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08296",
+      "name": "GALAPA",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08372",
+      "name": "JUAN DE ACOSTA",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08421",
+      "name": "LURUACO",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08433",
+      "name": "MALAMBO",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08436",
+      "name": "MANATÍ",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08520",
+      "name": "PALMAR DE VARELA",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08549",
+      "name": "PIOJÓ",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08558",
+      "name": "POLONUEVO",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08560",
+      "name": "PONEDERA",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08573",
+      "name": "PUERTO COLOMBIA",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08606",
+      "name": "REPELÓN",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08634",
+      "name": "SABANAGRANDE",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08638",
+      "name": "SABANALARGA",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08675",
+      "name": "SANTA LUCÍA",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08685",
+      "name": "SANTO TOMÁS",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08758",
+      "name": "SOLEDAD",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08770",
+      "name": "SUAN",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08832",
+      "name": "TUBARÁ",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "08849",
+      "name": "USIACURÍ",
+      "deptCode": "08",
+      "isCapital": false
+    },
+    {
+      "divipola": "11001",
+      "name": "BOGOTÁ. D.C.",
+      "deptCode": "11",
+      "isCapital": true
+    },
+    {
+      "divipola": "13001",
+      "name": "CARTAGENA DE INDIAS",
+      "deptCode": "13",
+      "isCapital": true
+    },
+    {
+      "divipola": "13006",
+      "name": "ACHÍ",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13030",
+      "name": "ALTOS DEL ROSARIO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13042",
+      "name": "ARENAL",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13052",
+      "name": "ARJONA",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13062",
+      "name": "ARROYOHONDO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13074",
+      "name": "BARRANCO DE LOBA",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13140",
+      "name": "CALAMAR",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13160",
+      "name": "CANTAGALLO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13188",
+      "name": "CICUCO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13212",
+      "name": "CÓRDOBA",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13222",
+      "name": "CLEMENCIA",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13244",
+      "name": "EL CARMEN DE BOLÍVAR",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13248",
+      "name": "EL GUAMO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13268",
+      "name": "EL PEÑÓN",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13300",
+      "name": "HATILLO DE LOBA",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13430",
+      "name": "MAGANGUÉ",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13433",
+      "name": "MAHATES",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13440",
+      "name": "MARGARITA",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13442",
+      "name": "MARÍA LA BAJA",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13458",
+      "name": "MONTECRISTO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13468",
+      "name": "SANTA CRUZ DE MOMPOX",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13473",
+      "name": "MORALES",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13490",
+      "name": "NOROSÍ",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13549",
+      "name": "PINILLOS",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13580",
+      "name": "REGIDOR",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13600",
+      "name": "RÍO VIEJO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13620",
+      "name": "SAN CRISTÓBAL",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13647",
+      "name": "SAN ESTANISLAO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13650",
+      "name": "SAN FERNANDO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13654",
+      "name": "SAN JACINTO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13655",
+      "name": "SAN JACINTO DEL CAUCA",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13657",
+      "name": "SAN JUAN NEPOMUCENO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13667",
+      "name": "SAN MARTÍN DE LOBA",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13670",
+      "name": "SAN PABLO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13673",
+      "name": "SANTA CATALINA",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13683",
+      "name": "SANTA ROSA",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13688",
+      "name": "SANTA ROSA DEL SUR",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13744",
+      "name": "SIMITÍ",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13760",
+      "name": "SOPLAVIENTO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13780",
+      "name": "TALAIGUA NUEVO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13810",
+      "name": "TIQUISIO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13836",
+      "name": "TURBACO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13838",
+      "name": "TURBANÁ",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13873",
+      "name": "VILLANUEVA",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "13894",
+      "name": "ZAMBRANO",
+      "deptCode": "13",
+      "isCapital": false
+    },
+    {
+      "divipola": "15001",
+      "name": "TUNJA",
+      "deptCode": "15",
+      "isCapital": true
+    },
+    {
+      "divipola": "15022",
+      "name": "ALMEIDA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15047",
+      "name": "AQUITANIA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15051",
+      "name": "ARCABUCO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15087",
+      "name": "BELÉN",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15090",
+      "name": "BERBEO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15092",
+      "name": "BETÉITIVA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15097",
+      "name": "BOAVITA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15104",
+      "name": "BOYACÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15106",
+      "name": "BRICEÑO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15109",
+      "name": "BUENAVISTA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15114",
+      "name": "BUSBANZÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15131",
+      "name": "CALDAS",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15135",
+      "name": "CAMPOHERMOSO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15162",
+      "name": "CERINZA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15172",
+      "name": "CHINAVITA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15176",
+      "name": "CHIQUINQUIRÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15180",
+      "name": "CHISCAS",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15183",
+      "name": "CHITA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15185",
+      "name": "CHITARAQUE",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15187",
+      "name": "CHIVATÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15189",
+      "name": "CIÉNEGA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15204",
+      "name": "CÓMBITA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15212",
+      "name": "COPER",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15215",
+      "name": "CORRALES",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15218",
+      "name": "COVARACHÍA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15223",
+      "name": "CUBARÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15224",
+      "name": "CUCAITA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15226",
+      "name": "CUÍTIVA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15232",
+      "name": "CHÍQUIZA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15236",
+      "name": "CHIVOR",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15238",
+      "name": "DUITAMA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15244",
+      "name": "EL COCUY",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15248",
+      "name": "EL ESPINO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15272",
+      "name": "FIRAVITOBA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15276",
+      "name": "FLORESTA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15293",
+      "name": "GACHANTIVÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15296",
+      "name": "GÁMEZA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15299",
+      "name": "GARAGOA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15317",
+      "name": "GUACAMAYAS",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15322",
+      "name": "GUATEQUE",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15325",
+      "name": "GUAYATÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15332",
+      "name": "GÜICÁN DE LA SIERRA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15362",
+      "name": "IZA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15367",
+      "name": "JENESANO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15368",
+      "name": "JERICÓ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15377",
+      "name": "LABRANZAGRANDE",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15380",
+      "name": "LA CAPILLA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15401",
+      "name": "LA VICTORIA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15403",
+      "name": "LA UVITA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15407",
+      "name": "VILLA DE LEYVA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15425",
+      "name": "MACANAL",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15442",
+      "name": "MARIPÍ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15455",
+      "name": "MIRAFLORES",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15464",
+      "name": "MONGUA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15466",
+      "name": "MONGUÍ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15469",
+      "name": "MONIQUIRÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15476",
+      "name": "MOTAVITA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15480",
+      "name": "MUZO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15491",
+      "name": "NOBSA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15494",
+      "name": "NUEVO COLÓN",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15500",
+      "name": "OICATÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15507",
+      "name": "OTANCHE",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15511",
+      "name": "PACHAVITA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15514",
+      "name": "PÁEZ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15516",
+      "name": "PAIPA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15518",
+      "name": "PAJARITO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15522",
+      "name": "PANQUEBA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15531",
+      "name": "PAUNA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15533",
+      "name": "PAYA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15537",
+      "name": "PAZ DE RÍO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15542",
+      "name": "PESCA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15550",
+      "name": "PISBA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15572",
+      "name": "PUERTO BOYACÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15580",
+      "name": "QUÍPAMA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15599",
+      "name": "RAMIRIQUÍ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15600",
+      "name": "RÁQUIRA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15621",
+      "name": "RONDÓN",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15632",
+      "name": "SABOYÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15638",
+      "name": "SÁCHICA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15646",
+      "name": "SAMACÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15660",
+      "name": "SAN EDUARDO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15664",
+      "name": "SAN JOSÉ DE PARE",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15667",
+      "name": "SAN LUIS DE GACENO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15673",
+      "name": "SAN MATEO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15676",
+      "name": "SAN MIGUEL DE SEMA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15681",
+      "name": "SAN PABLO DE BORBUR",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15686",
+      "name": "SANTANA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15690",
+      "name": "SANTA MARÍA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15693",
+      "name": "SANTA ROSA DE VITERBO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15696",
+      "name": "SANTA SOFÍA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15720",
+      "name": "SATIVANORTE",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15723",
+      "name": "SATIVASUR",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15740",
+      "name": "SIACHOQUE",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15753",
+      "name": "SOATÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15755",
+      "name": "SOCOTÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15757",
+      "name": "SOCHA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15759",
+      "name": "SOGAMOSO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15761",
+      "name": "SOMONDOCO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15762",
+      "name": "SORA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15763",
+      "name": "SOTAQUIRÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15764",
+      "name": "SORACÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15774",
+      "name": "SUSACÓN",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15776",
+      "name": "SUTAMARCHÁN",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15778",
+      "name": "SUTATENZA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15790",
+      "name": "TASCO",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15798",
+      "name": "TENZA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15804",
+      "name": "TIBANÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15806",
+      "name": "TIBASOSA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15808",
+      "name": "TINJACÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15810",
+      "name": "TIPACOQUE",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15814",
+      "name": "TOCA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15816",
+      "name": "TOGÜÍ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15820",
+      "name": "TÓPAGA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15822",
+      "name": "TOTA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15832",
+      "name": "TUNUNGUÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15835",
+      "name": "TURMEQUÉ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15837",
+      "name": "TUTA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15839",
+      "name": "TUTAZÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15842",
+      "name": "ÚMBITA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15861",
+      "name": "VENTAQUEMADA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15879",
+      "name": "VIRACACHÁ",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "15897",
+      "name": "ZETAQUIRA",
+      "deptCode": "15",
+      "isCapital": false
+    },
+    {
+      "divipola": "17001",
+      "name": "MANIZALES",
+      "deptCode": "17",
+      "isCapital": true
+    },
+    {
+      "divipola": "17013",
+      "name": "AGUADAS",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17042",
+      "name": "ANSERMA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17050",
+      "name": "ARANZAZU",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17088",
+      "name": "BELALCÁZAR",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17174",
+      "name": "CHINCHINÁ",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17272",
+      "name": "FILADELFIA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17380",
+      "name": "LA DORADA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17388",
+      "name": "LA MERCED",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17433",
+      "name": "MANZANARES",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17442",
+      "name": "MARMATO",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17444",
+      "name": "MARQUETALIA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17446",
+      "name": "MARULANDA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17486",
+      "name": "NEIRA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17495",
+      "name": "NORCASIA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17513",
+      "name": "PÁCORA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17524",
+      "name": "PALESTINA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17541",
+      "name": "PENSILVANIA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17614",
+      "name": "RIOSUCIO",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17616",
+      "name": "RISARALDA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17653",
+      "name": "SALAMINA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17662",
+      "name": "SAMANÁ",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17665",
+      "name": "SAN JOSÉ",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17777",
+      "name": "SUPÍA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17867",
+      "name": "VICTORIA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17873",
+      "name": "VILLAMARÍA",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "17877",
+      "name": "VITERBO",
+      "deptCode": "17",
+      "isCapital": false
+    },
+    {
+      "divipola": "18001",
+      "name": "FLORENCIA",
+      "deptCode": "18",
+      "isCapital": true
+    },
+    {
+      "divipola": "18029",
+      "name": "ALBANIA",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "18094",
+      "name": "BELÉN DE LOS ANDAQUÍES",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "18150",
+      "name": "CARTAGENA DEL CHAIRÁ",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "18205",
+      "name": "CURILLO",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "18247",
+      "name": "EL DONCELLO",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "18256",
+      "name": "EL PAUJÍL",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "18410",
+      "name": "LA MONTAÑITA",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "18460",
+      "name": "MILÁN",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "18479",
+      "name": "MORELIA",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "18592",
+      "name": "PUERTO RICO",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "18610",
+      "name": "SAN JOSÉ DEL FRAGUA",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "18753",
+      "name": "SAN VICENTE DEL CAGUÁN",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "18756",
+      "name": "SOLANO",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "18785",
+      "name": "SOLITA",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "18860",
+      "name": "VALPARAÍSO",
+      "deptCode": "18",
+      "isCapital": false
+    },
+    {
+      "divipola": "19001",
+      "name": "POPAYÁN",
+      "deptCode": "19",
+      "isCapital": true
+    },
+    {
+      "divipola": "19022",
+      "name": "ALMAGUER",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19050",
+      "name": "ARGELIA",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19075",
+      "name": "BALBOA",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19100",
+      "name": "BOLÍVAR",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19110",
+      "name": "BUENOS AIRES",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19130",
+      "name": "CAJIBIO",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19137",
+      "name": "CALDONO",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19142",
+      "name": "CALOTO",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19212",
+      "name": "CORINTO",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19256",
+      "name": "EL TAMBO",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19290",
+      "name": "FLORENCIA",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19300",
+      "name": "GUACHENÉ",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19318",
+      "name": "GUAPI",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19355",
+      "name": "INZÁ",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19364",
+      "name": "JAMBALÓ",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19392",
+      "name": "LA SIERRA",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19397",
+      "name": "LA VEGA",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19418",
+      "name": "LÓPEZ DE MICAY",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19450",
+      "name": "MERCADERES",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19455",
+      "name": "MIRANDA",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19473",
+      "name": "MORALES",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19513",
+      "name": "PADILLA",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19517",
+      "name": "PÁEZ",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19532",
+      "name": "PATÍA",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19533",
+      "name": "PIAMONTE",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19548",
+      "name": "PIENDAMÓ - TUNÍA",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19573",
+      "name": "PUERTO TEJADA",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19585",
+      "name": "PURACÉ",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19622",
+      "name": "ROSAS",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19693",
+      "name": "SAN SEBASTIÁN",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19698",
+      "name": "SANTANDER DE QUILICHAO",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19701",
+      "name": "SANTA ROSA",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19743",
+      "name": "SILVIA",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19760",
+      "name": "SOTARÁ PAISPAMBA",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19780",
+      "name": "SUÁREZ",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19785",
+      "name": "SUCRE",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19807",
+      "name": "TIMBÍO",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19809",
+      "name": "TIMBIQUÍ",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19821",
+      "name": "TORIBÍO",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19824",
+      "name": "TOTORÓ",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "19845",
+      "name": "VILLA RICA",
+      "deptCode": "19",
+      "isCapital": false
+    },
+    {
+      "divipola": "20001",
+      "name": "VALLEDUPAR",
+      "deptCode": "20",
+      "isCapital": true
+    },
+    {
+      "divipola": "20011",
+      "name": "AGUACHICA",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20013",
+      "name": "AGUSTÍN CODAZZI",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20032",
+      "name": "ASTREA",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20045",
+      "name": "BECERRIL",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20060",
+      "name": "BOSCONIA",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20175",
+      "name": "CHIMICHAGUA",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20178",
+      "name": "CHIRIGUANÁ",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20228",
+      "name": "CURUMANÍ",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20238",
+      "name": "EL COPEY",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20250",
+      "name": "EL PASO",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20295",
+      "name": "GAMARRA",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20310",
+      "name": "GONZÁLEZ",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20383",
+      "name": "LA GLORIA",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20400",
+      "name": "LA JAGUA DE IBIRICO",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20443",
+      "name": "MANAURE BALCÓN DEL CESAR",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20517",
+      "name": "PAILITAS",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20550",
+      "name": "PELAYA",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20570",
+      "name": "PUEBLO BELLO",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20614",
+      "name": "RÍO DE ORO",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20621",
+      "name": "LA PAZ",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20710",
+      "name": "SAN ALBERTO",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20750",
+      "name": "SAN DIEGO",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20770",
+      "name": "SAN MARTÍN",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "20787",
+      "name": "TAMALAMEQUE",
+      "deptCode": "20",
+      "isCapital": false
+    },
+    {
+      "divipola": "23001",
+      "name": "MONTERÍA",
+      "deptCode": "23",
+      "isCapital": true
+    },
+    {
+      "divipola": "23068",
+      "name": "AYAPEL",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23079",
+      "name": "BUENAVISTA",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23090",
+      "name": "CANALETE",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23162",
+      "name": "CERETÉ",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23168",
+      "name": "CHIMÁ",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23182",
+      "name": "CHINÚ",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23189",
+      "name": "CIÉNAGA DE ORO",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23300",
+      "name": "COTORRA",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23350",
+      "name": "LA APARTADA",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23417",
+      "name": "LORICA",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23419",
+      "name": "LOS CÓRDOBAS",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23464",
+      "name": "MOMIL",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23466",
+      "name": "MONTELÍBANO",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23500",
+      "name": "MOÑITOS",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23555",
+      "name": "PLANETA RICA",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23570",
+      "name": "PUEBLO NUEVO",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23574",
+      "name": "PUERTO ESCONDIDO",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23580",
+      "name": "PUERTO LIBERTADOR",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23586",
+      "name": "PURÍSIMA DE LA CONCEPCIÓN",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23660",
+      "name": "SAHAGÚN",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23670",
+      "name": "SAN ANDRÉS DE SOTAVENTO",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23672",
+      "name": "SAN ANTERO",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23675",
+      "name": "SAN BERNARDO DEL VIENTO",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23678",
+      "name": "SAN CARLOS",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23682",
+      "name": "SAN JOSÉ DE URÉ",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23686",
+      "name": "SAN PELAYO",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23807",
+      "name": "TIERRALTA",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23815",
+      "name": "TUCHÍN",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "23855",
+      "name": "VALENCIA",
+      "deptCode": "23",
+      "isCapital": false
+    },
+    {
+      "divipola": "25001",
+      "name": "AGUA DE DIOS",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25019",
+      "name": "ALBÁN",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25035",
+      "name": "ANAPOIMA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25040",
+      "name": "ANOLAIMA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25053",
+      "name": "ARBELÁEZ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25086",
+      "name": "BELTRÁN",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25095",
+      "name": "BITUIMA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25099",
+      "name": "BOJACÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25120",
+      "name": "CABRERA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25123",
+      "name": "CACHIPAY",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25126",
+      "name": "CAJICÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25148",
+      "name": "CAPARRAPÍ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25151",
+      "name": "CÁQUEZA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25154",
+      "name": "CARMEN DE CARUPA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25168",
+      "name": "CHAGUANÍ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25175",
+      "name": "CHÍA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25178",
+      "name": "CHIPAQUE",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25181",
+      "name": "CHOACHÍ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25183",
+      "name": "CHOCONTÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25200",
+      "name": "COGUA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25214",
+      "name": "COTA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25224",
+      "name": "CUCUNUBÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25245",
+      "name": "EL COLEGIO",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25258",
+      "name": "EL PEÑÓN",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25260",
+      "name": "EL ROSAL",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25269",
+      "name": "FACATATIVÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25279",
+      "name": "FÓMEQUE",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25281",
+      "name": "FOSCA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25286",
+      "name": "FUNZA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25288",
+      "name": "FÚQUENE",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25290",
+      "name": "FUSAGASUGÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25293",
+      "name": "GACHALÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25295",
+      "name": "GACHANCIPÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25297",
+      "name": "GACHETÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25299",
+      "name": "GAMA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25307",
+      "name": "GIRARDOT",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25312",
+      "name": "GRANADA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25317",
+      "name": "GUACHETÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25320",
+      "name": "GUADUAS",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25322",
+      "name": "GUASCA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25324",
+      "name": "GUATAQUÍ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25326",
+      "name": "GUATAVITA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25328",
+      "name": "GUAYABAL DE SÍQUIMA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25335",
+      "name": "GUAYABETAL",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25339",
+      "name": "GUTIÉRREZ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25368",
+      "name": "JERUSALÉN",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25372",
+      "name": "JUNÍN",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25377",
+      "name": "LA CALERA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25386",
+      "name": "LA MESA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25394",
+      "name": "LA PALMA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25398",
+      "name": "LA PEÑA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25402",
+      "name": "LA VEGA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25407",
+      "name": "LENGUAZAQUE",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25426",
+      "name": "MACHETÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25430",
+      "name": "MADRID",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25436",
+      "name": "MANTA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25438",
+      "name": "MEDINA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25473",
+      "name": "MOSQUERA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25483",
+      "name": "NARIÑO",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25486",
+      "name": "NEMOCÓN",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25488",
+      "name": "NILO",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25489",
+      "name": "NIMAIMA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25491",
+      "name": "NOCAIMA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25506",
+      "name": "VENECIA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25513",
+      "name": "PACHO",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25518",
+      "name": "PAIME",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25524",
+      "name": "PANDI",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25530",
+      "name": "PARATEBUENO",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25535",
+      "name": "PASCA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25572",
+      "name": "PUERTO SALGAR",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25580",
+      "name": "PULÍ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25592",
+      "name": "QUEBRADANEGRA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25594",
+      "name": "QUETAME",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25596",
+      "name": "QUIPILE",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25599",
+      "name": "APULO",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25612",
+      "name": "RICAURTE",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25645",
+      "name": "SAN ANTONIO DEL TEQUENDAMA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25649",
+      "name": "SAN BERNARDO",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25653",
+      "name": "SAN CAYETANO",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25658",
+      "name": "SAN FRANCISCO",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25662",
+      "name": "SAN JUAN DE RIOSECO",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25718",
+      "name": "SASAIMA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25736",
+      "name": "SESQUILÉ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25740",
+      "name": "SIBATÉ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25743",
+      "name": "SILVANIA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25745",
+      "name": "SIMIJACA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25754",
+      "name": "SOACHA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25758",
+      "name": "SOPÓ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25769",
+      "name": "SUBACHOQUE",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25772",
+      "name": "SUESCA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25777",
+      "name": "SUPATÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25779",
+      "name": "SUSA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25781",
+      "name": "SUTATAUSA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25785",
+      "name": "TABIO",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25793",
+      "name": "TAUSA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25797",
+      "name": "TENA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25799",
+      "name": "TENJO",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25805",
+      "name": "TIBACUY",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25807",
+      "name": "TIBIRITA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25815",
+      "name": "TOCAIMA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25817",
+      "name": "TOCANCIPÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25823",
+      "name": "TOPAIPÍ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25839",
+      "name": "UBALÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25841",
+      "name": "UBAQUE",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25843",
+      "name": "VILLA DE SAN DIEGO DE UBATÉ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25845",
+      "name": "UNE",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25851",
+      "name": "ÚTICA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25862",
+      "name": "VERGARA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25867",
+      "name": "VIANÍ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25871",
+      "name": "VILLAGÓMEZ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25873",
+      "name": "VILLAPINZÓN",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25875",
+      "name": "VILLETA",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25878",
+      "name": "VIOTÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25885",
+      "name": "YACOPÍ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25898",
+      "name": "ZIPACÓN",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "25899",
+      "name": "ZIPAQUIRÁ",
+      "deptCode": "25",
+      "isCapital": false
+    },
+    {
+      "divipola": "27001",
+      "name": "QUIBDÓ",
+      "deptCode": "27",
+      "isCapital": true
+    },
+    {
+      "divipola": "27006",
+      "name": "ACANDÍ",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27025",
+      "name": "ALTO BAUDÓ",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27050",
+      "name": "ATRATO",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27073",
+      "name": "BAGADÓ",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27075",
+      "name": "BAHÍA SOLANO",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27077",
+      "name": "BAJO BAUDÓ",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27099",
+      "name": "BOJAYÁ",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27135",
+      "name": "EL CANTÓN DEL SAN PABLO",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27150",
+      "name": "CARMEN DEL DARIÉN",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27160",
+      "name": "CÉRTEGUI",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27205",
+      "name": "CONDOTO",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27245",
+      "name": "EL CARMEN DE ATRATO",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27250",
+      "name": "EL LITORAL DEL SAN JUAN",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27361",
+      "name": "ISTMINA",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27372",
+      "name": "JURADÓ",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27413",
+      "name": "LLORÓ",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27425",
+      "name": "MEDIO ATRATO",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27430",
+      "name": "MEDIO BAUDÓ",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27450",
+      "name": "MEDIO SAN JUAN",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27491",
+      "name": "NÓVITA",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27495",
+      "name": "NUQUÍ",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27580",
+      "name": "RÍO IRÓ",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27600",
+      "name": "RÍO QUITO",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27615",
+      "name": "RIOSUCIO",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27660",
+      "name": "SAN JOSÉ DEL PALMAR",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27745",
+      "name": "SIPÍ",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27787",
+      "name": "TADÓ",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27800",
+      "name": "UNGUÍA",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "27810",
+      "name": "UNIÓN PANAMERICANA",
+      "deptCode": "27",
+      "isCapital": false
+    },
+    {
+      "divipola": "41001",
+      "name": "NEIVA",
+      "deptCode": "41",
+      "isCapital": true
+    },
+    {
+      "divipola": "41006",
+      "name": "ACEVEDO",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41013",
+      "name": "AGRADO",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41016",
+      "name": "AIPE",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41020",
+      "name": "ALGECIRAS",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41026",
+      "name": "ALTAMIRA",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41078",
+      "name": "BARAYA",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41132",
+      "name": "CAMPOALEGRE",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41206",
+      "name": "COLOMBIA",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41244",
+      "name": "ELÍAS",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41298",
+      "name": "GARZÓN",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41306",
+      "name": "GIGANTE",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41319",
+      "name": "GUADALUPE",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41349",
+      "name": "HOBO",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41357",
+      "name": "ÍQUIRA",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41359",
+      "name": "ISNOS",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41378",
+      "name": "LA ARGENTINA",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41396",
+      "name": "LA PLATA",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41483",
+      "name": "NÁTAGA",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41503",
+      "name": "OPORAPA",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41518",
+      "name": "PAICOL",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41524",
+      "name": "PALERMO",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41530",
+      "name": "PALESTINA",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41548",
+      "name": "PITAL",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41551",
+      "name": "PITALITO",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41615",
+      "name": "RIVERA",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41660",
+      "name": "SALADOBLANCO",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41668",
+      "name": "SAN AGUSTÍN",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41676",
+      "name": "SANTA MARÍA",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41770",
+      "name": "SUAZA",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41791",
+      "name": "TARQUI",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41797",
+      "name": "TESALIA",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41799",
+      "name": "TELLO",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41801",
+      "name": "TERUEL",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41807",
+      "name": "TIMANÁ",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41872",
+      "name": "VILLAVIEJA",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "41885",
+      "name": "YAGUARÁ",
+      "deptCode": "41",
+      "isCapital": false
+    },
+    {
+      "divipola": "44001",
+      "name": "RIOHACHA",
+      "deptCode": "44",
+      "isCapital": true
+    },
+    {
+      "divipola": "44035",
+      "name": "ALBANIA",
+      "deptCode": "44",
+      "isCapital": false
+    },
+    {
+      "divipola": "44078",
+      "name": "BARRANCAS",
+      "deptCode": "44",
+      "isCapital": false
+    },
+    {
+      "divipola": "44090",
+      "name": "DIBULLA",
+      "deptCode": "44",
+      "isCapital": false
+    },
+    {
+      "divipola": "44098",
+      "name": "DISTRACCIÓN",
+      "deptCode": "44",
+      "isCapital": false
+    },
+    {
+      "divipola": "44110",
+      "name": "EL MOLINO",
+      "deptCode": "44",
+      "isCapital": false
+    },
+    {
+      "divipola": "44279",
+      "name": "FONSECA",
+      "deptCode": "44",
+      "isCapital": false
+    },
+    {
+      "divipola": "44378",
+      "name": "HATONUEVO",
+      "deptCode": "44",
+      "isCapital": false
+    },
+    {
+      "divipola": "44420",
+      "name": "LA JAGUA DEL PILAR",
+      "deptCode": "44",
+      "isCapital": false
+    },
+    {
+      "divipola": "44430",
+      "name": "MAICAO",
+      "deptCode": "44",
+      "isCapital": false
+    },
+    {
+      "divipola": "44560",
+      "name": "MANAURE",
+      "deptCode": "44",
+      "isCapital": false
+    },
+    {
+      "divipola": "44650",
+      "name": "SAN JUAN DEL CESAR",
+      "deptCode": "44",
+      "isCapital": false
+    },
+    {
+      "divipola": "44847",
+      "name": "URIBIA",
+      "deptCode": "44",
+      "isCapital": false
+    },
+    {
+      "divipola": "44855",
+      "name": "URUMITA",
+      "deptCode": "44",
+      "isCapital": false
+    },
+    {
+      "divipola": "44874",
+      "name": "VILLANUEVA",
+      "deptCode": "44",
+      "isCapital": false
+    },
+    {
+      "divipola": "47001",
+      "name": "SANTA MARTA",
+      "deptCode": "47",
+      "isCapital": true
+    },
+    {
+      "divipola": "47030",
+      "name": "ALGARROBO",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47053",
+      "name": "ARACATACA",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47058",
+      "name": "ARIGUANÍ",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47161",
+      "name": "CERRO DE SAN ANTONIO",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47170",
+      "name": "CHIVOLO",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47189",
+      "name": "CIÉNAGA",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47205",
+      "name": "CONCORDIA",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47245",
+      "name": "EL BANCO",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47258",
+      "name": "EL PIÑÓN",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47268",
+      "name": "EL RETÉN",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47288",
+      "name": "FUNDACIÓN",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47318",
+      "name": "GUAMAL",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47460",
+      "name": "NUEVA GRANADA",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47541",
+      "name": "PEDRAZA",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47545",
+      "name": "PIJIÑO DEL CARMEN",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47551",
+      "name": "PIVIJAY",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47555",
+      "name": "PLATO",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47570",
+      "name": "PUEBLOVIEJO",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47605",
+      "name": "REMOLINO",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47660",
+      "name": "SABANAS DE SAN ÁNGEL",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47675",
+      "name": "SALAMINA",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47692",
+      "name": "SAN SEBASTIÁN DE BUENAVISTA",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47703",
+      "name": "SAN ZENÓN",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47707",
+      "name": "SANTA ANA",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47720",
+      "name": "SANTA BÁRBARA DE PINTO",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47745",
+      "name": "SITIONUEVO",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47798",
+      "name": "TENERIFE",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47960",
+      "name": "ZAPAYÁN",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "47980",
+      "name": "ZONA BANANERA",
+      "deptCode": "47",
+      "isCapital": false
+    },
+    {
+      "divipola": "50001",
+      "name": "VILLAVICENCIO",
+      "deptCode": "50",
+      "isCapital": true
+    },
+    {
+      "divipola": "50006",
+      "name": "ACACÍAS",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50110",
+      "name": "BARRANCA DE UPÍA",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50124",
+      "name": "CABUYARO",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50150",
+      "name": "CASTILLA LA NUEVA",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50223",
+      "name": "CUBARRAL",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50226",
+      "name": "CUMARAL",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50245",
+      "name": "EL CALVARIO",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50251",
+      "name": "EL CASTILLO",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50270",
+      "name": "EL DORADO",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50287",
+      "name": "FUENTE DE ORO",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50313",
+      "name": "GRANADA",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50318",
+      "name": "GUAMAL",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50325",
+      "name": "MAPIRIPAN",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50330",
+      "name": "MESETAS",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50350",
+      "name": "LA MACARENA",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50370",
+      "name": "URIBE",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50400",
+      "name": "LEJANÍAS",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50450",
+      "name": "PUERTO CONCORDIA",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50568",
+      "name": "PUERTO GAITÁN",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50573",
+      "name": "PUERTO LÓPEZ",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50577",
+      "name": "PUERTO LLERAS",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50590",
+      "name": "PUERTO RICO",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50606",
+      "name": "RESTREPO",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50680",
+      "name": "SAN CARLOS DE GUAROA",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50683",
+      "name": "SAN JUAN DE ARAMA",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50686",
+      "name": "SAN JUANITO",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50689",
+      "name": "SAN MARTÍN",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "50711",
+      "name": "VISTAHERMOSA",
+      "deptCode": "50",
+      "isCapital": false
+    },
+    {
+      "divipola": "52001",
+      "name": "PASTO",
+      "deptCode": "52",
+      "isCapital": true
+    },
+    {
+      "divipola": "52019",
+      "name": "ALBÁN",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52022",
+      "name": "ALDANA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52036",
+      "name": "ANCUYA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52051",
+      "name": "ARBOLEDA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52079",
+      "name": "BARBACOAS",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52083",
+      "name": "BELÉN",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52110",
+      "name": "BUESACO",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52203",
+      "name": "COLÓN",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52207",
+      "name": "CONSACÁ",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52210",
+      "name": "CONTADERO",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52215",
+      "name": "CÓRDOBA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52224",
+      "name": "CUASPUD CARLOSAMA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52227",
+      "name": "CUMBAL",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52233",
+      "name": "CUMBITARA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52240",
+      "name": "CHACHAGÜÍ",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52250",
+      "name": "EL CHARCO",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52254",
+      "name": "EL PEÑOL",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52256",
+      "name": "EL ROSARIO",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52258",
+      "name": "EL TABLÓN DE GÓMEZ",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52260",
+      "name": "EL TAMBO",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52287",
+      "name": "FUNES",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52317",
+      "name": "GUACHUCAL",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52320",
+      "name": "GUAITARILLA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52323",
+      "name": "GUALMATÁN",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52352",
+      "name": "ILES",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52354",
+      "name": "IMUÉS",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52356",
+      "name": "IPIALES",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52378",
+      "name": "LA CRUZ",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52381",
+      "name": "LA FLORIDA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52385",
+      "name": "LA LLANADA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52390",
+      "name": "LA TOLA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52399",
+      "name": "LA UNIÓN",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52405",
+      "name": "LEIVA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52411",
+      "name": "LINARES",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52418",
+      "name": "LOS ANDES",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52427",
+      "name": "MAGÜÍ",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52435",
+      "name": "MALLAMA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52473",
+      "name": "MOSQUERA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52480",
+      "name": "NARIÑO",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52490",
+      "name": "OLAYA HERRERA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52506",
+      "name": "OSPINA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52520",
+      "name": "FRANCISCO PIZARRO",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52540",
+      "name": "POLICARPA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52560",
+      "name": "POTOSÍ",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52565",
+      "name": "PROVIDENCIA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52573",
+      "name": "PUERRES",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52585",
+      "name": "PUPIALES",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52612",
+      "name": "RICAURTE",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52621",
+      "name": "ROBERTO PAYÁN",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52678",
+      "name": "SAMANIEGO",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52683",
+      "name": "SANDONÁ",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52685",
+      "name": "SAN BERNARDO",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52687",
+      "name": "SAN LORENZO",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52693",
+      "name": "SAN PABLO",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52694",
+      "name": "SAN PEDRO DE CARTAGO",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52696",
+      "name": "SANTA BÁRBARA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52699",
+      "name": "SANTACRUZ",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52720",
+      "name": "SAPUYES",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52786",
+      "name": "TAMINANGO",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52788",
+      "name": "TANGUA",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52835",
+      "name": "SAN ANDRÉS DE TUMACO",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52838",
+      "name": "TÚQUERRES",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "52885",
+      "name": "YACUANQUER",
+      "deptCode": "52",
+      "isCapital": false
+    },
+    {
+      "divipola": "54001",
+      "name": "SAN JOSÉ DE CÚCUTA",
+      "deptCode": "54",
+      "isCapital": true
+    },
+    {
+      "divipola": "54003",
+      "name": "ÁBREGO",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54051",
+      "name": "ARBOLEDAS",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54099",
+      "name": "BOCHALEMA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54109",
+      "name": "BUCARASICA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54125",
+      "name": "CÁCOTA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54128",
+      "name": "CÁCHIRA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54172",
+      "name": "CHINÁCOTA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54174",
+      "name": "CHITAGÁ",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54206",
+      "name": "CONVENCIÓN",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54223",
+      "name": "CUCUTILLA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54239",
+      "name": "DURANIA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54245",
+      "name": "EL CARMEN",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54250",
+      "name": "EL TARRA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54261",
+      "name": "EL ZULIA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54313",
+      "name": "GRAMALOTE",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54344",
+      "name": "HACARÍ",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54347",
+      "name": "HERRÁN",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54377",
+      "name": "LABATECA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54385",
+      "name": "LA ESPERANZA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54398",
+      "name": "LA PLAYA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54405",
+      "name": "LOS PATIOS",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54418",
+      "name": "LOURDES",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54480",
+      "name": "MUTISCUA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54498",
+      "name": "OCAÑA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54518",
+      "name": "PAMPLONA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54520",
+      "name": "PAMPLONITA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54553",
+      "name": "PUERTO SANTANDER",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54599",
+      "name": "RAGONVALIA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54660",
+      "name": "SALAZAR",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54670",
+      "name": "SAN CALIXTO",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54673",
+      "name": "SAN CAYETANO",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54680",
+      "name": "SANTIAGO",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54720",
+      "name": "SARDINATA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54743",
+      "name": "SILOS",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54800",
+      "name": "TEORAMA",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54810",
+      "name": "TIBÚ",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54820",
+      "name": "TOLEDO",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54871",
+      "name": "VILLA CARO",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "54874",
+      "name": "VILLA DEL ROSARIO",
+      "deptCode": "54",
+      "isCapital": false
+    },
+    {
+      "divipola": "63001",
+      "name": "ARMENIA",
+      "deptCode": "63",
+      "isCapital": true
+    },
+    {
+      "divipola": "63111",
+      "name": "BUENAVISTA",
+      "deptCode": "63",
+      "isCapital": false
+    },
+    {
+      "divipola": "63130",
+      "name": "CALARCÁ",
+      "deptCode": "63",
+      "isCapital": false
+    },
+    {
+      "divipola": "63190",
+      "name": "CIRCASIA",
+      "deptCode": "63",
+      "isCapital": false
+    },
+    {
+      "divipola": "63212",
+      "name": "CÓRDOBA",
+      "deptCode": "63",
+      "isCapital": false
+    },
+    {
+      "divipola": "63272",
+      "name": "FILANDIA",
+      "deptCode": "63",
+      "isCapital": false
+    },
+    {
+      "divipola": "63302",
+      "name": "GÉNOVA",
+      "deptCode": "63",
+      "isCapital": false
+    },
+    {
+      "divipola": "63401",
+      "name": "LA TEBAIDA",
+      "deptCode": "63",
+      "isCapital": false
+    },
+    {
+      "divipola": "63470",
+      "name": "MONTENEGRO",
+      "deptCode": "63",
+      "isCapital": false
+    },
+    {
+      "divipola": "63548",
+      "name": "PIJAO",
+      "deptCode": "63",
+      "isCapital": false
+    },
+    {
+      "divipola": "63594",
+      "name": "QUIMBAYA",
+      "deptCode": "63",
+      "isCapital": false
+    },
+    {
+      "divipola": "63690",
+      "name": "SALENTO",
+      "deptCode": "63",
+      "isCapital": false
+    },
+    {
+      "divipola": "66001",
+      "name": "PEREIRA",
+      "deptCode": "66",
+      "isCapital": true
+    },
+    {
+      "divipola": "66045",
+      "name": "APÍA",
+      "deptCode": "66",
+      "isCapital": false
+    },
+    {
+      "divipola": "66075",
+      "name": "BALBOA",
+      "deptCode": "66",
+      "isCapital": false
+    },
+    {
+      "divipola": "66088",
+      "name": "BELÉN DE UMBRÍA",
+      "deptCode": "66",
+      "isCapital": false
+    },
+    {
+      "divipola": "66170",
+      "name": "DOSQUEBRADAS",
+      "deptCode": "66",
+      "isCapital": false
+    },
+    {
+      "divipola": "66318",
+      "name": "GUÁTICA",
+      "deptCode": "66",
+      "isCapital": false
+    },
+    {
+      "divipola": "66383",
+      "name": "LA CELIA",
+      "deptCode": "66",
+      "isCapital": false
+    },
+    {
+      "divipola": "66400",
+      "name": "LA VIRGINIA",
+      "deptCode": "66",
+      "isCapital": false
+    },
+    {
+      "divipola": "66440",
+      "name": "MARSELLA",
+      "deptCode": "66",
+      "isCapital": false
+    },
+    {
+      "divipola": "66456",
+      "name": "MISTRATÓ",
+      "deptCode": "66",
+      "isCapital": false
+    },
+    {
+      "divipola": "66572",
+      "name": "PUEBLO RICO",
+      "deptCode": "66",
+      "isCapital": false
+    },
+    {
+      "divipola": "66594",
+      "name": "QUINCHÍA",
+      "deptCode": "66",
+      "isCapital": false
+    },
+    {
+      "divipola": "66682",
+      "name": "SANTA ROSA DE CABAL",
+      "deptCode": "66",
+      "isCapital": false
+    },
+    {
+      "divipola": "66687",
+      "name": "SANTUARIO",
+      "deptCode": "66",
+      "isCapital": false
+    },
+    {
+      "divipola": "68001",
+      "name": "BUCARAMANGA",
+      "deptCode": "68",
+      "isCapital": true
+    },
+    {
+      "divipola": "68013",
+      "name": "AGUADA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68020",
+      "name": "ALBANIA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68051",
+      "name": "ARATOCA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68077",
+      "name": "BARBOSA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68079",
+      "name": "BARICHARA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68081",
+      "name": "BARRANCABERMEJA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68092",
+      "name": "BETULIA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68101",
+      "name": "BOLÍVAR",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68121",
+      "name": "CABRERA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68132",
+      "name": "CALIFORNIA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68147",
+      "name": "CAPITANEJO",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68152",
+      "name": "CARCASÍ",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68160",
+      "name": "CEPITÁ",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68162",
+      "name": "CERRITO",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68167",
+      "name": "CHARALÁ",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68169",
+      "name": "CHARTA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68176",
+      "name": "CHIMA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68179",
+      "name": "CHIPATÁ",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68190",
+      "name": "CIMITARRA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68207",
+      "name": "CONCEPCIÓN",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68209",
+      "name": "CONFINES",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68211",
+      "name": "CONTRATACIÓN",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68217",
+      "name": "COROMORO",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68229",
+      "name": "CURITÍ",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68235",
+      "name": "EL CARMEN DE CHUCURI",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68245",
+      "name": "EL GUACAMAYO",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68250",
+      "name": "EL PEÑÓN",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68255",
+      "name": "EL PLAYÓN",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68264",
+      "name": "ENCINO",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68266",
+      "name": "ENCISO",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68271",
+      "name": "FLORIÁN",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68276",
+      "name": "FLORIDABLANCA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68296",
+      "name": "GALÁN",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68298",
+      "name": "GÁMBITA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68307",
+      "name": "GIRÓN",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68318",
+      "name": "GUACA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68320",
+      "name": "GUADALUPE",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68322",
+      "name": "GUAPOTÁ",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68324",
+      "name": "GUAVATÁ",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68327",
+      "name": "GÜEPSA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68344",
+      "name": "HATO",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68368",
+      "name": "JESÚS MARÍA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68370",
+      "name": "JORDÁN",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68377",
+      "name": "LA BELLEZA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68385",
+      "name": "LANDÁZURI",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68397",
+      "name": "LA PAZ",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68406",
+      "name": "LEBRIJA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68418",
+      "name": "LOS SANTOS",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68425",
+      "name": "MACARAVITA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68432",
+      "name": "MÁLAGA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68444",
+      "name": "MATANZA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68464",
+      "name": "MOGOTES",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68468",
+      "name": "MOLAGAVITA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68498",
+      "name": "OCAMONTE",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68500",
+      "name": "OIBA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68502",
+      "name": "ONZAGA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68522",
+      "name": "PALMAR",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68524",
+      "name": "PALMAS DEL SOCORRO",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68533",
+      "name": "PÁRAMO",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68547",
+      "name": "PIEDECUESTA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68549",
+      "name": "PINCHOTE",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68572",
+      "name": "PUENTE NACIONAL",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68573",
+      "name": "PUERTO PARRA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68575",
+      "name": "PUERTO WILCHES",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68615",
+      "name": "RIONEGRO",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68655",
+      "name": "SABANA DE TORRES",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68669",
+      "name": "SAN ANDRÉS",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68673",
+      "name": "SAN BENITO",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68679",
+      "name": "SAN GIL",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68682",
+      "name": "SAN JOAQUÍN",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68684",
+      "name": "SAN JOSÉ DE MIRANDA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68686",
+      "name": "SAN MIGUEL",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68689",
+      "name": "SAN VICENTE DE CHUCURÍ",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68705",
+      "name": "SANTA BÁRBARA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68720",
+      "name": "SANTA HELENA DEL OPÓN",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68745",
+      "name": "SIMACOTA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68755",
+      "name": "SOCORRO",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68770",
+      "name": "SUAITA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68773",
+      "name": "SUCRE",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68780",
+      "name": "SURATÁ",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68820",
+      "name": "TONA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68855",
+      "name": "VALLE DE SAN JOSÉ",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68861",
+      "name": "VÉLEZ",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68867",
+      "name": "VETAS",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68872",
+      "name": "VILLANUEVA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "68895",
+      "name": "ZAPATOCA",
+      "deptCode": "68",
+      "isCapital": false
+    },
+    {
+      "divipola": "70001",
+      "name": "SINCELEJO",
+      "deptCode": "70",
+      "isCapital": true
+    },
+    {
+      "divipola": "70110",
+      "name": "BUENAVISTA",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70124",
+      "name": "CAIMITO",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70204",
+      "name": "COLOSÓ",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70215",
+      "name": "COROZAL",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70221",
+      "name": "COVEÑAS",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70230",
+      "name": "CHALÁN",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70233",
+      "name": "EL ROBLE",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70235",
+      "name": "GALERAS",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70265",
+      "name": "GUARANDA",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70400",
+      "name": "LA UNIÓN",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70418",
+      "name": "LOS PALMITOS",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70429",
+      "name": "MAJAGUAL",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70473",
+      "name": "MORROA",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70508",
+      "name": "OVEJAS",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70523",
+      "name": "PALMITO",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70670",
+      "name": "SAMPUÉS",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70678",
+      "name": "SAN BENITO ABAD",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70702",
+      "name": "SAN JUAN DE BETULIA",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70708",
+      "name": "SAN MARCOS",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70713",
+      "name": "SAN ONOFRE",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70717",
+      "name": "SAN PEDRO",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70742",
+      "name": "SAN LUIS DE SINCÉ",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70771",
+      "name": "SUCRE",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70820",
+      "name": "SANTIAGO DE TOLÚ",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "70823",
+      "name": "SAN JOSÉ DE TOLUVIEJO",
+      "deptCode": "70",
+      "isCapital": false
+    },
+    {
+      "divipola": "73001",
+      "name": "IBAGUÉ",
+      "deptCode": "73",
+      "isCapital": true
+    },
+    {
+      "divipola": "73024",
+      "name": "ALPUJARRA",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73026",
+      "name": "ALVARADO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73030",
+      "name": "AMBALEMA",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73043",
+      "name": "ANZOÁTEGUI",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73055",
+      "name": "ARMERO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73067",
+      "name": "ATACO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73124",
+      "name": "CAJAMARCA",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73148",
+      "name": "CARMEN DE APICALÁ",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73152",
+      "name": "CASABIANCA",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73168",
+      "name": "CHAPARRAL",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73200",
+      "name": "COELLO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73217",
+      "name": "COYAIMA",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73226",
+      "name": "CUNDAY",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73236",
+      "name": "DOLORES",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73268",
+      "name": "ESPINAL",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73270",
+      "name": "FALAN",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73275",
+      "name": "FLANDES",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73283",
+      "name": "FRESNO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73319",
+      "name": "GUAMO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73347",
+      "name": "HERVEO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73349",
+      "name": "HONDA",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73352",
+      "name": "ICONONZO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73408",
+      "name": "LÉRIDA",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73411",
+      "name": "LÍBANO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73443",
+      "name": "SAN SEBASTIÁN DE MARIQUITA",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73449",
+      "name": "MELGAR",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73461",
+      "name": "MURILLO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73483",
+      "name": "NATAGAIMA",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73504",
+      "name": "ORTEGA",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73520",
+      "name": "PALOCABILDO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73547",
+      "name": "PIEDRAS",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73555",
+      "name": "PLANADAS",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73563",
+      "name": "PRADO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73585",
+      "name": "PURIFICACIÓN",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73616",
+      "name": "RIOBLANCO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73622",
+      "name": "RONCESVALLES",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73624",
+      "name": "ROVIRA",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73671",
+      "name": "SALDAÑA",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73675",
+      "name": "SAN ANTONIO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73678",
+      "name": "SAN LUIS",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73686",
+      "name": "SANTA ISABEL",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73770",
+      "name": "SUÁREZ",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73854",
+      "name": "VALLE DE SAN JUAN",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73861",
+      "name": "VENADILLO",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73870",
+      "name": "VILLAHERMOSA",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "73873",
+      "name": "VILLARRICA",
+      "deptCode": "73",
+      "isCapital": false
+    },
+    {
+      "divipola": "76001",
+      "name": "CALI",
+      "deptCode": "76",
+      "isCapital": true
+    },
+    {
+      "divipola": "76020",
+      "name": "ALCALÁ",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76036",
+      "name": "ANDALUCÍA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76041",
+      "name": "ANSERMANUEVO",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76054",
+      "name": "ARGELIA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76100",
+      "name": "BOLÍVAR",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76109",
+      "name": "BUENAVENTURA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76111",
+      "name": "GUADALAJARA DE BUGA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76113",
+      "name": "BUGALAGRANDE",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76122",
+      "name": "CAICEDONIA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76126",
+      "name": "CALIMA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76130",
+      "name": "CANDELARIA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76147",
+      "name": "CARTAGO",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76233",
+      "name": "DAGUA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76243",
+      "name": "EL ÁGUILA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76246",
+      "name": "EL CAIRO",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76248",
+      "name": "EL CERRITO",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76250",
+      "name": "EL DOVIO",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76275",
+      "name": "FLORIDA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76306",
+      "name": "GINEBRA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76318",
+      "name": "GUACARí",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76364",
+      "name": "JAMUNDÍ",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76377",
+      "name": "LA CUMBRE",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76400",
+      "name": "LA UNIÓN",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76403",
+      "name": "LA VICTORIA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76497",
+      "name": "OBANDO",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76520",
+      "name": "PALMIRA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76563",
+      "name": "PRADERA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76606",
+      "name": "RESTREPO",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76616",
+      "name": "RIOFRÍO",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76622",
+      "name": "ROLDANILLO",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76670",
+      "name": "SAN PEDRO",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76736",
+      "name": "SEVILLA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76823",
+      "name": "TORO",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76828",
+      "name": "TRUJILLO",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76834",
+      "name": "TULUÁ",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76845",
+      "name": "ULLOA",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76863",
+      "name": "VERSALLES",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76869",
+      "name": "VIJES",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76890",
+      "name": "YOTOCO",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76892",
+      "name": "YUMBO",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "76895",
+      "name": "ZARZAL",
+      "deptCode": "76",
+      "isCapital": false
+    },
+    {
+      "divipola": "81001",
+      "name": "ARAUCA",
+      "deptCode": "81",
+      "isCapital": true
+    },
+    {
+      "divipola": "81065",
+      "name": "ARAUQUITA",
+      "deptCode": "81",
+      "isCapital": false
+    },
+    {
+      "divipola": "81220",
+      "name": "CRAVO NORTE",
+      "deptCode": "81",
+      "isCapital": false
+    },
+    {
+      "divipola": "81300",
+      "name": "FORTUL",
+      "deptCode": "81",
+      "isCapital": false
+    },
+    {
+      "divipola": "81591",
+      "name": "PUERTO RONDÓN",
+      "deptCode": "81",
+      "isCapital": false
+    },
+    {
+      "divipola": "81736",
+      "name": "SARAVENA",
+      "deptCode": "81",
+      "isCapital": false
+    },
+    {
+      "divipola": "81794",
+      "name": "TAME",
+      "deptCode": "81",
+      "isCapital": false
+    },
+    {
+      "divipola": "85001",
+      "name": "YOPAL",
+      "deptCode": "85",
+      "isCapital": true
+    },
+    {
+      "divipola": "85010",
+      "name": "AGUAZUL",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85015",
+      "name": "CHÁMEZA",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85125",
+      "name": "HATO COROZAL",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85136",
+      "name": "LA SALINA",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85139",
+      "name": "MANÍ",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85162",
+      "name": "MONTERREY",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85225",
+      "name": "NUNCHÍA",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85230",
+      "name": "OROCUÉ",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85250",
+      "name": "PAZ DE ARIPORO",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85263",
+      "name": "PORE",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85279",
+      "name": "RECETOR",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85300",
+      "name": "SABANALARGA",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85315",
+      "name": "SÁCAMA",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85325",
+      "name": "SAN LUIS DE PALENQUE",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85400",
+      "name": "TÁMARA",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85410",
+      "name": "TAURAMENA",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85430",
+      "name": "TRINIDAD",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "85440",
+      "name": "VILLANUEVA",
+      "deptCode": "85",
+      "isCapital": false
+    },
+    {
+      "divipola": "86001",
+      "name": "MOCOA",
+      "deptCode": "86",
+      "isCapital": true
+    },
+    {
+      "divipola": "86219",
+      "name": "COLÓN",
+      "deptCode": "86",
+      "isCapital": false
+    },
+    {
+      "divipola": "86320",
+      "name": "ORITO",
+      "deptCode": "86",
+      "isCapital": false
+    },
+    {
+      "divipola": "86568",
+      "name": "PUERTO ASÍS",
+      "deptCode": "86",
+      "isCapital": false
+    },
+    {
+      "divipola": "86569",
+      "name": "PUERTO CAICEDO",
+      "deptCode": "86",
+      "isCapital": false
+    },
+    {
+      "divipola": "86571",
+      "name": "PUERTO GUZMÁN",
+      "deptCode": "86",
+      "isCapital": false
+    },
+    {
+      "divipola": "86573",
+      "name": "PUERTO LEGUÍZAMO",
+      "deptCode": "86",
+      "isCapital": false
+    },
+    {
+      "divipola": "86749",
+      "name": "SIBUNDOY",
+      "deptCode": "86",
+      "isCapital": false
+    },
+    {
+      "divipola": "86755",
+      "name": "SAN FRANCISCO",
+      "deptCode": "86",
+      "isCapital": false
+    },
+    {
+      "divipola": "86757",
+      "name": "SAN MIGUEL",
+      "deptCode": "86",
+      "isCapital": false
+    },
+    {
+      "divipola": "86760",
+      "name": "SANTIAGO",
+      "deptCode": "86",
+      "isCapital": false
+    },
+    {
+      "divipola": "86865",
+      "name": "VALLE DEL GUAMUEZ",
+      "deptCode": "86",
+      "isCapital": false
+    },
+    {
+      "divipola": "86885",
+      "name": "VILLAGARZÓN",
+      "deptCode": "86",
+      "isCapital": false
+    },
+    {
+      "divipola": "88001",
+      "name": "SAN ANDRÉS",
+      "deptCode": "88",
+      "isCapital": false
+    },
+    {
+      "divipola": "88564",
+      "name": "PROVIDENCIA",
+      "deptCode": "88",
+      "isCapital": false
+    },
+    {
+      "divipola": "91001",
+      "name": "LETICIA",
+      "deptCode": "91",
+      "isCapital": true
+    },
+    {
+      "divipola": "91540",
+      "name": "PUERTO NARIÑO",
+      "deptCode": "91",
+      "isCapital": false
+    },
+    {
+      "divipola": "94001",
+      "name": "INÍRIDA",
+      "deptCode": "94",
+      "isCapital": true
+    },
+    {
+      "divipola": "94343",
+      "name": "BARRANCOMINAS",
+      "deptCode": "94",
+      "isCapital": false
+    },
+    {
+      "divipola": "95001",
+      "name": "SAN JOSÉ DEL GUAVIARE",
+      "deptCode": "95",
+      "isCapital": true
+    },
+    {
+      "divipola": "95015",
+      "name": "CALAMAR",
+      "deptCode": "95",
+      "isCapital": false
+    },
+    {
+      "divipola": "95025",
+      "name": "EL RETORNO",
+      "deptCode": "95",
+      "isCapital": false
+    },
+    {
+      "divipola": "95200",
+      "name": "MIRAFLORES",
+      "deptCode": "95",
+      "isCapital": false
+    },
+    {
+      "divipola": "97001",
+      "name": "MITÚ",
+      "deptCode": "97",
+      "isCapital": true
+    },
+    {
+      "divipola": "97161",
+      "name": "CARURÚ",
+      "deptCode": "97",
+      "isCapital": false
+    },
+    {
+      "divipola": "97666",
+      "name": "TARAIRA",
+      "deptCode": "97",
+      "isCapital": false
+    },
+    {
+      "divipola": "99001",
+      "name": "PUERTO CARREÑO",
+      "deptCode": "99",
+      "isCapital": true
+    },
+    {
+      "divipola": "99524",
+      "name": "LA PRIMAVERA",
+      "deptCode": "99",
+      "isCapital": false
+    },
+    {
+      "divipola": "99624",
+      "name": "SANTA ROSALÍA",
+      "deptCode": "99",
+      "isCapital": false
+    },
+    {
+      "divipola": "99773",
+      "name": "CUMARIBO",
+      "deptCode": "99",
+      "isCapital": false
+    }
+  ]
+}

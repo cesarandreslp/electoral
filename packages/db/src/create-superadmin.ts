@@ -16,7 +16,7 @@ config({ path: '../../.env' })
  */
 
 import { createInterface } from 'readline'
-import { neonConfig, Pool } from '@neondatabase/serverless'
+import { neonConfig } from '@neondatabase/serverless'
 import { PrismaClient } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import bcrypt from 'bcryptjs'
@@ -148,8 +148,8 @@ async function main() {
     process.exit(1)
   }
 
-  const pool    = new Pool({ connectionString })
-  const adapter = new PrismaNeon(pool)
+  // PrismaNeon@6 recibe directamente PoolConfig — gestiona el Pool internamente
+  const adapter = new PrismaNeon({ connectionString })
   const db      = new PrismaClient({ adapter })
 
   try {
@@ -188,7 +188,6 @@ async function main() {
 
   } finally {
     await db.$disconnect()
-    await pool.end()
   }
 }
 

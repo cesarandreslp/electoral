@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth }                      from '@campaignos/auth'
 import { getTenantConnection }        from '@/lib/tenant'
-import { getTenantDb }               from '@campaignos/db'
+import { getTenantDb, decrypt }      from '@campaignos/db'
 
 /**
  * GET /api/core/mis-electores
@@ -10,8 +10,12 @@ import { getTenantDb }               from '@campaignos/db'
  * Soporta ?since=<timestamp ISO> para sincronización incremental (solo cambios nuevos).
  * Diseñado para ser cacheado por el service worker en modo offline.
  *
+ * El campo `phone` se descifra server-side antes de enviarse para que la PWA
+ * pueda usarlo en `tel:` (click-to-call). Queda en IndexedDB del dispositivo
+ * del testigo — costo natural de una PWA offline.
+ *
  * Campos retornados (sin cédula):
- *   id, name, phone, commitmentStatus, lastContact, votingTableId, notes
+ *   id, name, phone (texto plano), commitmentStatus, lastContact, votingTableId, notes
  */
 export async function GET(request: NextRequest) {
   const session = await auth()
@@ -53,7 +57,7 @@ export async function GET(request: NextRequest) {
       select: {
         id:               true,
         name:             true,
-        phone:            true,   // Cifrado — el cliente no lo descifra (solo click-to-call no aplica aquí)
+        phone:            true,   // Cifrado en DB — se descifra abajo para click-to-call
         commitmentStatus: true,
         lastContact:      true,
         votingTableId:    true,
@@ -67,8 +71,21 @@ export async function GET(request: NextRequest) {
       ],
     })
 
+    const electoresDescifrados = electores.map((e) => {
+      let phonePlain: string | null = null
+      if (e.phone) {
+        try {
+          phonePlain = decrypt(e.phone)
+        } catch {
+          // Si falla el descifrado (registro corrupto o llave rotada), omitir el campo
+          console.error(`[GET /api/core/mis-electores] phone no descifrable para voter ${e.id}`)
+        }
+      }
+      return { ...e, phone: phonePlain }
+    })
+
     return NextResponse.json(
-      { electores, syncAt: new Date().toISOString() },
+      { electores: electoresDescifrados, syncAt: new Date().toISOString() },
       {
         headers: {
           // Permitir que el service worker cachee esta respuesta

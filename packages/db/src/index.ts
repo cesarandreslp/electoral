@@ -21,7 +21,10 @@ if (typeof WebSocket === 'undefined') {
 }
 
 // ── Cliente del superadmin ────────────────────────────────────────────────────
-// Singleton para evitar múltiples conexiones durante el hot reload en desarrollo.
+// Singleton lazy: el cliente NO se construye al importar este módulo, sino
+// la primera vez que se accede a una propiedad. Esto permite que `next build`
+// recolecte page data sin necesidad de DATABASE_URL_SUPERADMIN, y aún así
+// el primer uso en runtime falla de forma clara si la variable falta.
 
 const globalForPrisma = globalThis as unknown as {
   superadminDb: PrismaClient | undefined
@@ -39,14 +42,28 @@ function crearClienteSuperadmin(): PrismaClient {
   return new PrismaClient({ adapter })
 }
 
-/** Cliente Prisma para la base de datos del superadmin. Usar en Server Actions y Server Components. */
-export const superadminDb =
-  globalForPrisma.superadminDb ?? crearClienteSuperadmin()
-
-if (process.env.NODE_ENV !== 'production') {
-  // Persistir el singleton entre recargas en desarrollo
-  globalForPrisma.superadminDb = superadminDb
+function obtenerClienteSuperadmin(): PrismaClient {
+  if (globalForPrisma.superadminDb) return globalForPrisma.superadminDb
+  const cliente = crearClienteSuperadmin()
+  if (process.env.NODE_ENV !== 'production') {
+    // Persistir el singleton entre recargas en desarrollo
+    globalForPrisma.superadminDb = cliente
+  }
+  return cliente
 }
+
+/**
+ * Cliente Prisma para la base de datos del superadmin.
+ * Construcción lazy via Proxy — la conexión se difiere al primer uso.
+ * Usar en Server Actions y Server Components.
+ */
+export const superadminDb: PrismaClient = new Proxy({} as PrismaClient, {
+  get(_target, prop, receiver) {
+    const cliente = obtenerClienteSuperadmin()
+    const valor = Reflect.get(cliente, prop, receiver)
+    return typeof valor === 'function' ? valor.bind(cliente) : valor
+  },
+})
 
 // ── Cliente dinámico por tenant ───────────────────────────────────────────────
 
@@ -80,3 +97,7 @@ export {
   TenantProvisionError,
   SlugTakenError,
 } from './neon-provisioner'
+
+// ── Seed DIVIPOLA reutilizable ────────────────────────────────────────────────
+export { seedDivipola } from './seed-divipola'
+export type { SeedDivipolaResult } from './seed-divipola'

@@ -15,8 +15,11 @@
 import { execSync } from 'child_process'
 import { existsSync } from 'fs'
 import path from 'path'
+import { PrismaNeon } from '@prisma/adapter-neon'
+import { PrismaClient } from '@prisma/client'
 import { encrypt } from './crypto'
 import { superadminDb } from './index'
+import { seedDivipola } from './seed-divipola'
 
 // ── Errores tipados ───────────────────────────────────────────────────────────
 
@@ -234,6 +237,21 @@ export async function provisionTenantDatabase(slug: string): Promise<string> {
     throw err // Re-lanzar el TenantProvisionError original
   }
 
+  // 3b. Cargar dataset DIVIPOLA en la nueva DB (33 deptos + 1.103 municipios)
+  try {
+    const tenantDb = new PrismaClient({ adapter: new PrismaNeon({ connectionString }) })
+    try {
+      const r = await seedDivipola(tenantDb)
+      console.log(`[Provisioning] DIVIPOLA cargado: ${r.departments} deptos, ${r.municipalities} municipios`)
+    } finally {
+      await tenantDb.$disconnect()
+    }
+  } catch (err) {
+    console.error(`[Provisioning] Error cargando DIVIPOLA — rollback del proyecto Neon`)
+    await eliminarProyectoNeon(projectId)
+    throw new TenantProvisionError('Error cargando dataset DIVIPOLA en la DB del tenant', err)
+  }
+
   // 4. Persistir con connectionString CIFRADA
   await superadminDb.tenant.create({
     data: {
@@ -263,6 +281,17 @@ export async function provisionTenantDatabase(slug: string): Promise<string> {
  *   else                          { mockProvisionTenantDatabase(...) }
  */
 export async function mockProvisionTenantDatabase(slug: string): Promise<string> {
+  // Guarda dura: el mock NUNCA debe ejecutarse en producción.
+  // Si caímos aquí en NODE_ENV=production, alguien malconfiguró el deploy
+  // (NEON_API_KEY vacía) y hay que abortar antes de crear un tenant fantasma.
+  if (process.env.NODE_ENV === 'production') {
+    throw new TenantProvisionError(
+      '[Mock] mockProvisionTenantDatabase fue invocado en producción. ' +
+      'Esto solo debe ocurrir en desarrollo local. Verificá que NEON_API_KEY ' +
+      'esté definida en el entorno de producción.'
+    )
+  }
+
   const connectionString = process.env.DATABASE_URL_SUPERADMIN
   if (!connectionString) {
     throw new TenantProvisionError(

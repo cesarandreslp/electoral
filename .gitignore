@@ -1,6 +1,26 @@
 # Variables de entorno — NUNCA commitear
 .env*
 !.env.example
+!.env.production.example
+
+# Build outputs específicos del monorepo
+apps/web/.next/
+apps/web/tsconfig.tsbuildinfo
+apps/web/next-env.d.ts
+apps/web/public/sw.js
+apps/web/public/sw.js.map
+apps/web/public/swe-worker-*.js
+apps/web/public/workbox-*.js
+
+# Hojas de cálculo de fuente de datos (ya extraídas a packages/db/data/)
+*.xlsx
+
+# Instaladores y descargas que terminaron en el repo por accidente
+*.exe
+Receipt-*.pdf
+
+# Proyecto legacy completo (no es parte del monorepo CampaignOS)
+electoss/
 
 # Dependencias
 node_modules
@@ -28,3 +48,16 @@ env.txt
 # Sistema operativo
 .DS_Store
 Thumbs.db
+
+# Aplicación legacy de encuestas (electoss) — archivos sensibles
+electoss/.env
+electoss/.env.local
+electoss/.env.*
+electoss/node_modules/
+electoss/.next/
+electoss/dist/
+electoss/build/
+electoss/CREDENTIALS.md
+electoss/backup_20260304/
+electoss/tmpclaude-*
+electoss/tmp_*

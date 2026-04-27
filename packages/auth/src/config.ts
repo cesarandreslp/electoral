@@ -1,4 +1,4 @@
-import NextAuth, { type DefaultSession } from 'next-auth'
+import NextAuth, { type DefaultSession, type NextAuthResult } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { superadminDb, getTenantDb, decrypt } from '@campaignos/db'
@@ -119,7 +119,9 @@ async function autenticarTenantUser(
 
 // ── Configuración de NextAuth v5 ──────────────────────────────────────────────
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+// Anotación explícita: pnpm coloca next-auth bajo .pnpm/, lo que impide
+// a TypeScript inferir un tipo "portable" para las funciones destructuradas.
+const nextAuth: NextAuthResult = NextAuth({
   providers: [
     Credentials({
       name: 'credentials',
@@ -190,3 +192,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: 'jwt',
   },
 })
+
+export const handlers: NextAuthResult['handlers'] = nextAuth.handlers
+export const signIn:   NextAuthResult['signIn']   = nextAuth.signIn
+export const signOut:  NextAuthResult['signOut']  = nextAuth.signOut
+export const auth:     NextAuthResult['auth']     = nextAuth.auth

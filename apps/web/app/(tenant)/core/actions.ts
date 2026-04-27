@@ -8,16 +8,11 @@
  *   - Nunca retornan cédula ni connectionString al cliente
  */
 
-import { createHash }                 from 'crypto'
 import { requireAuth, requireModule } from '@/lib/auth-helpers'
 import { getTenantConnection }        from '@/lib/tenant'
+import { calcularCedulaHash }         from '@/lib/cedula-hash'
 import { getTenantDb, encrypt }       from '@campaignos/db'
 import { revalidatePath }             from 'next/cache'
-
-/** Calcula el SHA-256 de una cédula normalizada. Nunca exponer el resultado fuera de server. */
-export function calcularCedulaHash(cedula: string): string {
-  return createHash('sha256').update(cedula.trim()).digest('hex')
-}
 
 // ── Tipos exportados ──────────────────────────────────────────────────────────
 
@@ -79,13 +74,12 @@ export interface VoterFilters {
 export interface VoterSummary {
   id:               string
   name:             string
-  phone:            string | null   // puede estar cifrado — se retorna solo si hay permisos
   leaderId:         string | null
   votingTableId:    string | null
   commitmentStatus: CommitmentStatus
   lastContact:      Date | null
   notes:            string | null
-  // NUNCA incluir cedula en el retorno
+  // NUNCA incluir cedula ni phone en el retorno (PII)
 }
 
 export interface ImportVoterRow {
@@ -430,13 +424,12 @@ export async function listVoters(
       select: {
         id:               true,
         name:             true,
-        phone:            true,
         leaderId:         true,
         votingTableId:    true,
         commitmentStatus: true,
         lastContact:      true,
         notes:            true,
-        // cedula: NUNCA
+        // cedula y phone: NUNCA (PII)
       },
       orderBy: { name: 'asc' },
       skip:   (pagination.page - 1) * pagination.pageSize,
