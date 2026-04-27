@@ -161,9 +161,11 @@ export async function getAnalyticsDashboard(): Promise<DashboardKpi> {
     db.tenantConfig.findUnique({ where: { tenantId } }),
   ])
 
-  // Mapear distribución por estado
-  const statusMap = new Map(
-    byStatus.map((s: { commitmentStatus: string; _count: number }) => [s.commitmentStatus, s._count]),
+  // Mapear distribución por estado.
+  // Prisma tipa `_count: true` como número en runtime, pero la inferencia del Map
+  // a veces colapsa a `unknown`/`{}` durante next build → tipamos explícito.
+  const statusMap = new Map<string, number>(
+    byStatus.map((s: { commitmentStatus: string; _count: number }) => [s.commitmentStatus, Number(s._count)] as const),
   )
   const comprometidos = (statusMap.get('COMPROMETIDO') ?? 0) + (statusMap.get('VOTO_SEGURO') ?? 0)
   const votoSeguro    = statusMap.get('VOTO_SEGURO') ?? 0
