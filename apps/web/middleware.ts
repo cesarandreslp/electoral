@@ -52,16 +52,13 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const hostname     = request.nextUrl.hostname
 
-  // Permitir siempre rutas públicas, landing pública y assets internos.
-  // Para subdominios (modo 2), la lógica más abajo intercepta antes de llegar acá
-  // sólo si hostname !== baseDomain.
+  // Rutas públicas y landing pasan SIEMPRE — sin importar el host.
+  // El login es universal: NextAuth resuelve el tenant del usuario por su email,
+  // no por el subdominio. Gatear /login por host produce loops de redirección
+  // cuando el deploy queda accesible por un host distinto al TENANT_BASE_DOMAIN
+  // (alias de Vercel, dominios custom, previews, etc.).
   if (esRutaPublica(pathname) || esLanding(pathname)) {
-    // En modo subdominio, dejamos que el bloque de subdominio lo procese:
-    // sólo cortamos acá si estamos en el host base o sin baseDomain.
-    const baseDomain = (process.env.TENANT_BASE_DOMAIN ?? '').replace(/^\./, '')
-    if (!baseDomain || hostname === baseDomain) {
-      return NextResponse.next()
-    }
+    return NextResponse.next()
   }
 
   // Normalizar el dominio base. Sin él operamos en single-host.
