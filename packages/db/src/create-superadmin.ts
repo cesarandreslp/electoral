@@ -154,14 +154,11 @@ async function main() {
 
   try {
     // ── Verificar que el email no exista ──────────────────────────────────
-    const existente = await db.user.findUnique({
-      where: {
-        tenantId_email: { tenantId: SUPERADMIN_TENANT_ID, email },
-      },
-    })
+    // El email es único globalmente en toda la plataforma (un email = un tenant).
+    const existente = await db.user.findUnique({ where: { email } })
 
     if (existente) {
-      console.error(`\nError: Ya existe un SUPERADMIN con el email "${email}".`)
+      console.error(`\nError: Ya existe un usuario con el email "${email}".`)
       console.error('Para cambiar la contraseña usa el panel de administración.')
       process.exit(1)
     }

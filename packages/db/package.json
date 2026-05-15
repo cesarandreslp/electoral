@@ -11,6 +11,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio --schema=./prisma/schema.prisma",
     "db:create-superadmin": "tsx src/create-superadmin.ts",
+    "db:create-test-users": "tsx src/create-test-users.ts",
     "generate": "prisma generate --schema=./prisma/schema.prisma",
     "postinstall": "prisma generate --schema=./prisma/schema.prisma"
   },

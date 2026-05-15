@@ -5,6 +5,9 @@
  * Ejecutar con: pnpm db:seed (desde packages/db)
  */
 
+import { config } from 'dotenv'
+config({ path: '../../.env' })
+
 import { neonConfig } from '@neondatabase/serverless'
 import { PrismaClient } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
