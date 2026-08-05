@@ -2,8 +2,12 @@ import path from 'node:path'
 import type { NextConfig } from 'next'
 import withSerwistInit from '@serwist/next'
 
-// TODO: Crear app/sw.ts con la configuración del service worker de Serwist
-// antes de habilitar PWA en producción. Ver documentación: https://serwist.pages.dev/
+// La revisión del precaché cambia en cada deploy. Con `revision: null` Serwist
+// trata la entrada como inmutable y nunca la vuelve a pedir, así que el HTML
+// precacheado queda congelado para siempre: tras el rebrand, los navegadores
+// que ya tenían la PWA instalada seguían viendo la página vieja.
+const revisionBuild = process.env.VERCEL_GIT_COMMIT_SHA ?? String(Date.now())
+
 const withSerwist = withSerwistInit({
   // Archivo fuente del service worker (en el directorio app/)
   swSrc: 'app/sw.ts',
@@ -11,10 +15,10 @@ const withSerwist = withSerwistInit({
   swDest: 'public/sw.js',
   // Deshabilitar PWA en desarrollo para facilitar el hot reload
   disable: process.env.NODE_ENV === 'development',
-  // Rutas a pre-cachear al instalar el service worker
+  // Solo el shell offline de la PWA se precachea. /login NO: es una pantalla de
+  // autenticación que debe venir siempre fresca, y sin red no sirve de nada.
   additionalPrecacheEntries: [
-    { url: '/pwa', revision: null },
-    { url: '/login', revision: null },
+    { url: '/pwa', revision: revisionBuild },
   ],
 })
 

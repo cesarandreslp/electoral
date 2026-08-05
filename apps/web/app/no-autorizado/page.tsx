@@ -1,4 +1,5 @@
-export const metadata = { title: 'Sin autorización — Vectra' }
+// El template del layout raíz ya añade " | Vectra"
+export const metadata = { title: 'Sin autorización' }
 
 /**
  * Página de acceso denegado.

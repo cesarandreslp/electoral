@@ -4,9 +4,8 @@ import { redirect } from 'next/navigation'
 import { auth } from '@campaignos/auth'
 import { DemoButton } from './_components/demo-modal'
 
-export const metadata = {
-  title: 'Vectra — Dirección estratégica para campañas electorales',
-}
+// Sin title propio: hereda el `default` del layout raíz, que es este mismo
+// texto pero sin pasar por el template (evita el sufijo "| Vectra" duplicado).
 
 /**
  * Landing pública en `/`. Si hay sesión activa, redirige al panel
