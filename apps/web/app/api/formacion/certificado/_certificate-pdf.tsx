@@ -100,8 +100,8 @@ export function CertificatePDF({ recipientName, quizTitle, score, date }: Certif
         createElement(Text, { style: { ...styles.details, fontFamily: 'Helvetica-Bold', fontSize: 14, marginTop: 8 } }, quizTitle),
         createElement(Text, { style: styles.score }, `Puntaje obtenido: ${score}%`),
         createElement(Text, { style: styles.details }, `Fecha de emisión: ${date}`),
-        createElement(Text, { style: styles.footer }, 'Este certificado fue generado automáticamente por la plataforma CampaignOS.'),
-        createElement(Text, { style: styles.logo }, 'CampaignOS — Sistema de Inteligencia Electoral'),
+        createElement(Text, { style: styles.footer }, 'Este certificado fue generado automáticamente por la plataforma Vectra.'),
+        createElement(Text, { style: styles.logo }, 'Vectra — Dirección estratégica para campañas electorales'),
       ),
     ),
   )

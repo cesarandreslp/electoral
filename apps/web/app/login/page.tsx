@@ -5,7 +5,7 @@ import { LoginForm } from './_components/login-form'
 export const metadata = { title: 'Iniciar sesión — Vectra' }
 
 /**
- * Página de login universal de CampaignOS.
+ * Página de login universal de Vectra.
  * Server Component: si ya hay sesión, redirige al destino correcto sin
  * mostrar el formulario.
  *

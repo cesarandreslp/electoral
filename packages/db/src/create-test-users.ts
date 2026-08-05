@@ -93,7 +93,7 @@ async function main() {
   }
 
   console.log('\n══════════════════════════════════════════════════')
-  console.log('  Crear usuarios de PRUEBA — CampaignOS')
+  console.log('  Crear usuarios de PRUEBA — Vectra')
   console.log('══════════════════════════════════════════════════\n')
 
   const adapter = new PrismaNeon({ connectionString })

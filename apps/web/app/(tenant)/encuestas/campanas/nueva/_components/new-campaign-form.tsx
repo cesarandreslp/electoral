@@ -89,7 +89,7 @@ export function NewCampaignForm() {
             <input value={c.code} onChange={e => updateCandidato(i, 'code', e.target.value)} placeholder="Código (ej. U10)" className="w-32 border rounded px-3 py-2 text-sm" />
           </div>
         ))}
-        <button type="button" onClick={handleAddCandidato} className="text-blue-600 text-sm font-semibold hover:underline">+ Añadir candidato</button>
+        <button type="button" onClick={handleAddCandidato} className="text-granate text-sm font-semibold hover:underline">+ Añadir candidato</button>
       </div>
 
       {error && <div className="text-red-600 text-sm font-semibold bg-red-50 p-3 rounded">{error}</div>}

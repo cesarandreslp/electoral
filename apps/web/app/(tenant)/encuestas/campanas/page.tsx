@@ -17,7 +17,7 @@ export default async function CampanasEncuestasPage() {
             Administra las encuestas activas. Activar una encuesta permitirá al bot interactuar con los electores.
           </p>
         </div>
-        <Link href="/encuestas/campanas/nueva" className="bg-blue-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-blue-700 transition">
+        <Link href="/encuestas/campanas/nueva" className="bg-granate text-white px-4 py-2 rounded-md font-semibold hover:bg-granate-dark transition">
           + Nueva Campaña
         </Link>
       </div>

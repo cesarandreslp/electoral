@@ -1,4 +1,4 @@
-// Clientes de IA de CampaignOS
+// Clientes de IA de Vectra
 // Zhipu Flash: análisis de fidelidad de líderes (módulo ANALYTICS)
 // Groq: tareas en tiempo real (notificaciones, sala de situación día E)
 // Visión: extracción de datos de formularios E-14 (módulo DIA_E)

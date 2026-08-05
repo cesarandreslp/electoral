@@ -1,4 +1,4 @@
-// Componentes base del sistema de diseño de CampaignOS
+// Componentes base del sistema de diseño de Vectra
 // Se irán implementando a medida que se construyan las pantallas
 
 export { Button } from './button'

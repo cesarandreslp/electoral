@@ -89,7 +89,7 @@ export async function POST(request: Request) {
 async function processMessageInTenant(fromPhone: string, text: string, messageId: string, phoneNumberId: string) {
   // 1. Buscar a qué tenant pertenece este phoneNumberId
   // Requiere buscar en todos los tenants. Si solo hay uno, es directo.
-  // Pero en arquitectura multi-tenant de CampaignOS, buscamos en TenantConfig de todos.
+  // Pero en arquitectura multi-tenant de Vectra, buscamos en TenantConfig de todos.
   // Optimización: como TenantConfig está en la db local de cada tenant, puede ser costoso buscar en todas.
   // Alternativa: Mantener un caché global de phoneNumberId -> tenantId en la db superadmin.
   

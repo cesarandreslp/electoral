@@ -54,7 +54,7 @@ export function SurveyConfigForm({ initial }: { initial: any }) {
         <input name="surveyDailyLimit" type="number" defaultValue={initial.surveyDailyLimit} className="w-full border rounded px-3 py-2" required />
       </div>
 
-      <button disabled={loading} className="w-full bg-blue-600 text-white font-semibold py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 transition">
+      <button disabled={loading} className="w-full bg-granate text-white font-semibold py-2 rounded-md hover:bg-granate-dark disabled:opacity-50 transition">
         {loading ? 'Guardando...' : 'Guardar Configuración'}
       </button>
       

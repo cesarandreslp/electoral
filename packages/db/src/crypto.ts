@@ -1,5 +1,5 @@
 /**
- * Librería de cifrado de CampaignOS.
+ * Librería de cifrado de Vectra.
  * Es la ÚNICA forma de cifrar/descifrar datos en todo el proyecto.
  *
  * Uso:

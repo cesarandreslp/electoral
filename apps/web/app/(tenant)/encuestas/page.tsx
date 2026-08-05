@@ -22,8 +22,8 @@ export default async function EncuestasDashboardPage() {
         </div>
         
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-          <div className="text-sm font-semibold text-blue-600 mb-1">En Progreso</div>
-          <div className="text-3xl font-bold text-blue-700">{stats.funnel.inProgress}</div>
+          <div className="text-sm font-semibold text-granate mb-1">En Progreso</div>
+          <div className="text-3xl font-bold text-granate-dark">{stats.funnel.inProgress}</div>
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">

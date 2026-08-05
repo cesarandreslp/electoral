@@ -114,7 +114,7 @@ function validarPassword(password: string): boolean {
 
 async function main() {
   console.log('\n══════════════════════════════════════')
-  console.log('  Crear usuario SUPERADMIN — CampaignOS')
+  console.log('  Crear usuario SUPERADMIN — Vectra')
   console.log('══════════════════════════════════════\n')
 
   // ── Solicitar email ───────────────────────────────────────────────────────

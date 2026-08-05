@@ -886,8 +886,8 @@ export async function testSmtpConnection(testEmail: string): Promise<{
   const result = await sendMessage(
     {
       to: testEmail,
-      subject: 'Prueba de conexión SMTP — CampaignOS',
-      body: '<p>Este es un email de prueba enviado desde CampaignOS para verificar tu configuración SMTP.</p><p>Si recibes este mensaje, la configuración es correcta.</p>',
+      subject: 'Prueba de conexión SMTP — Vectra',
+      body: '<p>Este es un email de prueba enviado desde Vectra para verificar tu configuración SMTP.</p><p>Si recibes este mensaje, la configuración es correcta.</p>',
       channel: 'EMAIL',
     },
     config

@@ -1,7 +1,7 @@
 import type { ModuleKey } from './actions'
 
 /**
- * Catálogo de módulos disponibles en CampaignOS.
+ * Catálogo de módulos disponibles en Vectra.
  * Vive aquí (y no en `actions.ts`) porque Next.js exige que un archivo
  * `'use server'` exporte SOLO funciones async — un array no califica.
  */

@@ -8,7 +8,7 @@ export interface Candidate {
 
 export class CandidateMatcher {
   /**
-   * Identifica a qué candidato se refiere un texto libre usando el módulo AI de CampaignOS.
+   * Identifica a qué candidato se refiere un texto libre usando el módulo AI de Vectra.
    *
    * @param text La respuesta libre del elector por WhatsApp (ej. "el negro", "bictor", "ninguno")
    * @param candidatos Lista de candidatos oficiales para ese cargo

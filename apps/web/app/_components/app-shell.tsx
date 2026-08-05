@@ -38,7 +38,7 @@ export function AppShell({
       <input id="appshell-toggle" type="checkbox" className="peer hidden" />
 
       {/* Top bar — solo móvil */}
-      <header className="md:hidden fixed top-0 inset-x-0 z-20 flex items-center justify-between bg-slate-900 text-white px-3 h-14 shadow">
+      <header className="md:hidden fixed top-0 inset-x-0 z-20 flex items-center justify-between bg-granate-dark text-white px-3 h-14 shadow">
         <label
           htmlFor="appshell-toggle"
           className="cursor-pointer p-2 -ml-2 rounded-md hover:bg-white/10"
@@ -62,7 +62,7 @@ export function AppShell({
       {/* Sidebar */}
       <aside
         className="
-          fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white px-5 py-6
+          fixed inset-y-0 left-0 z-40 w-64 bg-granate-dark text-white px-5 py-6
           flex flex-col gap-2
           -translate-x-full peer-checked:translate-x-0 transition-transform duration-200
           md:static md:translate-x-0 md:w-56 md:flex-shrink-0
@@ -81,8 +81,8 @@ export function AppShell({
 
         <div className="mb-6">
           <div className="font-bold text-base leading-tight">{tenantName}</div>
-          <div className="text-[11px] font-normal opacity-60 mt-0.5 uppercase tracking-wider">
-            CampaignOS · {moduleName}
+          <div className="text-[11px] font-normal text-plata mt-0.5 uppercase tracking-wider">
+            Vectra · {moduleName}
           </div>
         </div>
 
@@ -91,7 +91,7 @@ export function AppShell({
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-2 text-slate-300 hover:bg-white/5 hover:text-white rounded-md px-3 py-2 text-sm transition"
+              className="flex items-center gap-2 text-plata hover:bg-white/10 hover:text-white rounded-md px-3 py-2 text-sm transition"
             >
               <span className="flex-1">{item.label}</span>
               {item.badge}

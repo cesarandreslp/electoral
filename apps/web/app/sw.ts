@@ -5,7 +5,7 @@ import { defaultCache }  from '@serwist/next/worker'
 import { Serwist, NetworkFirst } from 'serwist'
 
 /**
- * Service worker de CampaignOS.
+ * Service worker de Vectra.
  * Configura las estrategias de caché para las rutas de la PWA.
  *
  * Estrategias usadas:

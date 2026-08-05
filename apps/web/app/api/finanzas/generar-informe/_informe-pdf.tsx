@@ -303,7 +303,7 @@ export function InformePDF({ data }: { data: InformeData }) {
 
       // Timestamp
       createElement(Text, { style: styles.timestamp },
-        `Generado automáticamente por CampaignOS — ${new Date().toLocaleString('es-CO')}`,
+        `Generado automáticamente por Vectra — ${new Date().toLocaleString('es-CO')}`,
       ),
     ),
   )

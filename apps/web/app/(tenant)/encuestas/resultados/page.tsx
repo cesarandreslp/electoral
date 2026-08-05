@@ -68,7 +68,7 @@ export default async function ResultadosEncuestasPage() {
                         <span className="font-bold text-slate-900">{c.count} ({percent}%)</span>
                       </div>
                       <div className="w-full bg-slate-100 rounded-full h-2.5">
-                        <div className={`h-2.5 rounded-full ${c.id === 'null' ? 'bg-slate-400' : 'bg-blue-600'}`} style={{ width: `${percent}%` }}></div>
+                        <div className={`h-2.5 rounded-full ${c.id === 'null' ? 'bg-slate-400' : 'bg-granate'}`} style={{ width: `${percent}%` }}></div>
                       </div>
                     </div>
                   )
