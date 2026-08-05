@@ -506,7 +506,7 @@ export async function sendCampaign(campaignId: string): Promise<void> {
   }
 
   // Enviar en batches
-  const results = await sendBatch(payloads, smtpConfig, 10)
+  const results = await sendBatch(payloads, smtpConfig, undefined, 10)
 
   // Actualizar cada Message con el resultado
   for (let i = 0; i < results.length; i++) {

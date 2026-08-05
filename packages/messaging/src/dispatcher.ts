@@ -7,7 +7,8 @@
 import { SmtpEmailProvider } from './providers/email-smtp'
 import { AbstractSmsProvider } from './providers/sms-abstract'
 import { AbstractWhatsappProvider } from './providers/whatsapp-abstract'
-import type { MessagingProvider, MessagePayload, SendResult, SmtpConfig } from './types'
+import { WhatsappMetaProvider } from './providers/whatsapp-meta'
+import type { MessagingProvider, MessagePayload, SendResult, SmtpConfig, WhatsappConfig } from './types'
 
 /**
  * Retorna el proveedor adecuado según el canal.
@@ -15,7 +16,8 @@ import type { MessagingProvider, MessagePayload, SendResult, SmtpConfig } from '
  */
 export function getProvider(
   channel: string,
-  smtpConfig?: SmtpConfig
+  smtpConfig?: SmtpConfig,
+  whatsappConfig?: WhatsappConfig
 ): MessagingProvider {
   switch (channel) {
     case 'EMAIL':
@@ -26,6 +28,9 @@ export function getProvider(
     case 'SMS':
       return new AbstractSmsProvider()
     case 'WHATSAPP':
+      if (whatsappConfig?.token && whatsappConfig?.phoneNumberId) {
+        return new WhatsappMetaProvider(whatsappConfig.token, whatsappConfig.phoneNumberId)
+      }
       return new AbstractWhatsappProvider()
     default:
       throw new Error(`Canal no soportado: ${channel}`)
@@ -37,9 +42,10 @@ export function getProvider(
  */
 export async function sendMessage(
   payload: MessagePayload,
-  smtpConfig?: SmtpConfig
+  smtpConfig?: SmtpConfig,
+  whatsappConfig?: WhatsappConfig
 ): Promise<SendResult> {
-  const provider = getProvider(payload.channel, smtpConfig)
+  const provider = getProvider(payload.channel, smtpConfig, whatsappConfig)
   return provider.send(payload)
 }
 
@@ -51,6 +57,7 @@ export async function sendMessage(
 export async function sendBatch(
   payloads: MessagePayload[],
   smtpConfig?: SmtpConfig,
+  whatsappConfig?: WhatsappConfig,
   batchSize: number = 10
 ): Promise<SendResult[]> {
   const results: SendResult[] = []
@@ -58,7 +65,7 @@ export async function sendBatch(
   for (let i = 0; i < payloads.length; i += batchSize) {
     const chunk = payloads.slice(i, i + batchSize)
     const chunkResults = await Promise.all(
-      chunk.map(p => sendMessage(p, smtpConfig))
+      chunk.map(p => sendMessage(p, smtpConfig, whatsappConfig))
     )
     results.push(...chunkResults)
 

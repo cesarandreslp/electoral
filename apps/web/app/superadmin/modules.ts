@@ -12,4 +12,5 @@ export const ALL_MODULES: { key: ModuleKey; label: string; descripcion: string }
   { key: 'DIA_E',          label: 'Día E',          descripcion: 'Transmisión E-14, sala de situación, reclamaciones' },
   { key: 'COMUNICACIONES', label: 'Comunicaciones', descripcion: 'SMS/WhatsApp/email segmentado' },
   { key: 'FINANZAS',       label: 'Finanzas',       descripcion: 'Control de gastos, donaciones, límites legales' },
+  { key: 'ENCUESTAS',      label: 'Encuestas WhatsApp', descripcion: 'Bot conversacional de encuestas por WhatsApp con IA' },
 ]

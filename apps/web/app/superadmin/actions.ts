@@ -28,6 +28,7 @@ export type ModuleKey =
   | 'DIA_E'
   | 'COMUNICACIONES'
   | 'FINANZAS'
+  | 'ENCUESTAS'
 
 export interface CreateTenantInput {
   name:          string

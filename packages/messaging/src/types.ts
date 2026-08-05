@@ -20,6 +20,8 @@ export interface MessagePayload {
   body: string
   /** Canal de envío */
   channel: 'EMAIL' | 'SMS' | 'WHATSAPP'
+  /** Solo para plantillas de WhatsApp Meta */
+  templateName?: string
 }
 
 /** Interfaz que todo proveedor de mensajería debe implementar */
@@ -39,4 +41,9 @@ export interface SmtpConfig {
   passwordEncrypted: string
   /** Dirección "From" para los emails */
   from: string
+}
+
+export interface WhatsappConfig {
+  token: string
+  phoneNumberId: string
 }

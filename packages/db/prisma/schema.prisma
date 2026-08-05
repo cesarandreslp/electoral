@@ -47,6 +47,17 @@ enum CommuneType {
   CORREGIMIENTO  // Zona rural
 }
 
+/// Estado de conversación de un elector en una encuesta
+enum ConversationState {
+  PENDIENTE
+  CONTACTADO
+  CONSENTIMIENTO_PENDIENTE
+  CONSENTIDO
+  RESPONDIENDO
+  COMPLETADO
+  RECHAZADO
+}
+
 /// Estado operativo de un líder en la campaña
 enum LeaderStatus {
   ACTIVO     // Operando normalmente
@@ -170,6 +181,14 @@ model Voter {
   captureDepth     Int              @default(0) // Nivel en el árbol de captación (0 = directo del líder)
   qrTokenUsed      String?          // Token del QR que usó para registrarse
   createdAt        DateTime         @default(now())
+
+  // Módulo Encuestas
+  conversationState ConversationState @default(PENDIENTE)
+  consent           Boolean           @default(false)
+  surveyContactDate DateTime?
+  surveyResponseDate DateTime?
+  surveyResponses   SurveyResponse[]
+  surveyMessageLogs SurveyMessageLog[]
 
   leader      Leader?      @relation(fields: [leaderId], references: [id])
   votingTable VotingTable? @relation(fields: [votingTableId], references: [id])
@@ -329,6 +348,14 @@ model TenantConfig {
   metaVotos             Int?
   votosEleccionAnterior Int?
   smtpConfig            Json?     // { host, port, secure, user, passwordEncrypted, from }
+  
+  // Configuración Módulo Encuestas (WhatsApp & Limites)
+  whatsappToken       String?
+  whatsappPhoneId     String?
+  whatsappVerifyToken String?
+  botName             String?   @default("Asistente Virtual")
+  surveyDailyLimit    Int       @default(250)
+
   updatedAt             DateTime  @updatedAt
 }
 
@@ -725,4 +752,112 @@ model FinanceReport {
   createdAt      DateTime  @default(now())
 
   @@index([tenantId, type])
+}
+
+// ─── MODELOS TENANT — MÓDULO ENCUESTAS ──────────────────────────────────────
+// Modelos específicos del módulo de Encuestas vía WhatsApp (Electoss integrado)
+
+/// Campaña de encuestas (puede ser 1 por elección)
+model SurveyCampaign {
+  id              String   @id @default(cuid())
+  tenantId        String
+  name            String
+  electionDate    DateTime
+  isActive        Boolean  @default(true)
+  isSurveyEnabled Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  cargos          SurveyCargo[]
+  
+  @@index([tenantId])
+}
+
+/// Cargo electoral en la encuesta (ej: Alcaldía, Concejo)
+model SurveyCargo {
+  id               String   @id @default(cuid())
+  surveyCampaignId String
+  name             String
+  order            Int      @default(0)
+
+  campaign   SurveyCampaign    @relation(fields: [surveyCampaignId], references: [id], onDelete: Cascade)
+  preguntas  SurveyPregunta[]
+  candidatos SurveyCandidato[]
+  
+  @@index([surveyCampaignId])
+}
+
+/// Tipo de pregunta en la encuesta
+enum SurveyPreguntaType {
+  FREE_TEXT
+  BOOLEAN
+}
+
+/// Pregunta asociada a un cargo en la encuesta
+model SurveyPregunta {
+  id            String             @id @default(cuid())
+  surveyCargoId String
+  text          String
+  order         Int                @default(0)
+  type          SurveyPreguntaType @default(FREE_TEXT)
+
+  cargo     SurveyCargo      @relation(fields: [surveyCargoId], references: [id], onDelete: Cascade)
+  responses SurveyResponse[]
+  
+  @@index([surveyCargoId])
+}
+
+/// Candidato oficial para un cargo electoral, usado para matcher IA
+model SurveyCandidato {
+  id            String  @id @default(cuid())
+  surveyCargoId String
+  name          String
+  code          String? // Ej: "U 101"
+
+  cargo     SurveyCargo      @relation(fields: [surveyCargoId], references: [id], onDelete: Cascade)
+  responses SurveyResponse[]
+  
+  @@index([surveyCargoId])
+}
+
+/// Respuesta de un elector a una pregunta, con posible mapeo IA a candidato
+model SurveyResponse {
+  id                String  @id @default(cuid())
+  tenantId          String
+  voterId           String
+  surveyPreguntaId  String
+  surveyCandidatoId String?
+  text              String
+
+  voter     Voter            @relation(fields: [voterId], references: [id], onDelete: Cascade)
+  pregunta  SurveyPregunta   @relation(fields: [surveyPreguntaId], references: [id], onDelete: Cascade)
+  candidato SurveyCandidato? @relation(fields: [surveyCandidatoId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@unique([voterId, surveyPreguntaId])
+  @@index([tenantId])
+}
+
+/// Tipo de mensaje de encuesta
+enum SurveyMessageType {
+  SENT
+  RECEIVED
+}
+
+/// Registro detallado de la conversación de la encuesta con Meta API
+model SurveyMessageLog {
+  id        String            @id @default(cuid())
+  tenantId  String
+  voterId   String
+  type      SurveyMessageType
+  content   String
+  messageId String?           // ID devuelto por Meta/WhatsApp
+
+  voter     Voter             @relation(fields: [voterId], references: [id], onDelete: Cascade)
+
+  timestamp DateTime @default(now())
+  
+  @@index([voterId, messageId])
+  @@index([tenantId])
 }
