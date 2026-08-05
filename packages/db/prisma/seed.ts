@@ -12,6 +12,7 @@ import { neonConfig } from '@neondatabase/serverless'
 import { PrismaClient } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import ws from 'ws'
+import { encrypt } from '../src/crypto'
 import { seedDivipola } from '../src/seed-divipola'
 
 // Configurar WebSocket para uso en Node.js (fuera del edge runtime)
@@ -30,16 +31,16 @@ async function main() {
   console.log('Iniciando seed de la base de datos del superadmin...')
 
   // ── Tenant de prueba ──────────────────────────────────────────────────────
-  // NOTA: en producción, connectionString debe estar cifrada con AES-256.
-  // Para el seed usamos la misma DB del superadmin como placeholder.
-  // Ver lib/crypto.ts para la implementación del cifrado.
+  // La connectionString va SIEMPRE cifrada, también en el seed: getTenant()
+  // hace decrypt() al leerla y devuelve null si el dato está en plano, lo que
+  // deja el tenant inutilizable. Como placeholder usamos la DB del superadmin.
   const tenant = await db.tenant.upsert({
     where: { slug: 'demo-campana' },
-    update: {},
+    update: { connectionString: encrypt(connectionString) },
     create: {
       slug: 'demo-campana',
       name: 'Campaña Demo 2026',
-      connectionString: process.env.DATABASE_URL_SUPERADMIN ?? '',
+      connectionString: encrypt(connectionString),
       isActive: true,
     },
   })
