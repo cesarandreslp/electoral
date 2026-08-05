@@ -64,11 +64,14 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
         }}
       >
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e40af' }}>
-            CampaignOS
-          </div>
-          <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.25rem' }}>
-            Plataforma de inteligencia electoral
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="Vectra"
+            style={{ height: '52px', width: 'auto', margin: '0 auto', display: 'block' }}
+          />
+          <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.5rem' }}>
+            Dirección estratégica para campañas electorales
           </div>
         </div>
 
@@ -156,7 +159,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
             type="submit"
             disabled={isPending}
             style={{
-              background:   isPending ? '#94a3b8' : '#1e40af',
+              background:   isPending ? '#94a3b8' : '#7d2839',
               color:        '#fff',
               padding:      '0.625rem 1rem',
               borderRadius: '6px',

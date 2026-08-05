@@ -2,7 +2,7 @@ import { auth } from '@campaignos/auth'
 import { redirect } from 'next/navigation'
 import { LoginForm } from './_components/login-form'
 
-export const metadata = { title: 'Iniciar sesión — CampaignOS' }
+export const metadata = { title: 'Iniciar sesión — Vectra' }
 
 /**
  * Página de login universal de CampaignOS.

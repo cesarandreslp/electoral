@@ -1,4 +1,4 @@
-export const metadata = { title: 'Sin autorización — CampaignOS' }
+export const metadata = { title: 'Sin autorización — Vectra' }
 
 /**
  * Página de acceso denegado.

@@ -22,7 +22,7 @@ export default async function SuperadminDashboardLayout({
   return (
     <AppShell
       moduleName="ADMIN"
-      tenantName="CampaignOS"
+      tenantName="Vectra"
       userEmail={session.user.email ?? ''}
       userRole={session.user.role}
       nav={nav}

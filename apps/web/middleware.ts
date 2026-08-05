@@ -142,6 +142,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon\\.ico|manifest\\.json|sw\\.js|icons|robots\\.txt).*)',
+    // Excluye internals de Next y cualquier asset estático de /public
+    // (imágenes en la raíz como /logo.png que, si no, caerían en el gate de auth).
+    '/((?!_next/static|_next/image|favicon\\.ico|manifest\\.json|sw\\.js|icons|robots\\.txt|.*\\.(?:png|jpe?g|gif|svg|webp|ico)$).*)',
   ],
 }

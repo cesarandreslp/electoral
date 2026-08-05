@@ -6,16 +6,16 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: {
-    default: 'CampaignOS — Inteligencia electoral para Colombia',
-    template: '%s | CampaignOS',
+    default: 'Vectra — Dirección estratégica para campañas electorales',
+    template: '%s | Vectra',
   },
   description: 'Plataforma SaaS multi-tenant para la gestión integral de campañas electorales en Colombia. Líderes, electores, mapa de calor, transmisión E-14 y agentes de IA.',
   manifest: '/manifest.json',
-  applicationName: 'CampaignOS',
+  applicationName: 'Vectra',
   appleWebApp: {
     capable:         true,
     statusBarStyle:  'default',
-    title:           'CampaignOS',
+    title:           'Vectra',
   },
   icons: {
     icon:     [{ url: '/icons/icon.svg', type: 'image/svg+xml' }],
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor:   '#1e40af',
+  themeColor:   '#7d2839',
   width:        'device-width',
   initialScale: 1,
   maximumScale: 5,

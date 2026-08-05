@@ -1,13 +1,13 @@
 {
-  "name": "CampaignOS",
-  "short_name": "CampaignOS",
-  "description": "Plataforma de gestión integral de campañas electorales en Colombia",
+  "name": "Vectra",
+  "short_name": "Vectra",
+  "description": "Dirección estratégica para campañas electorales en Colombia",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0f172a",
-  "theme_color": "#1e40af",
+  "background_color": "#ffffff",
+  "theme_color": "#7d2839",
   "lang": "es-CO",
   "id": "/",
   "icons": [
