@@ -65,7 +65,21 @@ export async function middleware(request: NextRequest) {
   // o "tu-dominio.co" en producción con dominio propio.
   const baseDomain = (process.env.TENANT_BASE_DOMAIN ?? '').replace(/^\./, '')
 
-  const token = await getToken({ req: request })
+  // getToken() de @auth/core NO lee el secreto del entorno ni deduce el nombre
+  // de la cookie: sin estos dos parámetros devuelve null SIEMPRE.
+  //   - secret:       v5 usa AUTH_SECRET; NEXTAUTH_SECRET queda como respaldo.
+  //   - secureCookie: sobre HTTPS la cookie lleva el prefijo `__Secure-`. Sin
+  //     esto busca `authjs.session-token` y en producción no la encuentra, con
+  //     lo que el middleware redirige a /login, el login ve la sesión con
+  //     auth() y devuelve a la ruta protegida → bucle de redirecciones.
+  const esHttps = request.nextUrl.protocol === 'https:' ||
+                  request.headers.get('x-forwarded-proto') === 'https'
+
+  const token = await getToken({
+    req:          request,
+    secret:       process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+    secureCookie: esHttps,
+  })
   const tenantSlugSesion = (token?.tenantSlug as string | null | undefined) ?? null
   const role = token?.role as string | undefined
   const esSuperadmin = role === 'SUPERADMIN'
