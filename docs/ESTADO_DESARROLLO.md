@@ -335,6 +335,17 @@ configurados. El plan de abajo NO asume suite automatizada previa.
    en la cuenta equivocada. Confirmar antes de usar `pnpm dev` para pruebas que
    creen clientes. Estado: **ABIERTO**.
 
+2c. **El historial de migraciones de Prisma está obsoleto.** Las 3 migraciones de
+   `packages/db/prisma/migrations/` crean **14 tablas**, pero el schema declara
+   **44 modelos**: Finanzas, Formación, Comunicaciones y Encuestas nunca se
+   migraron. La última es del 2026-04-02. En la práctica el proyecto se sincroniza
+   con `prisma db push`, no con migraciones.
+
+   Consecuencias: sobre una base nueva hay que usar `pnpm db:push` — `db:migrate`
+   dejaría la base incompleta. Y mientras el historial siga roto no hay forma de
+   aplicar cambios de schema de forma reproducible ni de revertirlos.
+   Estado: **ABIERTO**.
+
 3. **El nombre del proyecto Neon sigue siendo `campaignos-<slug>`**
    ([neon-provisioner.ts:110](packages/db/src/neon-provisioner.ts#L110)). Cosmético,
    pero queda impreso en infraestructura real y no se puede renombrar sin tocar
