@@ -57,7 +57,10 @@ export function AppShell({
       {/* Backdrop — solo móvil cuando el sidebar está abierto */}
       <label
         htmlFor="appshell-toggle"
-        className="md:hidden fixed inset-0 z-30 bg-black/50 hidden peer-checked:block"
+        // `hidden!` en md: sin el !, peer-checked:block gana la cascada y el velo
+        // se queda tapando la pantalla al girar el móvil o ensanchar la ventana
+        // con el menú abierto.
+        className="fixed inset-0 z-30 bg-black/50 hidden peer-checked:block md:hidden!"
         aria-hidden
       />
 
