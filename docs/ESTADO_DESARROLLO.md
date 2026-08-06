@@ -501,10 +501,70 @@ todo usuario no-SUPERADMIN tras el login, y el nav de CORE lista
 `{ href: '/core', label: 'Dashboard' }`
 ([core/layout.tsx:19](apps/web/app/(tenant)/core/layout.tsx#L19)). Resultado:
 los cuatro roles de tenant aterrizan en un 404 nada más entrar. Verificado en
-producción con `admin@prueba.vectra`. Estado: **ABIERTO**.
+producción con `admin@prueba.vectra`. Estado: **CERRADO** (commit `6531554`).
+
+*Resolución (2026-08-06):* se creó
+[app/(tenant)/core/page.tsx](apps/web/app/(tenant)/core/page.tsx) — Dashboard con
+conteos (líderes/electores/puestos/mesas) vía la acción `getCoreStats()`.
+Desplegado a producción (`vercel --prod`, el proyecto NO auto-despliega desde
+git push) y verificado: `/core` ahora carga el Dashboard.
 
 ### HALLAZGO 6 — `/core/alertas` en el nav pero sin página → 404
 
 El nav de CORE incluye `{ href: '/core/alertas', label: 'Alertas', badge }`
 ([core/layout.tsx:28](apps/web/app/(tenant)/core/layout.tsx#L28)) pero no existe
-`app/(tenant)/core/alertas/`. Clic en "Alertas" → 404. Estado: **ABIERTO**.
+`app/(tenant)/core/alertas/`. Clic en "Alertas" → 404. Estado: **CERRADO**.
+
+*Resolución (2026-08-06):* se creó
+[app/(tenant)/core/alertas/page.tsx](apps/web/app/(tenant)/core/alertas/page.tsx),
+que lista las notificaciones no leídas reusando `/api/notificaciones` (misma
+fuente que el badge del sidebar).
+
+### Capa 3 — recorrido funcional ADMIN sobre CORE (producción, tenant `demo-campana`)
+
+| Funcionalidad | Resultado |
+|---|---|
+| Dashboard `/core` | ✅ carga (tras fix H5) |
+| Líderes — crear | ✅ `QA Líder 1` creado; **teléfono cifrado en reposo** (AES-256-GCM) |
+| Líderes — jerarquía padre/hijo | ✅ `QA Sublíder 1.1` → padre `QA Líder 1` |
+| Electores — crear | ✅ `QA Elector Uno`; **cédula y teléfono cifrados**, `cedulaHash` presente |
+| Electores — dedupe por cédula | ✅ misma cédula → "Ya existe un elector con esa cédula"; no crea duplicado |
+| QR de captación — generar | ✅ genera PNG + URL con token por líder |
+| QR/registro — flujo público | ❌ roto — ver HALLAZGO 7 |
+
+Detalle UX menor: el form de "Nuevo elector"/"Nuevo líder" se queda en `/nuevo`
+tras crear con éxito, sin mensaje de confirmación visible (la escritura sí ocurre).
+
+### HALLAZGO 7 — captación por QR: `/registro/[token]` nunca resuelve el tenant. **ALTA**
+
+El QR se genera bien (admin), pero su enlace (`…/registro/<uuid>`) lleva a
+"Este enlace no corresponde a ninguna campaña" para todos, en cualquier host.
+
+Causa raíz: la página y la acción de registro leen el tenant del header
+`x-tenant-id` ([registro/[token]/page.tsx:21](apps/web/app/registro/[token]/page.tsx#L21),
+[registro/[token]/actions.ts:57](apps/web/app/registro/[token]/actions.ts#L57)),
+pero **ese header no lo setea nadie**: es la única referencia además del comentario
+del middleware que dice "NUNCA inyectamos x-tenant-id". Y `/registro/` es ruta
+pública, así que el middleware la corta al inicio con `NextResponse.next()`
+([middleware.ts:59](apps/web/middleware.ts#L59)) sin resolver tenant.
+
+Como cada tenant tiene su propia DB, sin `tenantId` no hay dónde buscar el token.
+El flujo de auto-registro de electores (una funcionalidad CORE anunciada como OK)
+es **inutilizable** en producción. `submitRegistration` tiene la misma dependencia,
+así que aunque la página cargara, el envío también fallaría.
+
+Opciones de fix (requieren decisión): (a) guardar el mapa `token → tenantId` en la
+DB del superadmin y resolver el tenant desde el token; (b) codificar el slug del
+tenant en la URL (`/registro/<slug>/<token>`); (c) que el middleware resuelva y
+setee `x-tenant-id` para rutas públicas de tenant (solo sirve con subdominio/dominio
+configurado). Estado: **CERRADO** (opción variante de b).
+
+*Resolución (2026-08-06):* el slug del tenant se pasa por query param `?c=<slug>`
+en la URL del QR, que ahora se construye con el **origin actual** (funciona en
+`vercel.app` hoy y en el dominio propio mañana) en vez del subdominio sin DNS
+([core/qr/page.tsx](apps/web/app/(tenant)/core/qr/page.tsx)). La página y la acción
+de registro resuelven `slug → tenantId` contra `superadminDb.tenant` en vez del
+header inexistente
+([registro/[token]/page.tsx](apps/web/app/registro/[token]/page.tsx),
+[registro/[token]/actions.ts](apps/web/app/registro/[token]/actions.ts)). El link
+de referido también arrastra `?c=`. Pendiente de verificar E2E en producción.

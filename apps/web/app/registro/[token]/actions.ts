@@ -36,6 +36,7 @@ export type RegistroQRResult =
  * Lógica completa de deduplicación y árbol de referidos.
  */
 export async function registrarseConQR(
+  slug:      string, // slug del tenant (parámetro ?c= de la URL del QR)
   token:     string,
   data:      RegistroQRInput,
   refId?:    string,  // voterId del referidor (parámetro ?ref= de la URL)
@@ -52,12 +53,17 @@ export async function registrarseConQR(
     return { success: false, error: 'Demasiados intentos. Por favor intenta más tarde.' }
   }
 
-  // ── Validar token ───────────────────────────────────────────────────────────
-  // El token pertenece al tenant del host actual — lo resolvemos via header
-  const tenantId = headersList.get('x-tenant-id')
-  if (!tenantId) {
+  // ── Resolver tenant por slug ──────────────────────────────────────────────────
+  // El slug viene en ?c= de la URL del QR; se resuelve contra la DB del superadmin
+  // (las rutas públicas no pasan por la resolución de tenant del middleware).
+  const tenant = await superadminDb.tenant.findUnique({
+    where:  { slug },
+    select: { id: true, isActive: true },
+  })
+  if (!tenant || !tenant.isActive) {
     return { success: false, error: 'Enlace no válido.' }
   }
+  const tenantId = tenant.id
 
   let connectionString: string
   try {

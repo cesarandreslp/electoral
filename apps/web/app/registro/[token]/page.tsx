@@ -1,11 +1,10 @@
-import { headers }          from 'next/headers'
 import { getTenantConnection } from '@/lib/tenant'
-import { getTenantDb }       from '@campaignos/db'
+import { superadminDb, getTenantDb } from '@campaignos/db'
 import { FormularioRegistro } from './_components/formulario-registro'
 
 interface Props {
   params:      Promise<{ token: string }>
-  searchParams: Promise<{ ref?: string }>
+  searchParams: Promise<{ ref?: string; c?: string }>
 }
 
 /**
@@ -14,17 +13,26 @@ interface Props {
  * Server Component: verifica el token y carga los puestos de votación.
  */
 export default async function RegistroQRPage({ params, searchParams }: Props) {
-  const { token }  = await params
-  const { ref }    = await searchParams
+  const { token }     = await params
+  const { ref, c: slug } = await searchParams
 
-  const headersList = await headers()
-  const tenantId    = headersList.get('x-tenant-id')
-  const tenantName  = headersList.get('x-tenant-name') ?? 'Campaña'
-
-  // Verificar token antes de mostrar el formulario
-  if (!tenantId) {
+  // El tenant se resuelve por su slug (viene en ?c= de la URL del QR), no por
+  // host: las rutas públicas no pasan por la resolución de tenant del middleware.
+  if (!slug) {
     return <PaginaError mensaje="Este enlace no corresponde a ninguna campaña." />
   }
+
+  const tenant = await superadminDb.tenant.findUnique({
+    where:  { slug },
+    select: { id: true, name: true, isActive: true },
+  })
+
+  if (!tenant || !tenant.isActive) {
+    return <PaginaError mensaje="Este enlace no corresponde a ninguna campaña." />
+  }
+
+  const tenantId   = tenant.id
+  const tenantName = tenant.name
 
   let db: ReturnType<typeof getTenantDb>
   try {
@@ -77,7 +85,7 @@ export default async function RegistroQRPage({ params, searchParams }: Props) {
         </div>
 
         {/* Formulario client component */}
-        <FormularioRegistro token={token} refId={ref} puestos={puestos} />
+        <FormularioRegistro slug={slug} token={token} refId={ref} puestos={puestos} />
       </div>
     </div>
   )

@@ -50,10 +50,11 @@ export default function QrPage() {
   }, [])
 
   function construirUrl(token: string) {
-    const base = process.env.NODE_ENV === 'development'
-      ? `http://${tenantSlug}.localhost:3000`
-      : `https://${tenantSlug}.${process.env.NEXT_PUBLIC_TENANT_BASE_DOMAIN ?? 'vectra.com.co'}`
-    return `${base}/registro/${token}`
+    // El slug va en el path (?c=) para resolver el tenant sin depender del
+    // subdominio (que requiere DNS). El origin actual hace que el QR funcione
+    // en vercel.app hoy y en el dominio propio cuando exista.
+    const base = typeof window !== 'undefined' ? window.location.origin : ''
+    return `${base}/registro/${token}?c=${tenantSlug}`
   }
 
   function handleGenerar() {

@@ -10,12 +10,13 @@ interface Puesto {
 }
 
 interface FormularioRegistroProps {
+  slug:    string
   token:   string
   refId?:  string
   puestos: Puesto[]
 }
 
-export function FormularioRegistro({ token, refId, puestos }: FormularioRegistroProps) {
+export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRegistroProps) {
   const [nombre,    setNombre]    = useState('')
   const [cedula,    setCedula]    = useState('')
   const [telefono,  setTelefono]  = useState('')
@@ -45,7 +46,7 @@ export function FormularioRegistro({ token, refId, puestos }: FormularioRegistro
     }
 
     startTransition(async () => {
-      const res = await registrarseConQR(token, input, refId)
+      const res = await registrarseConQR(slug, token, input, refId)
       if (res.success) {
         setMensaje({ tipo: 'ok', texto: res.message })
         setEnviado(true)
@@ -59,7 +60,7 @@ export function FormularioRegistro({ token, refId, puestos }: FormularioRegistro
   // Pantalla de éxito — ya no se puede enviar de nuevo
   if (enviado && mensaje?.tipo === 'ok') {
     const linkReferido = voterId
-      ? `${typeof window !== 'undefined' ? window.location.origin : ''}/registro/${token}?ref=${voterId}`
+      ? `${typeof window !== 'undefined' ? window.location.origin : ''}/registro/${token}?c=${slug}&ref=${voterId}`
       : null
 
     async function copiarLink() {
