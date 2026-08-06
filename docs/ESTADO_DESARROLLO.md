@@ -592,4 +592,18 @@ prueba OK. Estado: **CERRADO**.
   - Claves de IA por campaña cableadas a los clientes (analytics/Día E/encuestas) con
     fallback a las globales. No verificable en navegador aún (esos módulos están inactivos
     en `demo-campana`).
-- **#3 Mapa del dashboard (Leaflet + geocoding de direcciones)** — no iniciado.
+- **#3 Mapa del dashboard (Leaflet + geocoding de direcciones)** — desplegado.
+  `Voter.lat/lng`, campo dirección en el alta manual, helper Nominatim, acción
+  `geocodificarPendientes` (lotes de 5, 1 req/s) con botón en el dashboard, y mapa
+  Leaflet+OSM con círculos por estado. Geocoding verificado contra Nominatim.
+
+### Nuevos hallazgos abiertos (2026-08-06)
+
+- **HALLAZGO 9 — Ranking de captadores (multinivel) pendiente.** El modelo ya soporta
+  captación por cualquier líder (incl. sub-líderes) y por electores (link `?ref=` →
+  `referredById`/`captureDepth`), pero NO existe una vista que rankee "quién trae más
+  gente" (directos + todo el sub-árbol) con su nivel de profundidad. Acordado construirlo
+  después del mapa, con conteo directos + downline completo. El link de referido del
+  elector solo se muestra una vez (al registrarse); no hay portal para recuperarlo.
+- **Geocoding a escala:** `geocodificarPendientes` es síncrono en lotes de 5 por el rate
+  limit de Nominatim; para miles de electores hace falta un cron/queue.
