@@ -1,6 +1,11 @@
 /* Tailwind CSS v4 — la configuración de tema va aquí, no en tailwind.config.ts */
 @import "tailwindcss";
 
+/* packages/ui vive fuera de apps/web y llega por symlink desde node_modules,
+   que Tailwind ignora en la detección automática. Sin esto, las clases de
+   DataTable y compañía no se generan y los componentes salen sin estilo. */
+@source "../../../packages/ui/src";
+
 /* Paleta de marca Vectra: granate → oliva → plateado */
 @theme {
   --color-granate:      #7d2839;

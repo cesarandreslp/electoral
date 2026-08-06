@@ -52,7 +52,7 @@ export default function QrPage() {
   function construirUrl(token: string) {
     const base = process.env.NODE_ENV === 'development'
       ? `http://${tenantSlug}.localhost:3000`
-      : `https://${tenantSlug}.campaignos.co`
+      : `https://${tenantSlug}.${process.env.NEXT_PUBLIC_TENANT_BASE_DOMAIN ?? 'vectra.com.co'}`
     return `${base}/registro/${token}`
   }
 

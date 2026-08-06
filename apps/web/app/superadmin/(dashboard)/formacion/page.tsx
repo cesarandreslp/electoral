@@ -9,11 +9,11 @@ import type { GlobalMaterialSummary } from '../../actions'
 
 const TIPOS = ['SLIDES', 'PDF', 'VIDEO', 'INFOGRAFIA'] as const
 
-const TIPO_BADGE: Record<string, { bg: string; text: string }> = {
-  SLIDES:      { bg: '#dbeafe', text: '#1e40af' },
-  PDF:         { bg: '#fee2e2', text: '#991b1b' },
-  VIDEO:       { bg: '#dcfce7', text: '#166534' },
-  INFOGRAFIA:  { bg: '#fef9c3', text: '#854d0e' },
+const TIPO_BADGE: Record<string, string> = {
+  SLIDES:     'bg-slate-100 text-slate-700 border-slate-200',
+  PDF:        'bg-red-50 text-red-700 border-red-200',
+  VIDEO:      'bg-emerald-50 text-emerald-700 border-emerald-200',
+  INFOGRAFIA: 'bg-amber-50 text-amber-700 border-amber-200',
 }
 
 export default async function FormacionPage() {
@@ -25,64 +25,62 @@ export default async function FormacionPage() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <h1 style={{ margin: 0, fontSize: '1.5rem', color: '#0f172a' }}>
-        Materiales globales de formación
-      </h1>
+    <div className="flex flex-col gap-6">
+      <header>
+        <h1 className="text-2xl font-bold text-slate-900">Materiales globales de formación</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Disponibles para todas las campañas con el módulo Formación activo.
+        </p>
+      </header>
 
       {/* Formulario de subida */}
       <form
         action={handleCreate}
-        style={{
-          background: '#fff', borderRadius: '12px', padding: '1.5rem',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-          display: 'flex', flexDirection: 'column', gap: '1rem',
-        }}
+        className="rounded-xl border border-slate-200 bg-white p-6 flex flex-col gap-4"
       >
-        <h2 style={{ margin: 0, fontSize: '1rem', color: '#334155' }}>Nuevo material</h2>
+        <h2 className="text-base font-semibold text-slate-900">Nuevo material</h2>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label htmlFor="title" style={labelStyle}>Título</label>
-            <input id="title" name="title" required style={inputStyle} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="title" className={CLASE_LABEL}>Título</label>
+            <input id="title" name="title" required className={CLASE_INPUT} />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <label htmlFor="type" style={labelStyle}>Tipo</label>
-            <select id="type" name="type" required style={inputStyle}>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="type" className={CLASE_LABEL}>Tipo</label>
+            <select id="type" name="type" required className={CLASE_INPUT}>
               {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <label htmlFor="description" style={labelStyle}>Descripción (opcional)</label>
-          <input id="description" name="description" style={inputStyle} />
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="description" className={CLASE_LABEL}>Descripción (opcional)</label>
+          <input id="description" name="description" className={CLASE_INPUT} />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-          <label htmlFor="file" style={labelStyle}>Archivo</label>
-          <input id="file" name="file" type="file" required style={inputStyle} />
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="file" className={CLASE_LABEL}>Archivo</label>
+          <input
+            id="file" name="file" type="file" required
+            className="text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-granate/10 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-granate hover:file:bg-granate/20"
+          />
         </div>
 
-        <button type="submit" style={{
-          padding: '0.75rem', fontSize: '0.875rem', borderRadius: '6px',
-          border: 'none', background: '#1e40af', color: '#fff', cursor: 'pointer',
-          fontWeight: 600, alignSelf: 'flex-start',
-        }}>
+        <button
+          type="submit"
+          className="self-start bg-granate text-white px-5 py-2.5 rounded-md text-sm font-semibold hover:bg-granate-dark transition"
+        >
           Subir material
         </button>
       </form>
 
       {/* Tabla de materiales */}
-      <div style={{
-        background: '#fff', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-        overflowX: 'auto',
-      }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
+        <table className="w-full text-sm border-collapse">
           <thead>
-            <tr>
+            <tr className="border-b border-slate-200 bg-slate-50">
               {['Orden', 'Título', 'Tipo', 'Tamaño', 'Estado', 'Acciones'].map(h => (
-                <th key={h} style={headerStyle}>{h}</th>
+                <th key={h} className={CLASE_TH}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -92,7 +90,7 @@ export default async function FormacionPage() {
             ))}
             {materiales.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ ...cellStyle, textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>
+                <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
                   No hay materiales cargados
                 </td>
               </tr>
@@ -136,57 +134,59 @@ function MaterialRow({ material: m, index, total }: {
     : '—'
 
   return (
-    <tr>
-      <td style={cellStyle}>
-        <div style={{ display: 'flex', gap: '0.25rem' }}>
+    <tr className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70 transition">
+      <td className={CLASE_TD}>
+        <div className="flex items-center gap-1">
           <form action={handleMoveUp}>
-            <button type="submit" disabled={index === 0} style={btnSmall} title="Subir">
+            <button type="submit" disabled={index === 0} className={CLASE_BTN_MINI} title="Subir">
               &#9650;
             </button>
           </form>
           <form action={handleMoveDown}>
-            <button type="submit" disabled={index === total - 1} style={btnSmall} title="Bajar">
+            <button type="submit" disabled={index === total - 1} className={CLASE_BTN_MINI} title="Bajar">
               &#9660;
             </button>
           </form>
-          <span style={{ marginLeft: '0.25rem', color: '#94a3b8', fontSize: '0.75rem' }}>{m.order}</span>
+          <span className="ml-1 text-xs text-slate-400">{m.order}</span>
         </div>
       </td>
-      <td style={cellStyle}>
-        <div>
-          <a href={m.fileUrl} target="_blank" rel="noopener noreferrer"
-            style={{ color: '#1e40af', textDecoration: 'none', fontWeight: 500 }}>
-            {m.title}
-          </a>
-          {m.description && (
-            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{m.description}</div>
-          )}
-        </div>
+      <td className={CLASE_TD}>
+        <a
+          href={m.fileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-granate hover:underline"
+        >
+          {m.title}
+        </a>
+        {m.description && <div className="text-xs text-slate-400">{m.description}</div>}
       </td>
-      <td style={cellStyle}>
-        <span style={{
-          padding: '0.15rem 0.5rem', borderRadius: '9999px', fontSize: '0.7rem',
-          fontWeight: 600, background: badge.bg, color: badge.text,
-        }}>
+      <td className={CLASE_TD}>
+        <span className={`inline-block px-2 py-0.5 rounded-full border text-[11px] font-semibold ${badge}`}>
           {m.type}
         </span>
       </td>
-      <td style={{ ...cellStyle, fontSize: '0.8rem', color: '#64748b' }}>{fileSize}</td>
-      <td style={cellStyle}>
+      <td className={`${CLASE_TD} text-slate-500 whitespace-nowrap`}>{fileSize}</td>
+      <td className={CLASE_TD}>
         <form action={handleToggle}>
-          <button type="submit" style={{
-            ...btnSmall,
-            background: m.isActive ? '#dcfce7' : '#fee2e2',
-            color:      m.isActive ? '#166534' : '#991b1b',
-            border:     `1px solid ${m.isActive ? '#22c55e' : '#ef4444'}`,
-          }}>
+          <button
+            type="submit"
+            className={`px-2.5 py-1 rounded border text-xs font-semibold transition ${
+              m.isActive
+                ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                : 'border-red-300 bg-red-50 text-red-700 hover:bg-red-100'
+            }`}
+          >
             {m.isActive ? 'Activo' : 'Inactivo'}
           </button>
         </form>
       </td>
-      <td style={cellStyle}>
+      <td className={CLASE_TD}>
         <form action={handleDelete}>
-          <button type="submit" style={{ ...btnSmall, color: '#ef4444', border: '1px solid #fecaca' }}>
+          <button
+            type="submit"
+            className="px-2.5 py-1 rounded border border-red-200 text-red-600 text-xs font-medium hover:bg-red-50 transition"
+          >
             Eliminar
           </button>
         </form>
@@ -195,21 +195,14 @@ function MaterialRow({ material: m, index, total }: {
   )
 }
 
-const labelStyle: React.CSSProperties = {
-  fontSize: '0.8rem', color: '#334155', fontWeight: 500,
-}
-const inputStyle: React.CSSProperties = {
-  padding: '0.5rem 0.75rem', fontSize: '0.875rem', borderRadius: '6px',
-  border: '1px solid #cbd5e1', width: '100%', boxSizing: 'border-box',
-}
-const headerStyle: React.CSSProperties = {
-  padding: '0.5rem 0.75rem', textAlign: 'left', fontSize: '0.75rem',
-  color: '#64748b', borderBottom: '2px solid #e2e8f0', whiteSpace: 'nowrap',
-}
-const cellStyle: React.CSSProperties = {
-  padding: '0.5rem 0.75rem', fontSize: '0.875rem', borderBottom: '1px solid #f1f5f9',
-}
-const btnSmall: React.CSSProperties = {
-  padding: '0.2rem 0.5rem', fontSize: '0.75rem', borderRadius: '4px',
-  border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer',
-}
+const CLASE_LABEL = 'text-sm font-medium text-slate-700'
+const CLASE_INPUT =
+  'w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 ' +
+  'placeholder:text-slate-400 outline-none transition ' +
+  'focus:border-granate focus:ring-2 focus:ring-granate/20'
+const CLASE_TH =
+  'text-left font-semibold text-xs uppercase tracking-wider text-slate-500 px-4 py-3 whitespace-nowrap'
+const CLASE_TD = 'px-4 py-3 align-middle text-slate-700'
+const CLASE_BTN_MINI =
+  'px-1.5 py-0.5 rounded border border-slate-200 bg-white text-xs text-slate-600 ' +
+  'hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition'

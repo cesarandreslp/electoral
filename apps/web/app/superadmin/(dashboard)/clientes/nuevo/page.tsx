@@ -66,14 +66,16 @@ export default function NuevoClientePage() {
   }
 
   return (
-    <div style={{ maxWidth: '600px' }}>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>
-        Nuevo cliente
-      </h1>
+    <div className="max-w-2xl">
+      <header className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">Nuevo cliente</h1>
+        <p className="text-sm text-slate-500 mt-1">
+          Cada campaña recibe su propia base de datos aislada y los módulos que active aquí.
+        </p>
+      </header>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <form onSubmit={handleSubmit} className="rounded-xl border border-slate-200 bg-white p-6 flex flex-col gap-5">
 
-        {/* Nombre de la campaña */}
         <Campo label="Nombre de la campaña *">
           <input
             type="text"
@@ -81,14 +83,13 @@ export default function NuevoClientePage() {
             onChange={e => setNombre(e.target.value)}
             required
             placeholder="Campaña Gómez 2026"
-            style={estiloInput}
+            className={CLASE_INPUT}
           />
         </Campo>
 
         {/* Slug — componente cliente con validación en tiempo real */}
         <SlugInput value={slug} onChange={setSlug} />
 
-        {/* Email del administrador */}
         <Campo label="Email del administrador *">
           <input
             type="email"
@@ -96,11 +97,10 @@ export default function NuevoClientePage() {
             onChange={e => setEmail(e.target.value)}
             required
             placeholder="admin@campana.com"
-            style={estiloInput}
+            className={CLASE_INPUT}
           />
         </Campo>
 
-        {/* Contraseña del administrador */}
         <Campo label="Contraseña del administrador *">
           <input
             type="password"
@@ -109,73 +109,60 @@ export default function NuevoClientePage() {
             required
             minLength={8}
             placeholder="Mínimo 8 caracteres"
-            style={estiloInput}
+            className={CLASE_INPUT}
           />
         </Campo>
 
-        {/* Módulos disponibles */}
-        <div>
-          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.5rem' }}>
-            Módulos activos
-          </label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {MODULOS_DISPONIBLES.map(({ key, label, descripcion }) => (
-              <label
-                key={key}
-                style={{
-                  display:      'flex',
-                  alignItems:   'flex-start',
-                  gap:          '0.5rem',
-                  cursor:       key === 'CORE' ? 'not-allowed' : 'pointer',
-                  opacity:      key === 'CORE' ? 0.7 : 1,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={modulos.includes(key)}
-                  onChange={() => toggleModulo(key)}
-                  disabled={key === 'CORE'}
-                  style={{ marginTop: '2px' }}
-                />
-                <div>
-                  <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>{label}</span>
-                  <span style={{ color: '#64748b', fontSize: '0.8rem' }}> — {descripcion}</span>
-                </div>
-              </label>
-            ))}
+        <div className="border-t border-slate-100 pt-5">
+          <div className="text-sm font-medium text-slate-700 mb-3">Módulos activos</div>
+          <div className="flex flex-col gap-2">
+            {MODULOS_DISPONIBLES.map(({ key, label, descripcion }) => {
+              const activo = modulos.includes(key)
+              const bloqueado = key === 'CORE'
+              return (
+                <label
+                  key={key}
+                  className={`flex items-start gap-3 rounded-lg border p-3 transition ${
+                    bloqueado
+                      ? 'border-slate-200 bg-slate-50 cursor-not-allowed'
+                      : activo
+                        ? 'border-granate/40 bg-granate/5 cursor-pointer'
+                        : 'border-slate-200 hover:border-slate-300 cursor-pointer'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={activo}
+                    onChange={() => toggleModulo(key)}
+                    disabled={bloqueado}
+                    className="mt-0.5 w-4 h-4 accent-granate"
+                  />
+                  <div className="leading-snug">
+                    <span className="font-semibold text-sm text-slate-900">{label}</span>
+                    <span className="text-slate-500 text-xs"> — {descripcion}</span>
+                  </div>
+                </label>
+              )
+            })}
           </div>
         </div>
 
-        {/* Resultado */}
         {resultado && (
           <div
-            style={{
-              padding:      '0.75rem 1rem',
-              borderRadius: '6px',
-              background:   esError ? '#fee2e2' : '#dcfce7',
-              color:        esError ? '#991b1b' : '#166534',
-              fontSize:     '0.875rem',
-            }}
+            className={`rounded-lg px-4 py-3 text-sm ${
+              esError
+                ? 'bg-red-50 text-red-800 border border-red-200'
+                : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+            }`}
           >
             {resultado}
           </div>
         )}
 
-        {/* Botón submit */}
         <button
           type="submit"
           disabled={isPending}
-          style={{
-            background:   isPending ? '#94a3b8' : '#1e40af',
-            color:        '#fff',
-            padding:      '0.625rem 1.25rem',
-            borderRadius: '6px',
-            border:       'none',
-            cursor:       isPending ? 'not-allowed' : 'pointer',
-            fontSize:     '0.875rem',
-            fontWeight:   600,
-            alignSelf:    'flex-start',
-          }}
+          className="self-start bg-granate text-white px-5 py-2.5 rounded-md text-sm font-semibold hover:bg-granate-dark disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
           {isPending ? 'Creando...' : 'Crear cliente'}
         </button>
@@ -189,20 +176,14 @@ export default function NuevoClientePage() {
 function Campo({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.25rem' }}>
-        {label}
-      </label>
+      <label className="block text-sm font-medium text-slate-700 mb-1.5">{label}</label>
       {children}
     </div>
   )
 }
 
-const estiloInput: React.CSSProperties = {
-  width:        '100%',
-  padding:      '0.5rem 0.75rem',
-  border:       '1px solid #cbd5e1',
-  borderRadius: '6px',
-  fontSize:     '0.875rem',
-  outline:      'none',
-  boxSizing:    'border-box',
-}
+// Sin `export`: Next.js sólo admite exports conocidos en un archivo de página
+const CLASE_INPUT =
+  'w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 ' +
+  'placeholder:text-slate-400 outline-none transition ' +
+  'focus:border-granate focus:ring-2 focus:ring-granate/20'

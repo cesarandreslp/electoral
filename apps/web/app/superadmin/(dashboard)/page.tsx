@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { listTenants } from '../actions'
 
 export const metadata = { title: 'Dashboard — Superadmin' }
@@ -25,51 +26,39 @@ export default async function SuperadminDashboard() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: '2rem', fontSize: '1.5rem', fontWeight: 700 }}>
-        Dashboard
-      </h1>
+      <header className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
+        <p className="text-sm text-slate-500 mt-1">Estado general de las campañas en la plataforma.</p>
+      </header>
 
-      <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-        <StatCard titulo="Total clientes"   valor={String(total)}   />
-        <StatCard titulo="Clientes activos" valor={String(activos)} />
-        <StatCard titulo="Módulos más usados" valor={modulosMasUsados} ancho="auto" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <StatCard titulo="Total clientes"     valor={String(total)}   />
+        <StatCard titulo="Clientes activos"   valor={String(activos)} />
+        <StatCard titulo="Módulos más usados" valor={modulosMasUsados} />
       </div>
 
       {tenants.length === 0 && (
-        <div style={{ marginTop: '3rem', color: '#64748b' }}>
-          No hay clientes registrados todavía.{' '}
-          <a href="/clientes/nuevo">Crear el primero →</a>
+        <div className="mt-8 rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
+          <p className="text-slate-600 text-sm">No hay clientes registrados todavía.</p>
+          <Link
+            href="/superadmin/clientes/nuevo"
+            className="inline-block mt-3 bg-granate text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-granate-dark transition"
+          >
+            Crear el primero
+          </Link>
         </div>
       )}
     </div>
   )
 }
 
-function StatCard({
-  titulo,
-  valor,
-  ancho = '180px',
-}: {
-  titulo: string
-  valor:  string
-  ancho?: string
-}) {
+function StatCard({ titulo, valor }: { titulo: string; valor: string }) {
   return (
-    <div
-      style={{
-        background:   '#fff',
-        border:       '1px solid #e2e8f0',
-        borderRadius: '8px',
-        padding:      '1.5rem',
-        minWidth:     ancho,
-      }}
-    >
-      <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '0.5rem' }}>
+    <div className="rounded-xl border border-slate-200 bg-white p-5">
+      <div className="text-xs font-semibold uppercase tracking-wider text-oliva mb-2">
         {titulo}
       </div>
-      <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>
-        {valor}
-      </div>
+      <div className="text-2xl font-bold text-slate-900 leading-tight">{valor}</div>
     </div>
   )
 }

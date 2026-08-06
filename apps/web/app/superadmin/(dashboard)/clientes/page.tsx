@@ -9,20 +9,20 @@ export default async function ClientesPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Clientes</h1>
-        <a
-          href="/clientes/nuevo"
-          style={{
-            background: '#1e40af', color: '#fff', padding: '0.5rem 1rem',
-            borderRadius: '6px', textDecoration: 'none', fontSize: '0.875rem',
-          }}
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Clientes</h1>
+          <p className="text-sm text-slate-500 mt-1">Campañas registradas en la plataforma.</p>
+        </div>
+        <Link
+          href="/superadmin/clientes/nuevo"
+          className="shrink-0 bg-granate text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-granate-dark transition"
         >
           + Nuevo cliente
-        </a>
+        </Link>
       </div>
 
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
         <DataTable
           keyField="id"
           rows={tenants}
@@ -36,7 +36,7 @@ export default async function ClientesPage() {
               key:    'slug',
               header: 'Slug',
               render: (_, row) => (
-                <code style={{ fontSize: '0.8rem', background: '#f1f5f9', padding: '0.1rem 0.4rem', borderRadius: '3px' }}>
+                <code className="text-xs bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">
                   {(row as TenantSummary).slug}
                 </code>
               ),
@@ -48,14 +48,11 @@ export default async function ClientesPage() {
                 const tenant = row as TenantSummary
                 return (
                   <span
-                    style={{
-                      background:   tenant.isActive ? '#dcfce7' : '#fee2e2',
-                      color:        tenant.isActive ? '#166534' : '#991b1b',
-                      padding:      '0.15rem 0.6rem',
-                      borderRadius: '999px',
-                      fontSize:     '0.75rem',
-                      fontWeight:   600,
-                    }}
+                    className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                      tenant.isActive
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : 'bg-red-50 text-red-700 border border-red-200'
+                    }`}
                   >
                     {tenant.isActive ? 'Activo' : 'Inactivo'}
                   </span>
@@ -68,9 +65,15 @@ export default async function ClientesPage() {
               render: (_, row) => {
                 const modulos = (row as TenantSummary).activeModules
                 return (
-                  <span style={{ fontSize: '0.8rem', color: '#475569' }}>
-                    {modulos.join(', ') || '—'}
-                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {modulos.length === 0
+                      ? <span className="text-slate-400">—</span>
+                      : modulos.map((m) => (
+                          <span key={m} className="text-[11px] bg-oliva/10 text-oliva px-2 py-0.5 rounded font-medium">
+                            {m}
+                          </span>
+                        ))}
+                  </div>
                 )
               },
             },
@@ -78,7 +81,7 @@ export default async function ClientesPage() {
               key:    'createdAt',
               header: 'Creado',
               render: (_, row) => (
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                <span className="text-slate-500 whitespace-nowrap">
                   {new Date((row as TenantSummary).createdAt).toLocaleDateString('es-CO')}
                 </span>
               ),
@@ -89,10 +92,10 @@ export default async function ClientesPage() {
               render: (_, row) => {
                 const tenant = row as TenantSummary
                 return (
-                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <div className="flex items-center gap-3">
                     <Link
-                      href={`/clientes/${tenant.id}/modulos`}
-                      style={{ color: '#1e40af', fontSize: '0.75rem', textDecoration: 'none' }}
+                      href={`/superadmin/clientes/${tenant.id}/modulos`}
+                      className="text-granate text-xs font-semibold hover:underline"
                     >
                       Módulos
                     </Link>
@@ -120,15 +123,11 @@ function ToggleForm({ tenantId, isActive }: { tenantId: string; isActive: boolea
     <form action={accion}>
       <button
         type="submit"
-        style={{
-          background: 'transparent',
-          border:     `1px solid ${isActive ? '#ef4444' : '#22c55e'}`,
-          color:      isActive ? '#ef4444' : '#22c55e',
-          padding:    '0.2rem 0.6rem',
-          borderRadius: '4px',
-          cursor:     'pointer',
-          fontSize:   '0.75rem',
-        }}
+        className={`px-2.5 py-1 rounded border text-xs font-medium transition ${
+          isActive
+            ? 'border-red-300 text-red-600 hover:bg-red-50'
+            : 'border-emerald-300 text-emerald-600 hover:bg-emerald-50'
+        }`}
       >
         {isActive ? 'Desactivar' : 'Activar'}
       </button>

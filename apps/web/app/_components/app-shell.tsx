@@ -34,7 +34,9 @@ export function AppShell({
   children,
 }: AppShellProps) {
   return (
-    <div className="min-h-[100dvh] bg-slate-50">
+    // md:flex — sin esto el sidebar `md:static` y el contenido se apilan en
+    // vertical en desktop, y toda la app arranca debajo del menú.
+    <div className="min-h-[100dvh] bg-slate-50 md:flex">
       <input id="appshell-toggle" type="checkbox" className="peer hidden" />
 
       {/* Top bar — solo móvil */}
@@ -106,8 +108,9 @@ export function AppShell({
       </aside>
 
       {/* Contenido */}
-      <main className="md:ml-0 pt-14 md:pt-0 min-h-[100dvh] flex flex-col">
-        <div className="flex-1 p-4 sm:p-6 md:p-8 overflow-x-auto">
+      {/* min-w-0 evita que una tabla ancha empuje el layout y rompa el flex */}
+      <main className="flex-1 min-w-0 pt-14 md:pt-0 min-h-[100dvh] flex flex-col">
+        <div className="flex-1 w-full max-w-6xl mx-auto p-4 sm:p-6 md:p-8 overflow-x-auto">
           {children}
         </div>
       </main>

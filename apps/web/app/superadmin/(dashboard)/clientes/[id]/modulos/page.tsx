@@ -7,23 +7,18 @@ export default async function ModulosPage({ params }: { params: Promise<{ id: st
   const { tenant, modules } = await getTenantModules(tenantId)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '600px' }}>
+    <div className="flex flex-col gap-6 max-w-2xl">
       <div>
-        <Link href="/clientes" style={{ color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>
+        <Link href="/superadmin/clientes" className="text-slate-500 text-xs hover:text-granate transition">
           &larr; Volver a clientes
         </Link>
-        <h1 style={{ margin: '0.5rem 0 0', fontSize: '1.5rem', color: '#0f172a' }}>
+        <h1 className="mt-2 text-2xl font-bold text-slate-900">
           Módulos — {tenant.name}
         </h1>
-        <p style={{ margin: '0.25rem 0 0', fontSize: '0.8rem', color: '#94a3b8' }}>
-          {tenant.slug}
-        </p>
+        <p className="mt-1 text-xs text-slate-400 font-mono">{tenant.slug}</p>
       </div>
 
-      <div style={{
-        background: '#fff', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-        overflow: 'hidden',
-      }}>
+      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
         {modules.map((mod) => {
           const esCORE = mod.key === 'CORE'
 
@@ -35,18 +30,11 @@ export default async function ModulosPage({ params }: { params: Promise<{ id: st
           return (
             <div
               key={mod.key}
-              style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '1rem 1.25rem', borderBottom: '1px solid #f1f5f9',
-              }}
+              className="flex items-center justify-between gap-4 px-5 py-4 border-b border-slate-100 last:border-0"
             >
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '0.875rem', color: '#0f172a' }}>
-                  {mod.label}
-                </div>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                  {mod.descripcion}
-                </div>
+              <div className="leading-snug">
+                <div className="font-semibold text-sm text-slate-900">{mod.label}</div>
+                <div className="text-xs text-slate-500">{mod.descripcion}</div>
               </div>
 
               <form action={handleToggle}>
@@ -54,17 +42,11 @@ export default async function ModulosPage({ params }: { params: Promise<{ id: st
                   type="submit"
                   disabled={esCORE}
                   title={esCORE ? 'CORE es obligatorio y no se puede desactivar' : undefined}
-                  style={{
-                    padding: '0.4rem 0.9rem',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    borderRadius: '6px',
-                    cursor: esCORE ? 'not-allowed' : 'pointer',
-                    border: `1px solid ${mod.isActive ? '#22c55e' : '#cbd5e1'}`,
-                    background: mod.isActive ? '#dcfce7' : '#f8fafc',
-                    color: mod.isActive ? '#166534' : '#64748b',
-                    opacity: esCORE ? 0.6 : 1,
-                  }}
+                  className={`shrink-0 px-3.5 py-1.5 rounded-md border text-xs font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed ${
+                    mod.isActive
+                      ? 'border-emerald-300 bg-emerald-50 text-emerald-700 enabled:hover:bg-emerald-100'
+                      : 'border-slate-300 bg-slate-50 text-slate-500 enabled:hover:bg-slate-100'
+                  }`}
                 >
                   {mod.isActive ? 'Activo' : 'Inactivo'}
                 </button>
