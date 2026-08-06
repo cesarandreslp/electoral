@@ -11,6 +11,14 @@ export function ConfigForm({ inicial }: { inicial: ConfiguracionView }) {
   const [logoUrl,   setLogoUrl]   = useState(inicial.logoUrl)
   const [msg,       setMsg]       = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null)
   const [subiendo,  setSubiendo]  = useState(false)
+  // Los campos sensibles arrancan readOnly para que el navegador NO los autocomplete
+  // al cargar (metía el email en Dominio y una contraseña en las claves). Se
+  // desbloquean al primer foco, cuando el autofill de carga ya pasó.
+  const [editable,  setEditable]  = useState(false)
+  const antiAutofill = {
+    readOnly: !editable,
+    onFocus:  () => setEditable(true),
+  }
   const [isPending, startTransition] = useTransition()
 
   async function subirLogo(file: File) {
@@ -87,7 +95,7 @@ export function ConfigForm({ inicial }: { inicial: ConfiguracionView }) {
       {/* ── Dominio ──────────────────────────────────────────────────────── */}
       <Seccion titulo="Dominio propio">
         <Campo label="Dominio de la campaña">
-          <input type="text" value={domain} onChange={(e) => setDomain(e.target.value)} placeholder="micampana.com.co" style={estiloInput} />
+          <input type="text" name="campaign-domain" autoComplete="off" {...antiAutofill} value={domain} onChange={(e) => setDomain(e.target.value)} placeholder="micampana.com.co" style={estiloInput} />
           <p style={estiloHint}>Apuntar el DNS al sistema es un paso aparte; aquí solo se registra el dominio.</p>
         </Campo>
       </Seccion>
@@ -96,16 +104,18 @@ export function ConfigForm({ inicial }: { inicial: ConfiguracionView }) {
       <Seccion titulo="Inteligencia artificial (claves propias)">
         <Campo label="Groq API key">
           <input
-            type="password" value={groqKey} onChange={(e) => setGroqKey(e.target.value)}
+            type="password" name="groq-api-key" autoComplete="new-password" {...antiAutofill}
+            value={groqKey} onChange={(e) => setGroqKey(e.target.value)}
             placeholder={inicial.hasGroqKey ? '•••••••• (ya configurada)' : 'gsk_…'}
-            autoComplete="off" style={estiloInput}
+            style={estiloInput}
           />
         </Campo>
         <Campo label="Zhipu API key">
           <input
-            type="password" value={zhipuKey} onChange={(e) => setZhipuKey(e.target.value)}
+            type="password" name="zhipu-api-key" autoComplete="new-password" {...antiAutofill}
+            value={zhipuKey} onChange={(e) => setZhipuKey(e.target.value)}
             placeholder={inicial.hasZhipuKey ? '•••••••• (ya configurada)' : '…'}
-            autoComplete="off" style={estiloInput}
+            style={estiloInput}
           />
         </Campo>
         <p style={estiloHint}>
