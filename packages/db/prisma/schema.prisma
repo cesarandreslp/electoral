@@ -171,6 +171,8 @@ model Voter {
   // CIFRADO: campo PII — se cifra con AES-256 antes de persistir. Ver lib/crypto.ts
   phone            String?
   address          String?          // Dirección física del elector
+  lat              Float?           // Coordenada geocodificada desde address (para el mapa)
+  lng              Float?
   leaderId         String?          // Líder responsable de este elector
   votingTableId    String?          // Mesa donde está inscrito
   commitmentStatus CommitmentStatus @default(SIN_CONTACTAR)

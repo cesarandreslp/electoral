@@ -63,3 +63,4 @@ electoss/tmpclaude-*
 electoss/tmp_*
 
 .vercel
+.env*

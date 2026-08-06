@@ -567,4 +567,29 @@ de registro resuelven `slug → tenantId` contra `superadminDb.tenant` en vez de
 header inexistente
 ([registro/[token]/page.tsx](apps/web/app/registro/[token]/page.tsx),
 [registro/[token]/actions.ts](apps/web/app/registro/[token]/actions.ts)). El link
-de referido también arrastra `?c=`. Pendiente de verificar E2E en producción.
+de referido también arrastra `?c=`. **Verificado E2E en producción** (commit
+`c6f898a`): registro real creado por QR con cédula/teléfono cifrados,
+`qrTokenUsed` correcto, asignado al líder del QR, y `registrationsCount` +1.
+
+### HALLAZGO 8 — Vercel Blob roto en producción (store privado). **CERRADO**
+
+Todas las subidas a Blob (logo de campaña, comprobantes de Finanzas, certificados
+de Formación, fotos de Día E — todas con `access: 'public'`) fallaban con 500. Causa
+doble: (1) el `BLOB_READ_WRITE_TOKEN` heredado apuntaba a un store con **acceso
+privado**, incompatible con `put(..., { access: 'public' })`; (2) en el `.env` local
+estaba entre comillas. Se creó por CLI un store **público** en la cuenta
+`ceanlozanopu-9130` (`vectra-blob`, `store_dFVy3TEVrRdA9fPR`), conectado a `vectra-web`
+en todos los entornos, y se sincronizó el token (sin comillas) en `.env`. `put` de
+prueba OK. Estado: **CERRADO**.
+
+### Features nuevas del panel admin (2026-08-06)
+
+- **#1 Líderes (raíz + árbol multinivel + "+ Sub-líder")** — desplegado. `/core/lideres`
+  muestra solo raíces; la ficha despliega el árbol de sub-líderes. Pendiente confirmar E2E.
+- **#2 Configuración de campaña** — COMPLETO y desplegado:
+  - CRUD (`/core/configuracion`, solo ADMIN): claves Groq/Zhipu cifradas, dominio, logo+color.
+  - Branding aplicado en el shell (color reemplaza el granate, logo en el sidebar).
+  - Claves de IA por campaña cableadas a los clientes (analytics/Día E/encuestas) con
+    fallback a las globales. No verificable en navegador aún (esos módulos están inactivos
+    en `demo-campana`).
+- **#3 Mapa del dashboard (Leaflet + geocoding de direcciones)** — no iniciado.

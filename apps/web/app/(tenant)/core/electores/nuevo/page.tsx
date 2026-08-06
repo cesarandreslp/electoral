@@ -8,6 +8,7 @@ export default function NuevoElectorPage() {
   const [cedula,    setCedula]    = useState('')
   const [nombre,    setNombre]    = useState('')
   const [telefono,  setTelefono]  = useState('')
+  const [direccion, setDireccion] = useState('')
   const [leaderId,  setLeaderId]  = useState('')
   const [estado,    setEstado]    = useState<CommitmentStatus>('SIN_CONTACTAR')
   const [lideres,   setLideres]   = useState<{ id: string; name: string }[]>([])
@@ -31,6 +32,7 @@ export default function NuevoElectorPage() {
         cedula,
         name:             nombre,
         phone:            telefono || undefined,
+        address:          direccion || undefined,
         leaderId:         leaderId || undefined,
         commitmentStatus: estado,
       }
@@ -40,7 +42,7 @@ export default function NuevoElectorPage() {
       if (res.success) {
         setExito(true)
         // Limpiar para crear otro
-        setCedula(''); setNombre(''); setTelefono('')
+        setCedula(''); setNombre(''); setTelefono(''); setDireccion('')
         setLeaderId(''); setEstado('SIN_CONTACTAR')
         setTimeout(() => setExito(false), 3000)
       } else {
@@ -77,6 +79,16 @@ export default function NuevoElectorPage() {
             type="tel" value={telefono} onChange={e => setTelefono(e.target.value)}
             placeholder="300 000 0000" style={estiloInput}
           />
+        </Campo>
+
+        <Campo label="Dirección">
+          <input
+            type="text" value={direccion} onChange={e => setDireccion(e.target.value)}
+            placeholder="Cra 45 #23-10, Barrio Laureles, Medellín" style={estiloInput}
+          />
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '3px' }}>
+            Se usa para ubicar al elector en el mapa del dashboard.
+          </div>
         </Campo>
 
         <Campo label="Líder asignado">

@@ -1,14 +1,23 @@
 import Link from 'next/link'
-import { getCoreStats } from './actions'
+import { getCoreStats, getVotersGeo, getGeoStats } from './actions'
+import { MapaElectores } from './_components/mapa-electores'
 
 export const metadata = { title: 'Dashboard' }
+
+// La acción geocodificarPendientes hace hasta 5 llamadas a Nominatim con pausa
+// de 1s; ampliamos el límite de la función serverless para que no la corte.
+export const maxDuration = 60
 
 /**
  * Dashboard del módulo CORE. Es el destino post-login de todo rol de tenant
  * (ver app/page.tsx y app/login/page.tsx), así que debe existir y cargar rápido.
  */
 export default async function CoreDashboardPage() {
-  const stats = await getCoreStats()
+  const [stats, puntos, geoStats] = await Promise.all([
+    getCoreStats(),
+    getVotersGeo(),
+    getGeoStats(),
+  ])
 
   const tarjetas = [
     { label: 'Líderes',   valor: stats.lideres,   href: '/core/lideres' },
@@ -42,6 +51,12 @@ export default async function CoreDashboardPage() {
             ? <Link key={t.label} href={t.href} style={{ textDecoration: 'none' }}>{cuerpo}</Link>
             : <div key={t.label}>{cuerpo}</div>
         })}
+      </div>
+
+      {/* Mapa de electores geolocalizados */}
+      <div style={{ marginTop: '2rem' }}>
+        <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.75rem' }}>Mapa de electores</h2>
+        <MapaElectores puntos={puntos} geoStats={geoStats} />
       </div>
     </div>
   )

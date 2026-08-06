@@ -12,6 +12,7 @@ import { requireAuth, requireModule } from '@/lib/auth-helpers'
 import { getTenantConnection }        from '@/lib/tenant'
 import { calcularCedulaHash }         from '@/lib/cedula-hash'
 import { getTenantDb, encrypt }       from '@campaignos/db'
+import { geocodeAddress }             from '@/lib/geocode'
 import { revalidatePath }             from 'next/cache'
 
 // ── Tipos exportados ──────────────────────────────────────────────────────────
@@ -60,6 +61,7 @@ export interface CreateVoterInput {
   cedula:           string
   name:             string
   phone?:           string
+  address?:         string
   leaderId?:        string
   votingTableId?:   string
   commitmentStatus?: CommitmentStatus
@@ -338,6 +340,7 @@ export async function createVoter(
         cedulaHash,
         name:             data.name,
         phone:            phoneCifrado,
+        address:          data.address?.trim() || undefined,
         leaderId:         data.leaderId,
         votingTableId:    data.votingTableId,
         commitmentStatus: data.commitmentStatus ?? 'SIN_CONTACTAR',
@@ -622,4 +625,76 @@ export async function getCoreStats(): Promise<CoreStats> {
   ])
 
   return { lideres, electores, puestos, mesas }
+}
+
+// ── Mapa de electores geolocalizados ──────────────────────────────────────────
+
+export interface VoterGeo {
+  id:               string
+  name:             string
+  lat:              number
+  lng:              number
+  commitmentStatus: string
+}
+
+/** Electores ya geocodificados (con lat/lng), para plotear en el mapa. */
+export async function getVotersGeo(): Promise<VoterGeo[]> {
+  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const db      = await obtenerDbTenant(session.user.tenantId)
+
+  const rows = await db.voter.findMany({
+    where:  { tenantId: session.user.tenantId, lat: { not: null }, lng: { not: null } },
+    select: { id: true, name: true, lat: true, lng: true, commitmentStatus: true },
+  })
+
+  return rows.map((r) => ({
+    id: r.id, name: r.name, lat: r.lat!, lng: r.lng!, commitmentStatus: r.commitmentStatus,
+  }))
+}
+
+export interface GeoStats { conCoords: number; pendientes: number }
+
+/** Conteo de electores ubicados vs. pendientes de geocodificar (tienen dirección, no coords). */
+export async function getGeoStats(): Promise<GeoStats> {
+  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const db      = await obtenerDbTenant(session.user.tenantId)
+  const tenantId = session.user.tenantId
+
+  const [conCoords, pendientes] = await Promise.all([
+    db.voter.count({ where: { tenantId, lat: { not: null } } }),
+    db.voter.count({ where: { tenantId, lat: null, address: { not: null } } }),
+  ])
+  return { conCoords, pendientes }
+}
+
+/**
+ * Geocodifica un LOTE PEQUEÑO de electores con dirección pero sin coordenadas.
+ * ponytail: lote de 5 con pausa de 1s por el rate limit de Nominatim (1 req/s) y
+ * el timeout de la función serverless. Para volúmenes grandes esto es un cron/queue,
+ * no una acción síncrona — por ahora el admin la corre varias veces.
+ */
+export async function geocodificarPendientes(): Promise<{ geocodificados: number; restantes: number }> {
+  const session  = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const db       = await obtenerDbTenant(session.user.tenantId)
+  const tenantId = session.user.tenantId
+
+  const lote = await db.voter.findMany({
+    where:  { tenantId, lat: null, address: { not: null } },
+    select: { id: true, address: true },
+    take:   5,
+  })
+
+  let geocodificados = 0
+  for (const v of lote) {
+    const coords = await geocodeAddress(v.address!)
+    if (coords) {
+      await db.voter.update({ where: { id: v.id }, data: { lat: coords.lat, lng: coords.lng } })
+      geocodificados++
+    }
+    await new Promise((r) => setTimeout(r, 1000)) // 1 req/s (política de Nominatim)
+  }
+
+  const restantes = await db.voter.count({ where: { tenantId, lat: null, address: { not: null } } })
+  revalidatePath('/core')
+  return { geocodificados, restantes }
 }
