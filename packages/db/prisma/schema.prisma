@@ -348,13 +348,22 @@ model TenantConfig {
   metaVotos             Int?
   votosEleccionAnterior Int?
   smtpConfig            Json?     // { host, port, secure, user, passwordEncrypted, from }
-  
+
   // Configuración Módulo Encuestas (WhatsApp & Limites)
   whatsappToken       String?
   whatsappPhoneId     String?
   whatsappVerifyToken String?
   botName             String?   @default("Asistente Virtual")
   surveyDailyLimit    Int       @default(250)
+
+  // IA por campaña — CIFRADAS en reposo (AES-256-GCM). Si están vacías, se usan
+  // las claves globales del sistema (GROQ_API_KEY / ZHIPU_API_KEY del entorno).
+  groqApiKey  String?
+  zhipuApiKey String?
+
+  // Branding por campaña
+  logoUrl      String?  // URL del logo en Vercel Blob
+  primaryColor String?  // color primario en hex, ej "#7d2839"
 
   updatedAt             DateTime  @updatedAt
 }

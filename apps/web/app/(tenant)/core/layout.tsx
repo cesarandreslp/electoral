@@ -26,6 +26,9 @@ export default async function CoreLayout({ children }: { children: React.ReactNo
         ]
       : []),
     { href: '/core/alertas', label: 'Alertas', badge: <BadgeNotificaciones /> },
+    ...(session.user.role === 'ADMIN_CAMPANA'
+      ? [{ href: '/core/configuracion', label: 'Configuración' } as NavItem]
+      : []),
   ]
 
   return (
