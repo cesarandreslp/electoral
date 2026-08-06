@@ -595,3 +595,29 @@ export async function crearAlertaDuplicado(
     })
   }
 }
+
+// ── Dashboard ───────────────────────────────────────────────────────────────
+
+export interface CoreStats {
+  lideres:   number
+  electores: number
+  puestos:   number
+  mesas:     number
+}
+
+/** Conteos para el dashboard del módulo CORE. Accesible a todos los roles del tenant. */
+export async function getCoreStats(): Promise<CoreStats> {
+  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const db      = await obtenerDbTenant(session.user.tenantId)
+
+  // Leader/Voter llevan tenantId (defensa en profundidad además de la DB aislada).
+  // VotingStation/VotingTable son territoriales (DIVIPOLA) — sin tenantId.
+  const [lideres, electores, puestos, mesas] = await Promise.all([
+    db.leader.count({ where: { tenantId: session.user.tenantId } }),
+    db.voter.count({ where: { tenantId: session.user.tenantId } }),
+    db.votingStation.count(),
+    db.votingTable.count(),
+  ])
+
+  return { lideres, electores, puestos, mesas }
+}

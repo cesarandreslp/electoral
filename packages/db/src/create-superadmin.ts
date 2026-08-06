@@ -15,90 +15,18 @@ config({ path: '../../.env' })
  *   - ENCRYPTION_KEY no es necesaria para este script
  */
 
-import { createInterface } from 'readline'
 import { neonConfig } from '@neondatabase/serverless'
 import { PrismaClient } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import bcrypt from 'bcryptjs'
 import ws from 'ws'
+import { readLine, readPassword } from './prompt'
 
 // Debe coincidir con SUPERADMIN_TENANT_ID en packages/auth/src/config.ts
 const SUPERADMIN_TENANT_ID = '__superadmin__'
 
 // Configurar WebSocket para Node.js (fuera del edge runtime)
 neonConfig.webSocketConstructor = ws
-
-// ── Helpers de lectura por consola ────────────────────────────────────────────
-
-/** Lee una línea de texto desde stdin con un prompt visible */
-function readLine(prompt: string): Promise<string> {
-  const rl = createInterface({ input: process.stdin, output: process.stdout })
-  return new Promise((resolve) => {
-    rl.question(prompt, (respuesta) => {
-      rl.close()
-      resolve(respuesta.trim())
-    })
-  })
-}
-
-/**
- * Lee una contraseña desde stdin sin mostrar los caracteres.
- * Muestra '*' por cada carácter escrito. Soporta backspace.
- */
-function readPassword(prompt: string): Promise<string> {
-  return new Promise((resolve) => {
-    process.stdout.write(prompt)
-
-    const stdin = process.stdin
-
-    // Activar modo raw para capturar tecla a tecla
-    if (stdin.isTTY) stdin.setRawMode(true)
-    stdin.resume()
-    stdin.setEncoding('utf8')
-
-    let password = ''
-
-    function handler(caracter: string) {
-      caracter = String(caracter)
-
-      switch (caracter) {
-        case '\n':
-        case '\r':
-        case '\u0004': // Ctrl+D — EOF
-          if (stdin.isTTY) stdin.setRawMode(false)
-          stdin.pause()
-          stdin.removeListener('data', handler)
-          process.stdout.write('\n')
-          resolve(password)
-          break
-
-        case '\u0003': // Ctrl+C — cancelar
-          process.stdout.write('\n')
-          console.log('Cancelado.')
-          process.exit(0)
-          break
-
-        case '\u007f': // Backspace
-          if (password.length > 0) {
-            password = password.slice(0, -1)
-            // Borrar el último '*' en pantalla
-            process.stdout.write('\b \b')
-          }
-          break
-
-        default:
-          // Solo agregar caracteres imprimibles
-          if (caracter >= ' ') {
-            password += caracter
-            process.stdout.write('*')
-          }
-          break
-      }
-    }
-
-    stdin.on('data', handler)
-  })
-}
 
 // ── Validaciones ──────────────────────────────────────────────────────────────
 

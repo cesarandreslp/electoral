@@ -463,3 +463,48 @@ todos dependen de que existan líderes y electores) → 4 → 5 → 6 → 7.
 
 Cada hallazgo nuevo se registra en este documento como entrada fechada con su
 tipo (`HALLAZGO`/`CAMBIO`/`DECISIÓN`) y su estado, sin editar las anteriores.
+
+---
+
+## EJECUCIÓN DE PRUEBAS (2026-08-06)
+
+Contexto: la base de producción se migró a la cuenta `ceanlozanopu-9130`
+(Neon `ep-hidden-frost-aywab8uf`, us-east-2). Schema + DIVIPOLA cargados; tenant
+`demo-campana` con solo CORE activo. Usuarios creados: `super@vectra.com`
+(SUPERADMIN) y cuatro de prueba en `demo-campana`
+(`admin@ / coordinador@ / lider@ / testigo@prueba.vectra`).
+
+### CAMBIO — habilitador `db:create-user`
+
+Se añadió [packages/db/src/create-user.ts](packages/db/src/create-user.ts) y el
+script `db:create-user` para crear usuarios de cualquier rol (pide la contraseña
+por consola, eco oculto). Cierra el bloqueante de la Capa 0. Los helpers de
+consola se extrajeron a [packages/db/src/prompt.ts](packages/db/src/prompt.ts) y
+`create-superadmin.ts` ahora los reutiliza. Debe correrse con stdin real
+(`node_modules\.bin\tsx.CMD src\create-user.ts`), no vía `pnpm run` (se come el stdin).
+
+### Capa 1 — resultados
+
+| Test | Resultado |
+|---|---|
+| 6 · ruta protegida sin sesión (`/superadmin`, `/core`) | ✅ → `/login?callbackUrl=…` |
+| 2 · contraseña incorrecta (email real vs. inexistente) | ✅ mismo mensaje genérico, sin enumeración |
+| 1 · login `admin@prueba.vectra` | ⚠️ redirige a `/core` (destino correcto) pero **la página da 404** — ver HALLAZGO 5 |
+
+### HALLAZGO 5 — `/core` (Dashboard) no existe: 404 tras login para TODO rol de tenant. **BLOQUEANTE**
+
+`app/(tenant)/core/` no tiene `page.tsx` en su raíz; solo subrutas
+(`electores`, `lideres`, `qr`, `importar`). Pero
+[app/page.tsx:21](apps/web/app/page.tsx#L21) y
+[app/login/page.tsx:27](apps/web/app/login/page.tsx#L27) redirigen a `/core` a
+todo usuario no-SUPERADMIN tras el login, y el nav de CORE lista
+`{ href: '/core', label: 'Dashboard' }`
+([core/layout.tsx:19](apps/web/app/(tenant)/core/layout.tsx#L19)). Resultado:
+los cuatro roles de tenant aterrizan en un 404 nada más entrar. Verificado en
+producción con `admin@prueba.vectra`. Estado: **ABIERTO**.
+
+### HALLAZGO 6 — `/core/alertas` en el nav pero sin página → 404
+
+El nav de CORE incluye `{ href: '/core/alertas', label: 'Alertas', badge }`
+([core/layout.tsx:28](apps/web/app/(tenant)/core/layout.tsx#L28)) pero no existe
+`app/(tenant)/core/alertas/`. Clic en "Alertas" → 404. Estado: **ABIERTO**.
