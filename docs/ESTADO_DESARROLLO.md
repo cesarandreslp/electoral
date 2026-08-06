@@ -244,3 +244,194 @@ Combinadas, garantizan que en producción **es imposible** crear un tenant en mo
 1. **Política de retención de datos PII** post-elección (Ley 1581/2012).
 2. **¿Multi-elección por tenant?** — Hoy `TenantConfig.fechaEleccion` es única; un cliente que haga elecciones consecutivas (alcaldía 2027 → senado 2030) ¿reusa tenant o crea uno nuevo?
 3. **Plan de backup** específico para la noche del Día E (volumen alto de E-14 entrando).
+
+---
+
+## Inventario de funcionalidades (2026-08-06)
+
+> Snapshot: 2026-08-06 · Branch `main` · Último commit `dfbf677`
+> El producto se renombró a **Vectra**. La cabecera de este documento y las
+> secciones anteriores dicen «CampaignOS» porque son anteriores al rebrand; se
+> dejan intactas por la regla de no reescribir entradas previas.
+
+### Conteo de artefactos (verificado, no estimado)
+
+| Artefacto | Cantidad |
+|---|---|
+| Rutas API (`api/**/route.ts`) | 16 |
+| Páginas (`page.tsx`) | 60 |
+| · superadmin | 5 |
+| · tenant | 51 |
+| · públicas (landing, login, no-autorizado) | 3 |
+| Ficheros de Server Actions | 9 |
+| Modelos Prisma | 44 |
+| Enums Prisma | 7 |
+
+### Módulos según el catálogo central
+
+Espina dorsal: [apps/web/app/superadmin/modules.ts](apps/web/app/superadmin/modules.ts).
+Son **7** módulos, uno más que los seis documentados en las secciones de abril:
+`ENCUESTAS` (bot de WhatsApp con IA) se añadió después — ver
+[docs/MODULO_ENCUESTAS.md](docs/MODULO_ENCUESTAS.md).
+
+| Módulo | Páginas | Implementación verificada |
+|---|---|---|
+| CORE | 8 | `(tenant)/core/**` + 6 rutas en `api/core/*` |
+| ANALYTICS | 6 | `(tenant)/analytics/**` |
+| FORMACION | 9 | `(tenant)/formacion/**` + `api/formacion/certificado` |
+| DIA_E | 6 | `(tenant)/dia-e/**` + `api/dia-e/upload-foto` |
+| COMUNICACIONES | 8 | `(tenant)/comunicaciones/**` + `api/webhooks/whatsapp` |
+| FINANZAS | 7 | `(tenant)/finanzas/**` + 2 rutas API |
+| ENCUESTAS | 5 | `(tenant)/encuestas/**` + `api/encuestas/cron` |
+| (PWA, transversal a CORE) | 2 | `(tenant)/pwa/**` |
+
+### Arquitectura transversal (sostiene a todos, no es un módulo)
+
+- **Auth**: NextAuth v5 en `packages/auth`. Login universal en `/login`; el rol
+  decide el destino. Cierre de sesión en el shell desde `dfbf677`.
+- **Multi-tenant**: `apps/web/middleware.ts` + `apps/web/lib/tenant.ts`.
+- **Cifrado**: `packages/db/src/crypto.ts` (AES-256-GCM).
+- **Provisioning**: `packages/db/src/neon-provisioner.ts`.
+- **Shell de UI**: `apps/web/app/_components/app-shell.tsx` — lo comparten el
+  superadmin y los 7 módulos, así que un fallo ahí afecta a las 56 páginas internas.
+
+### Activos de prueba existentes
+
+Solo **uno**: [apps/web/middleware.test.ts](apps/web/middleware.test.ts), añadido
+hoy al corregir el bucle de redirecciones. No hay Playwright, Vitest ni Jest
+configurados. El plan de abajo NO asume suite automatizada previa.
+
+---
+
+## HALLAZGOS (2026-08-06) — abiertos
+
+1. **El tenant `demo-campana` viola la Decisión 2 de 2026-04-27.** Su
+   `connectionString` apunta a la MISMA base que el superadmin
+   (`ep-quiet-scene-amy3b3j5…/neondb`), no a una base Neon propia. Nació del seed
+   ([packages/db/prisma/seed.ts](packages/db/prisma/seed.ts)), que usa
+   `DATABASE_URL_SUPERADMIN` como placeholder. Cualquier prueba de aislamiento
+   hecha sobre este tenant dará un falso negativo. Estado: **ABIERTO**.
+
+2. **Crear un cliente en producción provisiona un proyecto Neon real y de pago.**
+   `NEON_API_KEY` está definida en Vercel, así que
+   [superadmin/actions.ts:75](apps/web/app/superadmin/actions.ts#L75) toma la rama
+   real, no el mock. Cada cliente = un proyecto Neon nuevo llamado
+   `campaignos-<slug>`. La cuenta ya tiene **9 proyectos** (varios ajenos a este
+   producto). No se pudo leer el límite del plan por la API; hay que confirmarlo
+   en la consola de Neon antes de crear tenants de prueba. Estado: **ABIERTO**.
+
+3. **El nombre del proyecto Neon sigue siendo `campaignos-<slug>`**
+   ([neon-provisioner.ts:110](packages/db/src/neon-provisioner.ts#L110)). Cosmético,
+   pero queda impreso en infraestructura real y no se puede renombrar sin tocar
+   Neon. Estado: **ABIERTO**.
+
+4. **Referencias obsoletas en este documento**: `/superadmin/login` (hoy el login
+   es universal en `/login`) y `*.campaignos.co` (hoy `NEXT_PUBLIC_TENANT_BASE_DOMAIN`,
+   con `vectra.com.co` por defecto). Se registran aquí en vez de editar las
+   secciones de abril. Estado: **ABIERTO**.
+
+---
+
+## PLAN — Pruebas funcionales una por una (2026-08-06)
+
+> Estado: **PENDIENTE**
+> Premisa acordada con el usuario: Claude crea los usuarios; **el usuario digita
+> todas las contraseñas**. Claude nunca introduce ni almacena contraseñas.
+> La base es la de producción y hoy no tiene datos reales.
+
+### Regla de datos de prueba
+
+Todo lo creado durante el plan debe ser **identificable y borrable**:
+
+- Emails de prueba: `<rol>@prueba.vectra` (dominio inexistente a propósito, no
+  recibe correo real).
+- Slugs de tenant de prueba: prefijo `qa-` (por ejemplo `qa-piloto-2026`).
+- Al cerrar cada capa se registra aquí qué quedó creado.
+- La Capa 7 borra todo, incluidos **los proyectos Neon**, que no desaparecen al
+  borrar el tenant de la base.
+
+### Capa 0 — Habilitadores (bloquea todo lo demás)
+
+- [ ] **Script `db:create-user`**: crea usuario con rol y tenant elegidos,
+      pidiendo la contraseña por consola con eco oculto. Hoy solo existe
+      `db:create-superadmin`, que fuerza rol `SUPERADMIN`
+      ([packages/db/src/create-superadmin.ts](packages/db/src/create-superadmin.ts)),
+      así que **no hay forma de crear ADMIN_CAMPANA, COORDINADOR, LIDER ni TESTIGO**.
+- [ ] Confirmar en la consola de Neon el límite de proyectos del plan (Hallazgo 2).
+- [ ] Decidir si el tenant de pruebas se crea desde el panel (provisiona Neon real,
+      que es la metodología acordada en abril) o si se prueba primero sin crear tenant.
+
+### Capa 1 — Autenticación y autorización
+
+- [ ] Login correcto por cada rol y destino esperado.
+- [ ] Login con contraseña equivocada: mensaje genérico, sin revelar si el email existe.
+- [ ] Usuario con `isActive: false`: no entra.
+- [ ] Matriz rol × ruta: un LIDER no entra a `/superadmin` ni a `/finanzas`; un
+      TESTIGO solo a lo suyo. Verificar `/no-autorizado`.
+- [ ] Cerrar sesión desde el sidebar y desde la barra superior.
+- [ ] Ruta protegida sin sesión: `/login?callbackUrl=…` y vuelta al destino tras entrar.
+
+### Capa 2 — Aislamiento entre tenants
+
+> Depende del Hallazgo 1: sobre `demo-campana` esta capa NO es concluyente.
+
+- [ ] Crear un segundo tenant `qa-piloto-2026` y comprobar que su base es distinta.
+- [ ] Usuario del tenant A no ve datos del tenant B.
+- [ ] Cambiar el subdominio a mano no cambia el tenant efectivo (la verdad es el JWT).
+
+### Capa 3 — Recorrido funcional por módulo (escritura real, no solo que cargue)
+
+- [ ] **Superadmin**: crear cliente, activar y desactivar módulos, desactivar cliente,
+      materiales globales de formación.
+- [ ] **CORE**: DIVIPOLA (33 deptos / 1.103 municipios), crear líder y sublíder,
+      registrar elector, QR de captación, alerta de duplicado por `cedulaHash`,
+      importar Excel.
+- [ ] **PWA**: registrar electores con la red apagada y sincronizar al volver
+      (pendiente desde la Fase 3 de abril).
+- [ ] **ANALYTICS**: KPIs con datos reales, mapa de calor, proyección, agente IA
+      de fidelidad (Zhipu).
+- [ ] **FORMACION**: sesión, asistencia, quiz, certificado PDF en Blob.
+- [ ] **DIA_E**: candidatos, asignar testigos, transmitir E-14 con foto, consenso
+      Groq+Zhipu, incidente, resultado agregado.
+- [ ] **COMUNICACIONES**: plantilla, campaña segmentada, automatización, SMTP.
+      Envío real con tope bajo.
+- [ ] **FINANZAS**: config con tope CNE, gasto con comprobante, donación, informe PDF.
+- [ ] **ENCUESTAS**: campaña, webhook de WhatsApp, emparejado de candidato por IA,
+      resultados.
+
+### Capa 4 — Seguridad
+
+- [ ] Verificar que cada Server Action comprueba tenantId + rol + módulo activo
+      (regla de CLAUDE.md).
+- [ ] Módulo desactivado: sus rutas no responden aunque se escriba la URL.
+- [ ] `api/webhooks/whatsapp` y `api/encuestas/cron` sin autenticar: rechazan.
+- [ ] Re-verificar cifrado PII en escritura (la auditoría de abril quedó cerrada;
+      confirmar que sigue válida).
+
+### Capa 5 — Rendimiento
+
+- [ ] Importar Excel con volumen realista (miles de electores) y medir.
+- [ ] Listados con paginación: `DataTable` no la tiene
+      ([packages/ui/src/data-table.tsx](packages/ui/src/data-table.tsx)) — verificar
+      a partir de qué volumen empieza a doler.
+
+### Capa 6 — Visual, responsive y accesibilidad
+
+- [ ] Recorrer los 7 módulos en móvil: las páginas internas de tenant nunca se han
+      revisado visualmente, solo el shell que comparten.
+- [ ] Contraste de la paleta granate/oliva/plata.
+- [ ] Instalar la PWA en Android y en iOS y verificar el icono.
+
+### Capa 7 — Limpieza
+
+- [ ] Borrar usuarios `@prueba.vectra` y tenants `qa-`.
+- [ ] **Borrar los proyectos Neon** de los tenants de prueba desde la consola.
+- [ ] Registrar aquí el estado final.
+
+### Orden de ejecución sugerido
+
+Capa 0 → 1 → 2 → 3 (Superadmin, luego CORE, luego el resto de módulos, porque
+todos dependen de que existan líderes y electores) → 4 → 5 → 6 → 7.
+
+Cada hallazgo nuevo se registra en este documento como entrada fechada con su
+tipo (`HALLAZGO`/`CAMBIO`/`DECISIÓN`) y su estado, sin editar las anteriores.
