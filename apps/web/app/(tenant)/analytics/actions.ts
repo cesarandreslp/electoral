@@ -137,13 +137,13 @@ export async function getAnalyticsDashboard(): Promise<DashboardKpi> {
       where:  { tenantId },
     }),
 
-    db.leader.count({ where: { tenantId } }),
+    db.voter.count({ where: { tenantId, followers: { some: {} } } }),
 
     // Líderes con al menos un elector registrado en los últimos 7 días
-    db.leader.count({
+    db.voter.count({
       where: {
         tenantId,
-        voters: { some: { createdAt: { gte: hace7dias } } },
+        followers: { some: { createdAt: { gte: hace7dias } } },
       },
     }),
 
@@ -243,7 +243,7 @@ export async function getAnalysisByTerritory(): Promise<TerritoryRow[]> {
     JOIN "VotingTable"   vt ON v."votingTableId" = vt.id
     JOIN "VotingStation" vs ON vt."stationId"    = vs.id
     JOIN "Municipality"  m  ON vs."municipalityId" = m.id
-    LEFT JOIN "Leader"   l  ON v."leaderId"      = l.id
+    LEFT JOIN "Voter"    l  ON v."leaderId"      = l.id
     WHERE v."tenantId" = ${tenantId}
     GROUP BY m.id, m.name, m.divipola
     ORDER BY m.name
@@ -264,7 +264,7 @@ export async function getAnalysisByTerritory(): Promise<TerritoryRow[]> {
       COUNT(DISTINCT l.id) FILTER (WHERE l.status = 'ACTIVO')::bigint AS lideres_activos,
       COALESCE(SUM(DISTINCT l."targetVotes"), 0)::bigint              AS meta
     FROM "Voter" v
-    LEFT JOIN "Leader" l ON v."leaderId" = l.id
+    LEFT JOIN "Voter" l ON v."leaderId" = l.id
     WHERE v."tenantId" = ${tenantId}
       AND v."votingTableId" IS NULL
   `
@@ -327,27 +327,32 @@ export async function getLeaderAnalytics(filters?: LeaderFilters): Promise<Leade
   const where: Record<string, unknown> = { tenantId }
   if (filters?.zona) where.zone = filters.zona
 
-  const leaders = await db.leader.findMany({
-    where,
+  const leaders = await db.voter.findMany({
+    where: { ...where, followers: { some: {} } },
     select: {
       id:          true,
       name:        true,
       zone:        true,
       targetVotes: true,
-      voters: {
+      // "Electores" del líder = followers que NO son a su vez líderes (sin
+      // followers propios) — un sub-líder no cuenta hacia la meta del padre.
+      followers: {
         select: {
           commitmentStatus: true,
           createdAt:        true,
           lastContact:      true,
         },
-        where: filters?.desde || filters?.hasta
-          ? {
-              createdAt: {
-                ...(filters.desde ? { gte: new Date(filters.desde) } : {}),
-                ...(filters.hasta ? { lte: new Date(filters.hasta) } : {}),
-              },
-            }
-          : undefined,
+        where: {
+          followers: { none: {} },
+          ...(filters?.desde || filters?.hasta
+            ? {
+                createdAt: {
+                  ...(filters.desde ? { gte: new Date(filters.desde) } : {}),
+                  ...(filters.hasta ? { lte: new Date(filters.hasta) } : {}),
+                },
+              }
+            : {}),
+        },
       },
     },
   })
@@ -369,8 +374,8 @@ export async function getLeaderAnalytics(filters?: LeaderFilters): Promise<Leade
   const sieteDias = 7 * 24 * 60 * 60 * 1000
 
   const rows: LeaderAnalyticsRow[] = leaders.map(leader => {
-    const electoresAsignados = leader.voters.length
-    const comprometidos = leader.voters.filter(
+    const electoresAsignados = leader.followers.length
+    const comprometidos = leader.followers.filter(
       v => v.commitmentStatus === 'COMPROMETIDO' || v.commitmentStatus === 'VOTO_SEGURO'
     ).length
 
@@ -380,7 +385,7 @@ export async function getLeaderAnalytics(filters?: LeaderFilters): Promise<Leade
 
     // Última actividad: MAX entre createdAt y lastContact de todos los voters
     let ultimaAct: Date | null = null
-    for (const v of leader.voters) {
+    for (const v of leader.followers) {
       if (!ultimaAct || v.createdAt > ultimaAct) ultimaAct = v.createdAt
       if (v.lastContact && (!ultimaAct || v.lastContact > ultimaAct)) ultimaAct = v.lastContact
     }
@@ -480,13 +485,14 @@ export async function generarAnalisisLider(leaderId: string): Promise<LeaderAnal
   const hace30dias = new Date(ahora.getTime() - 30 * 24 * 60 * 60 * 1000)
 
   const [leader, voters, alertas, promedioTenant] = await Promise.all([
-    db.leader.findUniqueOrThrow({
+    db.voter.findUniqueOrThrow({
       where: { id: leaderId },
       select: { id: true, name: true, zone: true, targetVotes: true, status: true, createdAt: true },
     }),
 
+    // Solo electores directos (no sub-líderes) — igual que en getLeaderAnalytics.
     db.voter.findMany({
-      where: { tenantId, leaderId },
+      where: { tenantId, leaderId, followers: { none: {} } },
       select: {
         commitmentStatus: true,
         createdAt:        true,
@@ -504,7 +510,7 @@ export async function generarAnalisisLider(leaderId: string): Promise<LeaderAnal
 
     // Promedio de electores por líder en todo el tenant
     db.voter.count({ where: { tenantId } }).then(async total => {
-      const lideres = await db.leader.count({ where: { tenantId } })
+      const lideres = await db.voter.count({ where: { tenantId, followers: { some: {} } } })
       return lideres > 0 ? Math.round(total / lideres) : 0
     }),
   ])
@@ -622,9 +628,9 @@ async function formatAnalysis(
   tenantId: string,
   leaderId: string,
 ): Promise<LeaderAnalysisResult> {
-  // Calcular 6 dimensiones del radar desde los datos reales
+  // Calcular 6 dimensiones del radar desde los datos reales (solo electores directos)
   const voters = await db.voter.findMany({
-    where: { tenantId, leaderId },
+    where: { tenantId, leaderId, followers: { none: {} } },
     select: { commitmentStatus: true, createdAt: true, lastContact: true },
   })
 
@@ -632,7 +638,7 @@ async function formatAnalysis(
   const comprom     = voters.filter(v => v.commitmentStatus === 'COMPROMETIDO' || v.commitmentStatus === 'VOTO_SEGURO').length
   const contactados = voters.filter(v => v.commitmentStatus !== 'SIN_CONTACTAR').length
 
-  const leader = await db.leader.findUnique({
+  const leader = await db.voter.findUnique({
     where: { id: leaderId },
     select: { targetVotes: true },
   })

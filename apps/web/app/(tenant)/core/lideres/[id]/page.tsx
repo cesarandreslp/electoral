@@ -1,7 +1,7 @@
 import Link             from 'next/link'
 import { notFound }    from 'next/navigation'
 import { auth }        from '@campaignos/auth'
-import { listLeaders, listVoters, getLeaderTree } from '../../actions'
+import { listLeaders, listVoters } from '../../actions'
 import { BarraProgreso } from '../_components/barra-progreso'
 
 export const metadata = { title: 'Ficha de líder' }
@@ -23,13 +23,17 @@ export default async function FichaLiderPage({ params }: Props) {
   const session = await auth()
   const esAdmin = ['ADMIN_CAMPANA', 'COORDINADOR'].includes(session?.user?.role ?? '')
 
-  // Obtener datos del líder y sus electores en paralelo
-  const [todosLideres, datosElectores] = await Promise.all([
+  // Obtener datos del líder y sus electores en paralelo.
+  // `misDatos` busca puntualmente por id (funciona aunque el líder sea recién
+  // creado y todavía no tenga followers); `todosLideres` solo trae a quienes
+  // YA actúan como líder, para construir el árbol de sub-líderes.
+  const [todosLideres, misDatos, datosElectores] = await Promise.all([
     listLeaders(),
+    listLeaders({ id }),
     listVoters({ leaderId: id }),
   ])
 
-  const lider = todosLideres.find((l) => l.id === id)
+  const lider = misDatos[0] ?? todosLideres.find((l) => l.id === id)
   if (!lider) notFound()
 
   // Árbol multinivel de sub-líderes (jerarquía parentLeaderId), construido en memoria.

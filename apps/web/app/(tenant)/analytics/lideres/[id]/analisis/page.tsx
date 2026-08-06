@@ -11,7 +11,7 @@ export default async function AnalisisLiderPage({ params }: { params: Promise<{ 
   const tenantId = session.user.tenantId
 
   // Buscar datos del líder
-  const leader = await db.leader.findUnique({
+  const leader = await db.voter.findUnique({
     where: { id: leaderId },
     select: { name: true, zone: true },
   })
@@ -32,10 +32,10 @@ export default async function AnalisisLiderPage({ params }: { params: Promise<{ 
   if (reciente) {
     // Calcular dimensiones de radar desde datos reales
     const voters = await db.voter.findMany({
-      where: { tenantId, leaderId },
+      where: { tenantId, leaderId, followers: { none: {} } },
       select: { commitmentStatus: true, createdAt: true, lastContact: true },
     })
-    const leaderData = await db.leader.findUnique({
+    const leaderData = await db.voter.findUnique({
       where: { id: leaderId },
       select: { targetVotes: true },
     })

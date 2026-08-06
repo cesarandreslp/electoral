@@ -13,6 +13,7 @@
     "db:create-superadmin": "tsx src/create-superadmin.ts",
     "db:create-user": "tsx src/create-user.ts",
     "db:create-test-users": "tsx src/create-test-users.ts",
+    "db:migrate-leaders-to-voters": "tsx src/migrate-leaders-to-voters.ts",
     "generate": "prisma generate --schema=./prisma/schema.prisma",
     "postinstall": "prisma generate --schema=./prisma/schema.prisma"
   },

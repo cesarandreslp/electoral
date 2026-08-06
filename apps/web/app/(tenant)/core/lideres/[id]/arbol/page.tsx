@@ -52,7 +52,7 @@ export default async function ArbolCaptacionPage({ params }: Props) {
   const db               = getTenantDb(connectionString)
 
   // Verificar que el líder existe y pertenece al tenant
-  const lider = await db.leader.findFirst({
+  const lider = await db.voter.findFirst({
     where:  { id, tenantId: session.user.tenantId },
     select: { id: true, name: true, zone: true },
   })

@@ -1,11 +1,12 @@
 'use client'
 
-import { Suspense, useState, useTransition } from 'react'
+import { Suspense, useState, useEffect, useTransition } from 'react'
 import { useRouter, useSearchParams }        from 'next/navigation'
-import { createLeader, listLeaders, type CreateLeaderInput } from '../../actions'
+import { createLeader, listVoterOptions, type CreateLeaderInput } from '../../actions'
 
 function NuevoLiderForm() {
   const searchParams = useSearchParams()
+  const [cedula,         setCedula]         = useState('')
   const [nombre,         setNombre]         = useState('')
   const [zona,           setZona]           = useState('')
   const [telefono,       setTelefono]       = useState('')
@@ -18,12 +19,12 @@ function NuevoLiderForm() {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
-  // Cargar líderes para el select de superior al montar
-  useState(() => {
-    listLeaders().then((ls) =>
-      setLideresSuperiores(ls.map((l) => ({ id: l.id, name: l.name, zone: l.zone })))
-    )
-  })
+  // Cargar candidatos a líder superior al montar (cualquier elector, no solo
+  // quienes ya tienen followers — así se puede pre-seleccionar un líder recién
+  // creado, o promover a cualquier elector a líder superior).
+  useEffect(() => {
+    listVoterOptions().then(setLideresSuperiores)
+  }, [])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -31,6 +32,7 @@ function NuevoLiderForm() {
 
     startTransition(async () => {
       const input: CreateLeaderInput = {
+        cedula,
         name:            nombre,
         zone:            zona || undefined,
         phone:           telefono || undefined,
@@ -53,6 +55,16 @@ function NuevoLiderForm() {
       <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>Nuevo líder</h1>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+        <Campo label="Cédula *">
+          <input
+            type="text" value={cedula} onChange={e => setCedula(e.target.value)}
+            required placeholder="12345678" style={estiloInput}
+          />
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '3px' }}>
+            Se cifra automáticamente — no se almacena en texto plano.
+          </div>
+        </Campo>
 
         <Campo label="Nombre *">
           <input

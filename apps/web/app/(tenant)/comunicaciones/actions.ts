@@ -184,7 +184,7 @@ async function resolveRecipients(
 
   // Si hay filtro de zona, filtrar por líder con esa zona
   if (zone) {
-    const leadersInZone = await db.leader.findMany({
+    const leadersInZone = await db.voter.findMany({
       where: { tenantId, zone },
       select: { id: true },
     })

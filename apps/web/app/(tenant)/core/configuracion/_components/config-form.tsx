@@ -5,8 +5,9 @@ import { guardarConfiguracion, listarMunicipios, type ConfiguracionView, type Ca
 
 const CARGOS: { value: Cargo; label: string }[] = [
   { value: 'ALCALDE',       label: 'Alcalde/Alcaldesa' },
-  { value: 'GOBERNADOR',    label: 'Gobernador/Gobernadora' },
   { value: 'CONCEJAL',      label: 'Concejal' },
+  { value: 'GOBERNADOR',    label: 'Gobernador/Gobernadora' },
+  { value: 'DIPUTADO',      label: 'Diputado (Asamblea Departamental)' },
   { value: 'REPRESENTANTE', label: 'Representante a la Cámara' },
   { value: 'SENADOR',       label: 'Senador/Senadora' },
   { value: 'PRESIDENTE',    label: 'Presidente' },

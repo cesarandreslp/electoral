@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getCoreStats, getVotersGeo, getGeoStats } from './actions'
+import { getCoreStats, getVotersGeo, getGeoStats, getVotingStationsGeo, getJurisdictionStats } from './actions'
 import { MapaElectores } from './_components/mapa-electores'
 
 export const metadata = { title: 'Dashboard' }
@@ -13,10 +13,12 @@ export const maxDuration = 60
  * (ver app/page.tsx y app/login/page.tsx), así que debe existir y cargar rápido.
  */
 export default async function CoreDashboardPage() {
-  const [stats, puntos, geoStats] = await Promise.all([
+  const [stats, puntos, geoStats, puestos, jurisdiccion] = await Promise.all([
     getCoreStats(),
     getVotersGeo(),
     getGeoStats(),
+    getVotingStationsGeo(),
+    getJurisdictionStats(),
   ])
 
   const tarjetas = [
@@ -56,7 +58,13 @@ export default async function CoreDashboardPage() {
       {/* Mapa de electores geolocalizados */}
       <div style={{ marginTop: '2rem' }}>
         <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.75rem' }}>Mapa de electores</h2>
-        <MapaElectores puntos={puntos} geoStats={geoStats} />
+        <MapaElectores puntos={puntos} geoStats={geoStats} puestos={puestos} />
+
+        <div style={{ display: 'flex', gap: '1.25rem', marginTop: '1rem', fontSize: '0.85rem' }}>
+          <span style={{ color: '#166534' }}>{jurisdiccion.cuenta} cuentan</span>
+          <span style={{ color: '#991b1b' }}>{jurisdiccion.noCuenta} fuera de jurisdicción</span>
+          <span style={{ color: '#64748b' }}>{jurisdiccion.sinVerificar} sin verificar (sin mesa asignada)</span>
+        </div>
       </div>
     </div>
   )

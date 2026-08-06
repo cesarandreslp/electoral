@@ -11,7 +11,7 @@ import { getTenantConnection }   from '@/lib/tenant'
 import { getTenantDb, superadminDb, encrypt } from '@campaignos/db'
 import { revalidatePath }        from 'next/cache'
 
-const CARGOS = ['ALCALDE', 'GOBERNADOR', 'CONCEJAL', 'REPRESENTANTE', 'SENADOR', 'PRESIDENTE'] as const
+const CARGOS = ['ALCALDE', 'CONCEJAL', 'GOBERNADOR', 'DIPUTADO', 'REPRESENTANTE', 'SENADOR', 'PRESIDENTE'] as const
 export type Cargo = (typeof CARGOS)[number]
 
 export interface ConfiguracionView {

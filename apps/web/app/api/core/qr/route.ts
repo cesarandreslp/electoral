@@ -36,7 +36,9 @@ export async function GET() {
           expiresAt: true, registrationsCount: true, createdAt: true,
         },
       }),
-      db.leader.findMany({
+      // Cualquier elector puede ser dueño de un QR — es el mecanismo para
+      // conseguir su primer follower, no requiere tener followers ya.
+      db.voter.findMany({
         where:   { tenantId: session.user.tenantId, status: 'ACTIVO' },
         select:  { id: true, name: true },
         orderBy: { name: 'asc' },

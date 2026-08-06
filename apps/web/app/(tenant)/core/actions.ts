@@ -14,6 +14,7 @@ import { calcularCedulaHash }         from '@/lib/cedula-hash'
 import { getTenantDb, encrypt }       from '@campaignos/db'
 import { geocodeAddress }             from '@/lib/geocode'
 import { revalidatePath }             from 'next/cache'
+import type { Cargo }                 from './configuracion/actions'
 
 // ── Tipos exportados ──────────────────────────────────────────────────────────
 
@@ -25,6 +26,7 @@ export type CommitmentStatus =
   | 'VOTO_SEGURO'
 
 export interface CreateLeaderInput {
+  cedula:         string
   name:           string
   phone?:         string
   zone?:          string
@@ -33,9 +35,16 @@ export interface CreateLeaderInput {
 }
 
 export interface LeaderFilters {
+  id?:             string  // buscar un líder puntual por id, aunque aún no tenga followers
   zone?:           string
   status?:         string
   parentLeaderId?: string
+}
+
+export interface VoterOption {
+  id:   string
+  name: string
+  zone: string | null
 }
 
 export interface LeaderSummary {
@@ -48,13 +57,6 @@ export interface LeaderSummary {
   comprometidos:  number
   pctAvance:      number // 0-100
   parentLeaderId: string | null
-}
-
-export interface LeaderNode {
-  id:       string
-  name:     string
-  zone:     string | null
-  children: LeaderNode[]
 }
 
 export interface CreateVoterInput {
@@ -122,7 +124,7 @@ export async function createLeader(
 
     // Validar que parentLeaderId pertenezca al mismo tenant
     if (data.parentLeaderId) {
-      const padre = await db.leader.findFirst({
+      const padre = await db.voter.findFirst({
         where: { id: data.parentLeaderId, tenantId: session.user.tenantId },
       })
       if (!padre) {
@@ -130,24 +132,39 @@ export async function createLeader(
       }
     }
 
-    // Cifrar teléfono si se provee (campo PII)
-    const phoneCifrado = data.phone ? encrypt(data.phone) : undefined
+    // Cifrar campos PII y calcular hash de cédula para deduplicación
+    const cedulaNorm    = data.cedula.trim()
+    const cedulaHash    = calcularCedulaHash(cedulaNorm)
+    const cedulaCifrada = encrypt(cedulaNorm)
+    const phoneCifrado  = data.phone ? encrypt(data.phone) : undefined
 
-    const lider = await db.leader.create({
+    const duplicado = await db.voter.findFirst({
+      where: { tenantId: session.user.tenantId, cedulaHash },
+    })
+    if (duplicado) {
+      return { success: false, error: 'Ya existe un elector con esa cédula en esta campaña.' }
+    }
+
+    const lider = await db.voter.create({
       data: {
-        tenantId:       session.user.tenantId,
-        name:           data.name,
-        phone:          phoneCifrado,
-        zone:           data.zone,
-        parentLeaderId: data.parentLeaderId,
-        targetVotes:    data.targetVotes,
+        tenantId:    session.user.tenantId,
+        cedula:      cedulaCifrada,
+        cedulaHash,
+        name:        data.name,
+        phone:       phoneCifrado,
+        zone:        data.zone,
+        leaderId:    data.parentLeaderId,
+        targetVotes: data.targetVotes,
       },
     })
 
     revalidatePath('/core/lideres')
     return { success: true, leaderId: lider.id }
 
-  } catch (err) {
+  } catch (err: any) {
+    if (err?.code === 'P2002') {
+      return { success: false, error: 'Ya existe un elector con esa cédula en esta campaña.' }
+    }
     console.error('[createLeader]', err instanceof Error ? err.message : err)
     return { success: false, error: 'Error al crear el líder.' }
   }
@@ -166,14 +183,14 @@ export async function updateLeader(
     const db      = await obtenerDbTenant(session.user.tenantId)
 
     // Verificar que el líder pertenece al tenant
-    const existente = await db.leader.findFirst({
+    const existente = await db.voter.findFirst({
       where: { id, tenantId: session.user.tenantId },
     })
     if (!existente) return { success: false, error: 'Líder no encontrado.' }
 
     // Validar nuevo parentLeaderId si se provee
     if (data.parentLeaderId) {
-      const padre = await db.leader.findFirst({
+      const padre = await db.voter.findFirst({
         where: { id: data.parentLeaderId, tenantId: session.user.tenantId },
       })
       if (!padre) return { success: false, error: 'El líder superior no existe en esta campaña.' }
@@ -183,14 +200,14 @@ export async function updateLeader(
 
     const phoneCifrado = data.phone ? encrypt(data.phone) : undefined
 
-    await db.leader.update({
+    await db.voter.update({
       where: { id },
       data: {
-        ...(data.name           !== undefined && { name:           data.name }),
-        ...(phoneCifrado        !== undefined && { phone:          phoneCifrado }),
-        ...(data.zone           !== undefined && { zone:           data.zone }),
-        ...(data.parentLeaderId !== undefined && { parentLeaderId: data.parentLeaderId }),
-        ...(data.targetVotes    !== undefined && { targetVotes:    data.targetVotes }),
+        ...(data.name           !== undefined && { name:        data.name }),
+        ...(phoneCifrado        !== undefined && { phone:       phoneCifrado }),
+        ...(data.zone           !== undefined && { zone:        data.zone }),
+        ...(data.parentLeaderId !== undefined && { leaderId:    data.parentLeaderId }),
+        ...(data.targetVotes    !== undefined && { targetVotes: data.targetVotes }),
       },
     })
 
@@ -204,7 +221,7 @@ export async function updateLeader(
 }
 
 /**
- * Lista líderes con métricas de avance.
+ * Lista líderes (Voters con al menos un follower) con métricas de avance.
  * Los LIDER solo ven sus propios datos.
  */
 export async function listLeaders(filters?: LeaderFilters): Promise<LeaderSummary[]> {
@@ -216,18 +233,22 @@ export async function listLeaders(filters?: LeaderFilters): Promise<LeaderSummar
   // Por ahora filtramos por parentLeaderId si el rol es LIDER y se pasa el filtro.
   const esLider = session.user.role === 'LIDER'
 
-  const lideres = await db.leader.findMany({
+  const lideres = await db.voter.findMany({
     where: {
-      tenantId:       session.user.tenantId,
-      ...(filters?.zone           && { zone:           filters.zone }),
-      ...(filters?.status         && { status:         filters.status as any }),
-      ...(filters?.parentLeaderId && { parentLeaderId: filters.parentLeaderId }),
+      tenantId: session.user.tenantId,
+      // Buscar por id puntual (ej. la ficha de un líder recién creado, sin
+      // followers todavía) NO exige "es líder"; listar/rankear sí lo exige.
+      ...(filters?.id ? { id: filters.id } : { followers: { some: {} } }),
+      ...(filters?.zone           && { zone:     filters.zone }),
+      ...(filters?.status         && { status:   filters.status as any }),
+      ...(filters?.parentLeaderId && { leaderId: filters.parentLeaderId }),
     },
     include: {
-      _count: {
-        select: { voters: true },
-      },
-      voters: {
+      // "Electores" del líder = followers que NO son a su vez líderes (sin followers
+      // propios). Un sub-líder no cuenta como elector hacia la meta de votos del padre —
+      // igual que antes, cuando Leader.voters solo incluía Voter, nunca otro Leader.
+      followers: {
+        where:  { followers: { none: {} } },
         select: { commitmentStatus: true },
       },
     },
@@ -235,7 +256,7 @@ export async function listLeaders(filters?: LeaderFilters): Promise<LeaderSummar
   })
 
   return lideres.map((l) => {
-    const comprometidos = l.voters.filter(
+    const comprometidos = l.followers.filter(
       (v) => v.commitmentStatus === 'COMPROMETIDO' || v.commitmentStatus === 'VOTO_SEGURO',
     ).length
 
@@ -245,46 +266,31 @@ export async function listLeaders(filters?: LeaderFilters): Promise<LeaderSummar
       zone:           l.zone,
       status:         l.status,
       targetVotes:    l.targetVotes,
-      totalElectores: l._count.voters,
+      totalElectores: l.followers.length,
       comprometidos,
       pctAvance:      l.targetVotes > 0
         ? Math.round((comprometidos / l.targetVotes) * 100)
         : 0,
-      parentLeaderId: l.parentLeaderId,
+      parentLeaderId: l.leaderId,
     }
   })
 }
 
 /**
- * Retorna el árbol jerárquico completo de líderes.
- * Solo ADMIN_CAMPANA y COORDINADOR tienen acceso al árbol completo.
+ * Lista TODOS los electores del tenant como candidatos a "líder superior"
+ * o "líder asignado" en los formularios. A diferencia de listLeaders(), no
+ * exige tener followers — cualquier elector puede convertirse en líder en
+ * el momento en que se le asigna el primer follower.
  */
-export async function getLeaderTree(): Promise<LeaderNode[]> {
+export async function listVoterOptions(): Promise<VoterOption[]> {
   const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
   const db      = await obtenerDbTenant(session.user.tenantId)
 
-  const todos = await db.leader.findMany({
+  return db.voter.findMany({
     where:   { tenantId: session.user.tenantId },
-    select:  { id: true, name: true, zone: true, parentLeaderId: true },
+    select:  { id: true, name: true, zone: true },
     orderBy: { name: 'asc' },
   })
-
-  // Construir árbol en memoria
-  const mapa = new Map<string, LeaderNode & { parentLeaderId: string | null }>()
-  for (const l of todos) {
-    mapa.set(l.id, { id: l.id, name: l.name, zone: l.zone, parentLeaderId: l.parentLeaderId, children: [] })
-  }
-
-  const raices: LeaderNode[] = []
-  for (const nodo of mapa.values()) {
-    if (nodo.parentLeaderId && mapa.has(nodo.parentLeaderId)) {
-      mapa.get(nodo.parentLeaderId)!.children.push(nodo)
-    } else {
-      raices.push(nodo)
-    }
-  }
-
-  return raices
 }
 
 // ── Acciones de electores ─────────────────────────────────────────────────────
@@ -303,7 +309,7 @@ export async function createVoter(
 
     // Validar leaderId si se provee
     if (data.leaderId) {
-      const lider = await db.leader.findFirst({
+      const lider = await db.voter.findFirst({
         where: { id: data.leaderId, tenantId: session.user.tenantId },
       })
       if (!lider) return { success: false, error: 'El líder no existe en esta campaña.' }
@@ -461,8 +467,10 @@ export async function importVoters(rows: ImportVoterRow[]): Promise<ImportResult
   const tenantId = session.user.tenantId
   const db       = await obtenerDbTenant(tenantId)
 
-  // Construir mapa nombre → id de líderes para resolución rápida
-  const lideres = await db.leader.findMany({
+  // Construir mapa nombre → id para resolución rápida. Cualquier elector puede
+  // ser el líder destino (incluye a quien recién se está armando su primera
+  // lista), no solo quienes ya tienen followers.
+  const lideres = await db.voter.findMany({
     where:  { tenantId },
     select: { id: true, name: true },
   })
@@ -615,10 +623,10 @@ export async function getCoreStats(): Promise<CoreStats> {
   const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
   const db      = await obtenerDbTenant(session.user.tenantId)
 
-  // Leader/Voter llevan tenantId (defensa en profundidad además de la DB aislada).
+  // Voter lleva tenantId (defensa en profundidad además de la DB aislada).
   // VotingStation/VotingTable son territoriales (DIVIPOLA) — sin tenantId.
   const [lideres, electores, puestos, mesas] = await Promise.all([
-    db.leader.count({ where: { tenantId: session.user.tenantId } }),
+    db.voter.count({ where: { tenantId: session.user.tenantId, followers: { some: {} } } }),
     db.voter.count({ where: { tenantId: session.user.tenantId } }),
     db.votingStation.count(),
     db.votingTable.count(),
@@ -697,4 +705,148 @@ export async function geocodificarPendientes(): Promise<{ geocodificados: number
   const restantes = await db.voter.count({ where: { tenantId, lat: null, address: { not: null } } })
   revalidatePath('/core')
   return { geocodificados, restantes }
+}
+
+// ── Jurisdicción electoral ──────────────────────────────────────────────────────
+// Un voto solo cuenta si el elector está dentro de la jurisdicción del cargo:
+// ALCALDE/CONCEJAL → municipio; GOBERNADOR/DIPUTADO/REPRESENTANTE → departamento;
+// SENADOR/PRESIDENTE → nacional (sin restricción). La fuente de "dónde vota" es
+// la mesa (votingTableId), nunca la dirección de residencia.
+
+type EstadoJurisdiccion = 'CUENTA' | 'NO_CUENTA' | 'SIN_VERIFICAR'
+
+const CARGOS_NACIONALES      = ['SENADOR', 'PRESIDENTE']
+const CARGOS_DEPARTAMENTALES = ['GOBERNADOR', 'DIPUTADO', 'REPRESENTANTE']
+const CARGOS_MUNICIPALES     = ['ALCALDE', 'CONCEJAL']
+
+function resolverJurisdiccion(
+  cfg: { office: Cargo | null; departmentCode: string | null; municipalityDivipola: string | null },
+  ubicacion: { divipola: string; departmentCode: string } | null, // null = sin votingTableId
+): EstadoJurisdiccion {
+  if (!cfg.office || CARGOS_NACIONALES.includes(cfg.office)) return 'CUENTA'
+  if (!ubicacion) return 'SIN_VERIFICAR'
+
+  if (CARGOS_MUNICIPALES.includes(cfg.office)) {
+    if (!cfg.municipalityDivipola) return 'SIN_VERIFICAR'
+    return ubicacion.divipola === cfg.municipalityDivipola ? 'CUENTA' : 'NO_CUENTA'
+  }
+  if (CARGOS_DEPARTAMENTALES.includes(cfg.office)) {
+    if (!cfg.departmentCode) return 'SIN_VERIFICAR'
+    return ubicacion.departmentCode === cfg.departmentCode ? 'CUENTA' : 'NO_CUENTA'
+  }
+  return 'SIN_VERIFICAR'
+}
+
+export interface JurisdictionStats {
+  cuenta:       number
+  noCuenta:     number
+  sinVerificar: number
+}
+
+/** Cuántos electores del tenant cuentan / no cuentan / no se puede determinar, según la config de elección. */
+export async function getJurisdictionStats(): Promise<JurisdictionStats> {
+  const session  = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const db       = await obtenerDbTenant(session.user.tenantId)
+  const tenantId = session.user.tenantId
+
+  const config = await db.tenantConfig.findUnique({ where: { tenantId } })
+  const cfg = {
+    office:               (config?.electionOffice as Cargo | null) ?? null,
+    departmentCode:       config?.electionDepartmentCode ?? null,
+    municipalityDivipola: config?.electionMunicipalityDivipola ?? null,
+  }
+
+  const total = await db.voter.count({ where: { tenantId } })
+
+  // Cargo nacional o sin configurar: todos cuentan, sin necesidad de joins.
+  if (!cfg.office || CARGOS_NACIONALES.includes(cfg.office)) {
+    return { cuenta: total, noCuenta: 0, sinVerificar: 0 }
+  }
+
+  const sinMesa = await db.voter.count({ where: { tenantId, votingTableId: null } })
+
+  const conMesa = await db.$queryRaw<{ divipola: string; departmentCode: string }[]>`
+    SELECT m.divipola, d.code AS "departmentCode"
+    FROM "Voter" v
+    JOIN "VotingTable"   vt ON v."votingTableId"   = vt.id
+    JOIN "VotingStation" vs ON vt."stationId"      = vs.id
+    JOIN "Municipality"  m  ON vs."municipalityId" = m.id
+    JOIN "Department"    d  ON m."departmentId"    = d.id
+    WHERE v."tenantId" = ${tenantId}
+  `
+
+  let cuenta = 0, noCuenta = 0, sinVerificar = sinMesa
+  for (const row of conMesa) {
+    const estado = resolverJurisdiccion(cfg, row)
+    if (estado === 'CUENTA') cuenta++
+    else if (estado === 'NO_CUENTA') noCuenta++
+    else sinVerificar++
+  }
+
+  return { cuenta, noCuenta, sinVerificar }
+}
+
+export interface StationGeo {
+  id:             string
+  name:           string
+  lat:            number
+  lng:            number
+  totalElectores: number
+  estado:         'CUENTA' | 'NO_CUENTA'
+}
+
+/** Puestos de votación con electores propios asignados, para la vista de mapa "por puesto". */
+export async function getVotingStationsGeo(): Promise<StationGeo[]> {
+  const session  = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const db       = await obtenerDbTenant(session.user.tenantId)
+  const tenantId = session.user.tenantId
+
+  const config = await db.tenantConfig.findUnique({ where: { tenantId } })
+  const cfg = {
+    office:               (config?.electionOffice as Cargo | null) ?? null,
+    departmentCode:       config?.electionDepartmentCode ?? null,
+    municipalityDivipola: config?.electionMunicipalityDivipola ?? null,
+  }
+
+  const rows = await db.$queryRaw<{
+    id: string; name: string; lat: number; lng: number
+    divipola: string; departmentCode: string; total: bigint
+  }[]>`
+    SELECT vs.id, vs.name, vs.lat, vs.lng, m.divipola, d.code AS "departmentCode",
+           COUNT(v.id)::bigint AS total
+    FROM "Voter" v
+    JOIN "VotingTable"   vt ON v."votingTableId"   = vt.id
+    JOIN "VotingStation" vs ON vt."stationId"      = vs.id
+    JOIN "Municipality"  m  ON vs."municipalityId" = m.id
+    JOIN "Department"    d  ON m."departmentId"    = d.id
+    WHERE v."tenantId" = ${tenantId}
+      AND vs.lat IS NOT NULL AND vs.lng IS NOT NULL
+    GROUP BY vs.id, vs.name, vs.lat, vs.lng, m.divipola, d.code
+  `
+
+  return rows.map((r) => ({
+    id: r.id, name: r.name, lat: r.lat, lng: r.lng, totalElectores: Number(r.total),
+    estado: resolverJurisdiccion(cfg, r) === 'NO_CUENTA' ? 'NO_CUENTA' : 'CUENTA',
+  }))
+}
+
+export interface StationOption {
+  id:     string
+  name:   string
+  tables: { id: string; number: number }[]
+}
+
+/** Puestos de votación del tenant con sus mesas, para el selector puesto→mesa. */
+export async function listVotingStations(): Promise<StationOption[]> {
+  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const db      = await obtenerDbTenant(session.user.tenantId)
+
+  return db.votingStation.findMany({
+    select: {
+      id:     true,
+      name:   true,
+      tables: { select: { id: true, number: true } },
+    },
+    orderBy: { name: 'asc' },
+  })
 }

@@ -135,29 +135,10 @@ model User {
   @@index([tenantId])
 }
 
-/// Líder político. Estructura jerárquica autorreferenciada.
-/// Un líder puede tener sub-líderes formando un árbol de comandos.
-model Leader {
-  id             String       @id @default(cuid())
-  tenantId       String
-  name           String
-  // CIFRADO: campo PII — se cifra con AES-256 antes de persistir. Ver lib/crypto.ts
-  phone          String?
-  zone           String? // Zona geográfica bajo su responsabilidad
-  parentLeaderId String? // Referencia al líder superior en la jerarquía
-  targetVotes    Int          @default(0) // Meta de votos a conseguir
-  status         LeaderStatus @default(ACTIVO)
-  createdAt      DateTime     @default(now())
-
-  parent   Leader?  @relation("JerarquiaLideres", fields: [parentLeaderId], references: [id])
-  children Leader[] @relation("JerarquiaLideres")
-  voters   Voter[]
-
-  @@index([tenantId])
-  @@index([tenantId, parentLeaderId])
-}
-
-/// Elector registrado en la campaña.
+/// Elector registrado en la campaña. "Líder" es un rol implícito: cualquier
+/// Voter con >=1 follower (alguien con `leaderId` apuntando a él) actúa como
+/// líder — no es una entidad propia. Un líder puede a su vez ser liderado por
+/// otro líder (multinivel), vía el mismo campo `leaderId` encadenado.
 /// Los campos PII (cédula, teléfono) van cifrados en la capa de aplicación.
 model Voter {
   id               String           @id @default(cuid())
@@ -174,6 +155,11 @@ model Voter {
   lat              Float? // Coordenada geocodificada desde address (para el mapa)
   lng              Float?
   leaderId         String? // Líder responsable de este elector
+  // Campos de rol de líder — solo tienen sentido si este Voter tiene followers (ver abajo).
+  // "Ser líder" es implícito: cualquier Voter con >=1 follower actúa como líder.
+  zone             String? // Zona geográfica bajo su responsabilidad (si es líder)
+  targetVotes      Int              @default(0) // Meta de votos a conseguir (si es líder)
+  status           LeaderStatus     @default(ACTIVO)
   votingTableId    String? // Mesa donde está inscrito
   commitmentStatus CommitmentStatus @default(SIN_CONTACTAR)
   lastContact      DateTime? // Último contacto registrado
@@ -192,7 +178,8 @@ model Voter {
   surveyResponses    SurveyResponse[]
   surveyMessageLogs  SurveyMessageLog[]
 
-  leader      Leader?      @relation(fields: [leaderId], references: [id])
+  leader      Voter?       @relation("VoterHierarchy", fields: [leaderId], references: [id])
+  followers   Voter[]      @relation("VoterHierarchy")
   votingTable VotingTable? @relation(fields: [votingTableId], references: [id])
   referredBy  Voter?       @relation("VoterReferrals", fields: [referredById], references: [id])
   referrals   Voter[]      @relation("VoterReferrals")
@@ -344,8 +331,9 @@ model LeaderAnalysis {
 /// Cargo de elección popular al que aspira el candidato de la campaña.
 enum ElectionOffice {
   ALCALDE
-  GOBERNADOR
   CONCEJAL
+  GOBERNADOR
+  DIPUTADO
   REPRESENTANTE
   SENADOR
   PRESIDENTE

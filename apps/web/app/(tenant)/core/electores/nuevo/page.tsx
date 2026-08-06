@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { useRouter }               from 'next/navigation'
-import { createVoter, listLeaders, type CreateVoterInput, type CommitmentStatus } from '../../actions'
+import { createVoter, listVoterOptions, listVotingStations, type CreateVoterInput, type CommitmentStatus, type StationOption } from '../../actions'
 
 export default function NuevoElectorPage() {
   const [cedula,    setCedula]    = useState('')
@@ -11,17 +11,23 @@ export default function NuevoElectorPage() {
   const [direccion, setDireccion] = useState('')
   const [leaderId,  setLeaderId]  = useState('')
   const [estado,    setEstado]    = useState<CommitmentStatus>('SIN_CONTACTAR')
+  const [puestoId,  setPuestoId]  = useState('')
+  const [mesaId,    setMesaId]    = useState('')
   const [lideres,   setLideres]   = useState<{ id: string; name: string }[]>([])
+  const [puestos,   setPuestos]   = useState<StationOption[]>([])
   const [error,     setError]     = useState<string | null>(null)
   const [exito,     setExito]     = useState(false)
 
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
-  // Cargar líderes al montar
-  useState(() => {
-    listLeaders().then((ls) => setLideres(ls.map((l) => ({ id: l.id, name: l.name }))))
-  })
+  // Cargar candidatos a líder (cualquier elector, para poder asignar el primer
+  // follower de un líder recién creado) y puestos de votación al montar.
+  useEffect(() => {
+    listVoterOptions().then((ls) => setLideres(ls.map((l) => ({ id: l.id, name: l.name }))))
+    listVotingStations().then(setPuestos)
+  }, [])
+  const mesasDelPuesto = puestos.find((p) => p.id === puestoId)?.tables ?? []
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -34,6 +40,7 @@ export default function NuevoElectorPage() {
         phone:            telefono || undefined,
         address:          direccion || undefined,
         leaderId:         leaderId || undefined,
+        votingTableId:    mesaId || undefined,
         commitmentStatus: estado,
       }
 
@@ -43,7 +50,7 @@ export default function NuevoElectorPage() {
         setExito(true)
         // Limpiar para crear otro
         setCedula(''); setNombre(''); setTelefono(''); setDireccion('')
-        setLeaderId(''); setEstado('SIN_CONTACTAR')
+        setLeaderId(''); setEstado('SIN_CONTACTAR'); setPuestoId(''); setMesaId('')
         setTimeout(() => setExito(false), 3000)
       } else {
         setError(res.error)
@@ -102,6 +109,33 @@ export default function NuevoElectorPage() {
             ))}
           </select>
         </Campo>
+
+        <Campo label="Puesto de votación">
+          <select
+            value={puestoId}
+            onChange={e => { setPuestoId(e.target.value); setMesaId('') }}
+            style={{ ...estiloInput, background: '#fff' }}
+          >
+            <option value="">— Sin puesto asignado —</option>
+            {puestos.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </Campo>
+
+        {mesasDelPuesto.length > 0 && (
+          <Campo label="Mesa">
+            <select
+              value={mesaId} onChange={e => setMesaId(e.target.value)}
+              style={{ ...estiloInput, background: '#fff' }}
+            >
+              <option value="">— Sin mesa asignada —</option>
+              {mesasDelPuesto.map((m) => (
+                <option key={m.id} value={m.id}>Mesa {m.number}</option>
+              ))}
+            </select>
+          </Campo>
+        )}
 
         <Campo label="Estado inicial">
           <select
