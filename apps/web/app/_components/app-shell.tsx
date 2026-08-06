@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { LogoutButton } from './logout-button'
 
 export interface NavItem {
   href:   string
@@ -114,9 +115,10 @@ export function AppShell({
 
         <div className="mt-auto pt-4 border-t border-white/10 text-xs leading-tight whitespace-nowrap">
           <div className="truncate text-plata">{userEmail}</div>
-          <div className="text-plata/70 font-semibold mt-0.5 uppercase tracking-wider text-[10px]">
+          <div className="text-plata/70 font-semibold mt-0.5 mb-3 uppercase tracking-wider text-[10px]">
             {userRole}
           </div>
+          <LogoutButton />
         </div>
       </aside>
 
@@ -136,6 +138,9 @@ export function AppShell({
             </svg>
           </label>
           <span className="text-sm font-medium text-slate-600 truncate">{moduleName}</span>
+          <div className="ml-auto">
+            <LogoutButton tono="claro" />
+          </div>
         </div>
 
         <div className="flex-1 w-full max-w-6xl mx-auto p-4 sm:p-6 md:p-8 overflow-x-auto">
