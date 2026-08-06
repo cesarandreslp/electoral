@@ -25,26 +25,26 @@ datasource db {
 
 /// Roles del sistema. Define qué rutas y datos puede acceder cada usuario.
 enum UserRole {
-  SUPERADMIN    // Acceso total a la plataforma y todos los tenants
+  SUPERADMIN // Acceso total a la plataforma y todos los tenants
   ADMIN_CAMPANA // Administrador de una campaña específica
-  COORDINADOR   // Coordinador de zona o municipio
-  LIDER         // Líder comunitario con red de electores
-  TESTIGO       // Testigo electoral en mesa de votación
+  COORDINADOR // Coordinador de zona o municipio
+  LIDER // Líder comunitario con red de electores
+  TESTIGO // Testigo electoral en mesa de votación
 }
 
 /// Estado de compromiso de voto de un elector — funnel de contacto
 enum CommitmentStatus {
-  SIN_CONTACTAR  // Aún no se ha hecho ningún contacto
-  CONTACTADO     // Se hizo contacto pero sin posición definida
-  SIMPATIZANTE   // Muestra interés positivo en la campaña
-  COMPROMETIDO   // Ha prometido su voto
-  VOTO_SEGURO    // Compromiso firme y confirmado
+  SIN_CONTACTAR // Aún no se ha hecho ningún contacto
+  CONTACTADO // Se hizo contacto pero sin posición definida
+  SIMPATIZANTE // Muestra interés positivo en la campaña
+  COMPROMETIDO // Ha prometido su voto
+  VOTO_SEGURO // Compromiso firme y confirmado
 }
 
 /// Tipo de división político-administrativa
 enum CommuneType {
-  COMUNA         // Zona urbana
-  CORREGIMIENTO  // Zona rural
+  COMUNA // Zona urbana
+  CORREGIMIENTO // Zona rural
 }
 
 /// Estado de conversación de un elector en una encuesta
@@ -60,8 +60,8 @@ enum ConversationState {
 
 /// Estado operativo de un líder en la campaña
 enum LeaderStatus {
-  ACTIVO     // Operando normalmente
-  INACTIVO   // Temporalmente fuera de operación
+  ACTIVO // Operando normalmente
+  INACTIVO // Temporalmente fuera de operación
   SUSPENDIDO // Suspendido de la campaña
 }
 
@@ -71,14 +71,14 @@ enum LeaderStatus {
 /// Tenant = una campaña electoral registrada en la plataforma.
 /// Cada tenant tiene su propia base de datos aislada en Neon.
 model Tenant {
-  id       String  @id @default(cuid())
-  slug     String  @unique // Identificador URL amigable (ej: "campana-gomez-2026")
-  name     String          // Nombre visible de la campaña
-  domain   String? @unique // Dominio propio del cliente (opcional)
+  id               String   @id @default(cuid())
+  slug             String   @unique // Identificador URL amigable (ej: "campana-gomez-2026")
+  name             String // Nombre visible de la campaña
+  domain           String?  @unique // Dominio propio del cliente (opcional)
   // CIFRADO: este campo se cifra con AES-256 antes de persistir. Ver lib/crypto.ts
   connectionString String
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
 
   modules TenantModule[]
 }
@@ -88,7 +88,7 @@ model Tenant {
 model TenantModule {
   id        String  @id @default(cuid())
   tenantId  String
-  moduleKey String  // Ej: "CORE", "ANALYTICS", "DIA_E", "FORMACION", etc.
+  moduleKey String // Ej: "CORE", "ANALYTICS", "DIA_E", "FORMACION", etc.
   isActive  Boolean @default(true)
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
@@ -104,7 +104,7 @@ model GlobalTrainingMaterial {
   id          String   @id @default(cuid())
   title       String
   description String?
-  type        String   // SLIDES | PDF | VIDEO | INFOGRAFIA
+  type        String // SLIDES | PDF | VIDEO | INFOGRAFIA
   fileUrl     String
   fileSize    Int?
   order       Int      @default(0)
@@ -125,9 +125,9 @@ model GlobalTrainingMaterial {
 model User {
   id           String   @id @default(cuid())
   tenantId     String
-  name         String?  // Nombre completo (opcional para no romper registros existentes)
+  name         String? // Nombre completo (opcional para no romper registros existentes)
   email        String   @unique // Único en toda la plataforma — login universal
-  passwordHash String   // Nunca almacenar contraseña en texto plano
+  passwordHash String // Nunca almacenar contraseña en texto plano
   role         UserRole
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
@@ -143,8 +143,8 @@ model Leader {
   name           String
   // CIFRADO: campo PII — se cifra con AES-256 antes de persistir. Ver lib/crypto.ts
   phone          String?
-  zone           String?      // Zona geográfica bajo su responsabilidad
-  parentLeaderId String?      // Referencia al líder superior en la jerarquía
+  zone           String? // Zona geográfica bajo su responsabilidad
+  parentLeaderId String? // Referencia al líder superior en la jerarquía
   targetVotes    Int          @default(0) // Meta de votos a conseguir
   status         LeaderStatus @default(ACTIVO)
   createdAt      DateTime     @default(now())
@@ -170,27 +170,27 @@ model Voter {
   name             String
   // CIFRADO: campo PII — se cifra con AES-256 antes de persistir. Ver lib/crypto.ts
   phone            String?
-  address          String?          // Dirección física del elector
-  lat              Float?           // Coordenada geocodificada desde address (para el mapa)
+  address          String? // Dirección física del elector
+  lat              Float? // Coordenada geocodificada desde address (para el mapa)
   lng              Float?
-  leaderId         String?          // Líder responsable de este elector
-  votingTableId    String?          // Mesa donde está inscrito
+  leaderId         String? // Líder responsable de este elector
+  votingTableId    String? // Mesa donde está inscrito
   commitmentStatus CommitmentStatus @default(SIN_CONTACTAR)
-  lastContact      DateTime?        // Último contacto registrado
-  notes            String?          // Notas del líder sobre el elector
+  lastContact      DateTime? // Último contacto registrado
+  notes            String? // Notas del líder sobre el elector
   // Árbol de captación por referidos
-  referredById     String?          // FK al Voter que refirió a esta persona
+  referredById     String? // FK al Voter que refirió a esta persona
   captureDepth     Int              @default(0) // Nivel en el árbol de captación (0 = directo del líder)
-  qrTokenUsed      String?          // Token del QR que usó para registrarse
+  qrTokenUsed      String? // Token del QR que usó para registrarse
   createdAt        DateTime         @default(now())
 
   // Módulo Encuestas
-  conversationState ConversationState @default(PENDIENTE)
-  consent           Boolean           @default(false)
-  surveyContactDate DateTime?
+  conversationState  ConversationState  @default(PENDIENTE)
+  consent            Boolean            @default(false)
+  surveyContactDate  DateTime?
   surveyResponseDate DateTime?
-  surveyResponses   SurveyResponse[]
-  surveyMessageLogs SurveyMessageLog[]
+  surveyResponses    SurveyResponse[]
+  surveyMessageLogs  SurveyMessageLog[]
 
   leader      Leader?      @relation(fields: [leaderId], references: [id])
   votingTable VotingTable? @relation(fields: [votingTableId], references: [id])
@@ -210,26 +210,26 @@ model QrRegistration {
   id                 String    @id @default(cuid())
   tenantId           String
   leaderId           String
-  token              String    @unique  // crypto.randomUUID() — siempre generado en el servidor
+  token              String    @unique // crypto.randomUUID() — siempre generado en el servidor
   isActive           Boolean   @default(true)
-  expiresAt          DateTime?           // null = sin vencimiento
+  expiresAt          DateTime? // null = sin vencimiento
   registrationsCount Int       @default(0) // Incrementa con cada registro exitoso
   createdAt          DateTime  @default(now())
 
-  @@index([tenantId, leaderId])
   @@unique([tenantId, token])
+  @@index([tenantId, leaderId])
 }
 
 /// Alerta de cédula duplicada entre dos líderes.
 /// Nunca contiene la cédula en texto plano — solo su SHA-256.
 model VoterDuplicateAlert {
-  id                  String   @id @default(cuid())
-  tenantId            String
-  cedulaHash          String   // SHA-256 de la cédula — NUNCA la cédula en plano
-  firstLeaderId       String   // Líder que la registró primero
-  duplicateLeaderId   String   // Líder que intentó registrarla después
-  status              String   @default("PENDIENTE") // PENDIENTE | REVISADA
-  detectedAt          DateTime @default(now())
+  id                String   @id @default(cuid())
+  tenantId          String
+  cedulaHash        String // SHA-256 de la cédula — NUNCA la cédula en plano
+  firstLeaderId     String // Líder que la registró primero
+  duplicateLeaderId String // Líder que intentó registrarla después
+  status            String   @default("PENDIENTE") // PENDIENTE | REVISADA
+  detectedAt        DateTime @default(now())
 
   @@index([tenantId, cedulaHash])
 }
@@ -239,10 +239,10 @@ model Notification {
   id        String   @id @default(cuid())
   tenantId  String
   userId    String
-  type      String   // DUPLICADO_ELECTOR | QR_REGISTRO | etc.
+  type      String // DUPLICADO_ELECTOR | QR_REGISTRO | etc.
   message   String
   isRead    Boolean  @default(false)
-  metadata  Json?    // Datos adicionales según el tipo
+  metadata  Json? // Datos adicionales según el tipo
   createdAt DateTime @default(now())
 
   @@index([tenantId, userId, isRead])
@@ -256,7 +256,7 @@ model Notification {
 model Department {
   id   String @id @default(cuid())
   code String @unique // Ej: "05" para Antioquia
-  name String          // Ej: "Antioquia"
+  name String // Ej: "Antioquia"
 
   municipalities Municipality[]
 }
@@ -296,7 +296,7 @@ model Neighborhood {
 /// Puesto de votación. Lugar físico donde se instalan las mesas.
 model VotingStation {
   id             String @id @default(cuid())
-  name           String          // Ej: "Institución Educativa San José"
+  name           String // Ej: "Institución Educativa San José"
   address        String
   municipalityId String
   lat            Float? // Latitud para mapa de calor
@@ -309,7 +309,7 @@ model VotingStation {
 /// Mesa de votación dentro de un puesto. Unidad mínima del sistema electoral.
 model VotingTable {
   id            String @id @default(cuid())
-  number        Int    // Número de mesa dentro del puesto
+  number        Int // Número de mesa dentro del puesto
   stationId     String
   voterCapacity Int    @default(0) // Capacidad máxima de electores por mesa
 
@@ -329,16 +329,26 @@ model LeaderAnalysis {
   id                String   @id @default(cuid())
   tenantId          String
   leaderId          String
-  perfilTipo        String   // Leal | Oportunista | Transaccional | Maximizador | DesertorPotencial
-  indiceFidelidad   Int      // 0-100
-  indiceRiesgo      Int      // 0-100
-  veredicto         String   // FIDELIZAR | MONITOREAR | PRESCINDIR
-  planAccion        Json?    // null si veredicto es PRESCINDIR
-  senalesDetectadas Json     // Array de { señal, peso: ALTO|MEDIO|BAJO }
+  perfilTipo        String // Leal | Oportunista | Transaccional | Maximizador | DesertorPotencial
+  indiceFidelidad   Int // 0-100
+  indiceRiesgo      Int // 0-100
+  veredicto         String // FIDELIZAR | MONITOREAR | PRESCINDIR
+  planAccion        Json? // null si veredicto es PRESCINDIR
+  senalesDetectadas Json // Array de { señal, peso: ALTO|MEDIO|BAJO }
   justificacion     String
   generadoEn        DateTime @default(now())
 
   @@index([tenantId, leaderId, generadoEn])
+}
+
+/// Cargo de elección popular al que aspira el candidato de la campaña.
+enum ElectionOffice {
+  ALCALDE
+  GOBERNADOR
+  CONCEJAL
+  REPRESENTANTE
+  SENADOR
+  PRESIDENTE
 }
 
 /// Configuración del tenant para el módulo de Analytics.
@@ -349,14 +359,21 @@ model TenantConfig {
   fechaEleccion         DateTime?
   metaVotos             Int?
   votosEleccionAnterior Int?
-  smtpConfig            Json?     // { host, port, secure, user, passwordEncrypted, from }
+  smtpConfig            Json? // { host, port, secure, user, passwordEncrypted, from }
+
+  // Alcance electoral — acota el universo de electores para veracidad/proyecciones.
+  // Referencia suelta por código (no @relation) para no acoplar TenantConfig a Department/Municipality.
+  electionCountry              String          @default("Colombia")
+  electionOffice               ElectionOffice?
+  electionDepartmentCode       String? // Department.code
+  electionMunicipalityDivipola String? // Municipality.divipola
 
   // Configuración Módulo Encuestas (WhatsApp & Limites)
   whatsappToken       String?
   whatsappPhoneId     String?
   whatsappVerifyToken String?
-  botName             String?   @default("Asistente Virtual")
-  surveyDailyLimit    Int       @default(250)
+  botName             String? @default("Asistente Virtual")
+  surveyDailyLimit    Int     @default(250)
 
   // IA por campaña — CIFRADAS en reposo (AES-256-GCM). Si están vacías, se usan
   // las claves globales del sistema (GROQ_API_KEY / ZHIPU_API_KEY del entorno).
@@ -364,10 +381,10 @@ model TenantConfig {
   zhipuApiKey String?
 
   // Branding por campaña
-  logoUrl      String?  // URL del logo en Vercel Blob
-  primaryColor String?  // color primario en hex, ej "#7d2839"
+  logoUrl      String? // URL del logo en Vercel Blob
+  primaryColor String? // color primario en hex, ej "#7d2839"
 
-  updatedAt             DateTime  @updatedAt
+  updatedAt DateTime @updatedAt
 }
 
 // ─── MODELOS TENANT — MÓDULO FORMACIÓN ───────────────────────────────────────
@@ -378,7 +395,7 @@ model TenantConfig {
 model TenantMaterialPreference {
   id               String  @id @default(cuid())
   tenantId         String
-  globalMaterialId String  // Referencia al GlobalTrainingMaterial en la DB superadmin
+  globalMaterialId String // Referencia al GlobalTrainingMaterial en la DB superadmin
   isHidden         Boolean @default(false)
   customOrder      Int?
 
@@ -392,8 +409,8 @@ model TrainingMaterial {
   tenantId    String
   title       String
   description String?
-  type        String   // SLIDES | PDF | VIDEO | INFOGRAFIA
-  fileUrl     String   // URL de Vercel Blob o URL externa
+  type        String // SLIDES | PDF | VIDEO | INFOGRAFIA
+  fileUrl     String // URL de Vercel Blob o URL externa
   fileSize    Int?
   order       Int      @default(0)
   isActive    Boolean  @default(true)
@@ -409,8 +426,8 @@ model TrainingSession {
   title       String
   description String?
   date        DateTime // Fecha y hora de la sesión
-  location    String?  // Lugar físico o "Virtual"
-  maxCapacity Int?     // null = sin límite
+  location    String? // Lugar físico o "Virtual"
+  maxCapacity Int? // null = sin límite
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
 
@@ -424,7 +441,7 @@ model TrainingAttendance {
   id        String   @id @default(cuid())
   tenantId  String
   sessionId String
-  userId    String   // Usuario que asistió (rol TESTIGO normalmente)
+  userId    String // Usuario que asistió (rol TESTIGO normalmente)
   attended  Boolean  @default(false) // Confirmado por el admin
   createdAt DateTime @default(now())
 
@@ -437,13 +454,13 @@ model TrainingAttendance {
 /// Evaluación / Quiz creado por el admin del tenant.
 /// Las preguntas se almacenan en QuizQuestion.
 model Quiz {
-  id              String   @id @default(cuid())
-  tenantId        String
-  title           String
-  description     String?
-  passingScore    Int      @default(60) // Porcentaje mínimo para aprobar (0-100)
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
+  id           String   @id @default(cuid())
+  tenantId     String
+  title        String
+  description  String?
+  passingScore Int      @default(60) // Porcentaje mínimo para aprobar (0-100)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
 
   questions QuizQuestion[]
   attempts  QuizAttempt[]
@@ -456,10 +473,10 @@ model Quiz {
 model QuizQuestion {
   id           String @id @default(cuid())
   quizId       String
-  text         String           // Enunciado de la pregunta
-  options      Json             // String[] con las opciones (4 típicamente)
-  correctIndex Int              // Índice de la respuesta correcta (0-based)
-  order        Int   @default(0)
+  text         String // Enunciado de la pregunta
+  options      Json // String[] con las opciones (4 típicamente)
+  correctIndex Int // Índice de la respuesta correcta (0-based)
+  order        Int    @default(0)
 
   quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
 
@@ -473,9 +490,9 @@ model QuizAttempt {
   tenantId  String
   quizId    String
   userId    String
-  answers   Json     // Int[] — índice seleccionado por pregunta (en orden)
-  score     Int      // Porcentaje obtenido (0-100)
-  passed    Boolean  // score >= quiz.passingScore
+  answers   Json // Int[] — índice seleccionado por pregunta (en orden)
+  score     Int // Porcentaje obtenido (0-100)
+  passed    Boolean // score >= quiz.passingScore
   createdAt DateTime @default(now())
 
   quiz Quiz @relation(fields: [quizId], references: [id])
@@ -487,12 +504,12 @@ model QuizAttempt {
 /// Certificado emitido a un testigo que aprobó una evaluación.
 /// El PDF se genera con @react-pdf/renderer y se almacena en Vercel Blob.
 model Certificate {
-  id        String   @id @default(cuid())
-  tenantId  String
-  userId    String
-  quizId    String
-  pdfUrl    String   // URL del PDF en Vercel Blob
-  issuedAt  DateTime @default(now())
+  id       String   @id @default(cuid())
+  tenantId String
+  userId   String
+  quizId   String
+  pdfUrl   String // URL del PDF en Vercel Blob
+  issuedAt DateTime @default(now())
 
   @@unique([tenantId, userId, quizId])
   @@index([tenantId, userId])
@@ -519,8 +536,8 @@ model Candidate {
 model WitnessAssignment {
   id            String    @id @default(cuid())
   tenantId      String
-  userId        String    // testigo asignado
-  votingTableId String    // mesa asignada
+  userId        String // testigo asignado
+  votingTableId String // mesa asignada
   isPrimary     Boolean   @default(true) // false = suplente
   confirmedAt   DateTime?
   createdAt     DateTime  @default(now())
@@ -533,32 +550,32 @@ model WitnessAssignment {
 /// Almacena datos manuales, datos extraídos por IA, y verificación cruzada.
 /// groqResult y zhipuResult son para auditoría — NUNCA se retornan al cliente.
 model E14Transmission {
-  id              String   @id @default(cuid())
-  tenantId        String
-  votingTableId   String   @unique // una transmisión por mesa
-  witnessUserId   String
+  id            String @id @default(cuid())
+  tenantId      String
+  votingTableId String @unique // una transmisión por mesa
+  witnessUserId String
 
   // Datos digitados manualmente por el testigo
-  manualData        Json?     // { candidateId: string, votes: number }[]
+  manualData        Json? // { candidateId: string, votes: number }[]
   manualTotal       Int?
   manualSubmittedAt DateTime?
 
   // Datos extraídos de la foto por IA
-  photoUrl             String?  // URL en Vercel Blob
-  extractedData        Json?    // { candidateId: string, votes: number }[]
+  photoUrl             String? // URL en Vercel Blob
+  extractedData        Json? // { candidateId: string, votes: number }[]
   extractedTotal       Int?
-  extractionConfidence String?  // ALTA | MEDIA | BAJA
-  groqResult           Json?    // resultado crudo de Groq — solo auditoría
-  zhipuResult          Json?    // resultado crudo de Zhipu — solo auditoría
+  extractionConfidence String? // ALTA | MEDIA | BAJA
+  groqResult           Json? // resultado crudo de Groq — solo auditoría
+  zhipuResult          Json? // resultado crudo de Zhipu — solo auditoría
   photoSubmittedAt     DateTime?
 
   // Verificación cruzada
   verificationStatus String @default("PENDIENTE")
   // PENDIENTE | SOLO_MANUAL | SOLO_FOTO | VERIFICADO | ADVERTENCIA | BAJA_CONFIANZA
-  discrepancies Json? // qué candidatos difieren entre manual y foto
+  discrepancies      Json? // qué candidatos difieren entre manual y foto
 
   // Estado final
-  finalData   Json?      // datos definitivos a reportar
+  finalData   Json? // datos definitivos a reportar
   finalizedAt DateTime?
   notes       String?
 
@@ -572,9 +589,9 @@ model E14Transmission {
 model Incident {
   id            String    @id @default(cuid())
   tenantId      String
-  reportedBy    String    // userId
+  reportedBy    String // userId
   votingTableId String?
-  type          String    // IRREGULARIDAD | VIOLENCIA | FALTA_MATERIAL | AUSENCIA_TESTIGO | OTRO
+  type          String // IRREGULARIDAD | VIOLENCIA | FALTA_MATERIAL | AUSENCIA_TESTIGO | OTRO
   description   String
   severity      String    @default("MEDIA") // ALTA | MEDIA | BAJA
   photoUrl      String?
@@ -590,7 +607,7 @@ model Incident {
 model ElectionResult {
   id            String   @id @default(cuid())
   tenantId      String
-  candidateId   String   // identificador interno del candidato
+  candidateId   String // identificador interno del candidato
   candidateName String
   totalVotes    Int      @default(0)
   tableCount    Int      @default(0) // mesas reportadas
@@ -607,10 +624,10 @@ model MessageTemplate {
   id        String   @id @default(cuid())
   tenantId  String
   name      String
-  channel   String   // EMAIL | SMS | WHATSAPP
-  subject   String?  // solo para EMAIL
-  body      String   // texto con variables {{nombre}}, {{municipio}}, etc.
-  variables Json     // string[] — lista de variables usadas en el body
+  channel   String // EMAIL | SMS | WHATSAPP
+  subject   String? // solo para EMAIL
+  body      String // texto con variables {{nombre}}, {{municipio}}, etc.
+  variables Json // string[] — lista de variables usadas en el body
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 
@@ -623,9 +640,9 @@ model MessageCampaign {
   id              String    @id @default(cuid())
   tenantId        String
   name            String
-  channel         String    // EMAIL | SMS | WHATSAPP
+  channel         String // EMAIL | SMS | WHATSAPP
   templateId      String
-  segmentFilters  Json      // { leaderId?, zone?, commitmentStatus?, role?, municipalityId? }
+  segmentFilters  Json // { leaderId?, zone?, commitmentStatus?, role?, municipalityId? }
   scheduledAt     DateTime?
   sentAt          DateTime?
   status          String    @default("BORRADOR")
@@ -646,17 +663,17 @@ model Message {
   id            String    @id @default(cuid())
   tenantId      String
   campaignId    String?
-  channel       String    // EMAIL | SMS | WHATSAPP
-  recipientId   String    // userId o voterId según recipientType
-  recipientType String    // USER | VOTER
+  channel       String // EMAIL | SMS | WHATSAPP
+  recipientId   String // userId o voterId según recipientType
+  recipientType String // USER | VOTER
   // CIFRADO: campo PII — contiene email o teléfono cifrado con AES-256
   to            String
   subject       String?
   body          String
   status        String    @default("PENDIENTE")
   // PENDIENTE | ENVIADO | FALLIDO | REBOTADO
-  provider      String?   // nombre del proveedor que lo envió
-  providerMsgId String?   // ID del mensaje en el proveedor externo
+  provider      String? // nombre del proveedor que lo envió
+  providerMsgId String? // ID del mensaje en el proveedor externo
   sentAt        DateTime?
   failReason    String?
   createdAt     DateTime  @default(now())
@@ -673,12 +690,12 @@ model AutomationRule {
   id           String   @id @default(cuid())
   tenantId     String
   name         String
-  trigger      String   // NUEVO_ELECTOR | CAMBIO_COMPROMISO | DIA_ELECCION | RECORDATORIO_VOTO
-  channel      String   // EMAIL | SMS | WHATSAPP
+  trigger      String // NUEVO_ELECTOR | CAMBIO_COMPROMISO | DIA_ELECCION | RECORDATORIO_VOTO
+  channel      String // EMAIL | SMS | WHATSAPP
   templateId   String
   isActive     Boolean  @default(true)
   delayMinutes Int      @default(0)
-  conditions   Json?    // condiciones adicionales del trigger
+  conditions   Json? // condiciones adicionales del trigger
   createdAt    DateTime @default(now())
 
   @@index([tenantId, trigger, isActive])
@@ -693,14 +710,14 @@ model AutomationRule {
 model FinanceConfig {
   id                 String    @id @default(cuid())
   tenantId           String    @unique
-  cargoPostulado     String?   // Alcalde | Concejal | Diputado | Gobernador | Senador | Representante | Otro
+  cargoPostulado     String? // Alcalde | Concejal | Diputado | Gobernador | Senador | Representante | Otro
   municipio          String?
-  topeGastos         Float?    // tope legal en pesos colombianos (COP)
+  topeGastos         Float? // tope legal en pesos colombianos (COP)
   fechaInicioCampana DateTime?
   fechaFinCampana    DateTime?
   nombreTesorero     String?
-  cedulaTesorero     String?   // CIFRADO con encrypt() — nunca en texto plano
-  cuentaBancaria     String?   // CIFRADO con encrypt() — nunca en texto plano
+  cedulaTesorero     String? // CIFRADO con encrypt() — nunca en texto plano
+  cuentaBancaria     String? // CIFRADO con encrypt() — nunca en texto plano
   updatedAt          DateTime  @updatedAt
 }
 
@@ -709,16 +726,16 @@ model FinanceConfig {
 model Expense {
   id            String   @id @default(cuid())
   tenantId      String
-  category      String   // PUBLICIDAD | TRANSPORTE | LOGISTICA | PERSONAL | TECNOLOGIA | EVENTOS | JURIDICO | OTRO
+  category      String // PUBLICIDAD | TRANSPORTE | LOGISTICA | PERSONAL | TECNOLOGIA | EVENTOS | JURIDICO | OTRO
   description   String
-  amount        Float    // en pesos colombianos (COP)
+  amount        Float // en pesos colombianos (COP)
   date          DateTime
-  vendor        String?  // proveedor o beneficiario
-  invoiceNumber String?  // número de factura
-  invoiceUrl    String?  // URL del comprobante en Vercel Blob
-  paymentMethod String?  // EFECTIVO | TRANSFERENCIA | CHEQUE
+  vendor        String? // proveedor o beneficiario
+  invoiceNumber String? // número de factura
+  invoiceUrl    String? // URL del comprobante en Vercel Blob
+  paymentMethod String? // EFECTIVO | TRANSFERENCIA | CHEQUE
   status        String   @default("REGISTRADO") // REGISTRADO | VERIFICADO | OBSERVADO
-  registeredBy  String   // userId que registró el gasto
+  registeredBy  String // userId que registró el gasto
   notes         String?
   createdAt     DateTime @default(now())
 
@@ -732,13 +749,13 @@ model Donation {
   id            String   @id @default(cuid())
   tenantId      String
   donorName     String
-  donorId       String?  // cédula o NIT — CIFRADO con encrypt()
+  donorId       String? // cédula o NIT — CIFRADO con encrypt()
   donorType     String   @default("PERSONA_NATURAL") // PERSONA_NATURAL | PERSONA_JURIDICA | APORTE_PROPIO
-  amount        Float    // en pesos colombianos (COP)
+  amount        Float // en pesos colombianos (COP)
   date          DateTime
   paymentMethod String?
   bankReference String?
-  receiptUrl    String?  // URL del comprobante en Vercel Blob
+  receiptUrl    String? // URL del comprobante en Vercel Blob
   isVerified    Boolean  @default(false)
   notes         String?
   createdAt     DateTime @default(now())
@@ -751,13 +768,13 @@ model Donation {
 model FinanceReport {
   id             String    @id @default(cuid())
   tenantId       String
-  type           String    // PARCIAL | FINAL | CNE
-  period         String    // ej: "2026-Q1" o "FINAL"
+  type           String // PARCIAL | FINAL | CNE
+  period         String // ej: "2026-Q1" o "FINAL"
   totalExpenses  Float
   totalDonations Float
-  balance        Float     // donaciones - gastos
+  balance        Float // donaciones - gastos
   status         String    @default("BORRADOR") // BORRADOR | GENERADO | PRESENTADO
-  fileUrl        String?   // URL del PDF en Vercel Blob
+  fileUrl        String? // URL del PDF en Vercel Blob
   generatedAt    DateTime?
   presentedAt    DateTime?
   createdAt      DateTime  @default(now())
@@ -779,22 +796,22 @@ model SurveyCampaign {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  cargos          SurveyCargo[]
-  
+  cargos SurveyCargo[]
+
   @@index([tenantId])
 }
 
 /// Cargo electoral en la encuesta (ej: Alcaldía, Concejo)
 model SurveyCargo {
-  id               String   @id @default(cuid())
+  id               String @id @default(cuid())
   surveyCampaignId String
   name             String
-  order            Int      @default(0)
+  order            Int    @default(0)
 
   campaign   SurveyCampaign    @relation(fields: [surveyCampaignId], references: [id], onDelete: Cascade)
   preguntas  SurveyPregunta[]
   candidatos SurveyCandidato[]
-  
+
   @@index([surveyCampaignId])
 }
 
@@ -814,7 +831,7 @@ model SurveyPregunta {
 
   cargo     SurveyCargo      @relation(fields: [surveyCargoId], references: [id], onDelete: Cascade)
   responses SurveyResponse[]
-  
+
   @@index([surveyCargoId])
 }
 
@@ -827,7 +844,7 @@ model SurveyCandidato {
 
   cargo     SurveyCargo      @relation(fields: [surveyCargoId], references: [id], onDelete: Cascade)
   responses SurveyResponse[]
-  
+
   @@index([surveyCargoId])
 }
 
@@ -863,12 +880,12 @@ model SurveyMessageLog {
   voterId   String
   type      SurveyMessageType
   content   String
-  messageId String?           // ID devuelto por Meta/WhatsApp
+  messageId String? // ID devuelto por Meta/WhatsApp
 
-  voter     Voter             @relation(fields: [voterId], references: [id], onDelete: Cascade)
+  voter Voter @relation(fields: [voterId], references: [id], onDelete: Cascade)
 
   timestamp DateTime @default(now())
-  
+
   @@index([voterId, messageId])
   @@index([tenantId])
 }

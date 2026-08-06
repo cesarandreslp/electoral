@@ -11,12 +11,19 @@ import { getTenantConnection }   from '@/lib/tenant'
 import { getTenantDb, superadminDb, encrypt } from '@campaignos/db'
 import { revalidatePath }        from 'next/cache'
 
+const CARGOS = ['ALCALDE', 'GOBERNADOR', 'CONCEJAL', 'REPRESENTANTE', 'SENADOR', 'PRESIDENTE'] as const
+export type Cargo = (typeof CARGOS)[number]
+
 export interface ConfiguracionView {
   hasGroqKey:   boolean
   hasZhipuKey:  boolean
   logoUrl:      string | null
   primaryColor: string | null
   domain:       string | null
+  electionCountry:             string
+  electionOffice:               Cargo | null
+  electionDepartmentCode:       string | null
+  electionMunicipalityDivipola: string | null
 }
 
 export interface GuardarConfigInput {
@@ -24,6 +31,9 @@ export interface GuardarConfigInput {
   zhipuApiKey?:  string  // vacío/omitido = no cambiar
   primaryColor?: string  // hex, "" = limpiar
   domain?:       string  // "" = limpiar
+  electionOffice?:               Cargo | ''  // '' = limpiar
+  electionDepartmentCode?:       string      // '' = limpiar
+  electionMunicipalityDivipola?: string      // '' = limpiar
 }
 
 async function dbTenant(tenantId: string) {
@@ -46,7 +56,32 @@ export async function getConfiguracion(): Promise<ConfiguracionView> {
     logoUrl:      cfg?.logoUrl ?? null,
     primaryColor: cfg?.primaryColor ?? null,
     domain:       tenant?.domain ?? null,
+    electionCountry:             cfg?.electionCountry ?? 'Colombia',
+    electionOffice:               (cfg?.electionOffice as Cargo | null) ?? null,
+    electionDepartmentCode:       cfg?.electionDepartmentCode ?? null,
+    electionMunicipalityDivipola: cfg?.electionMunicipalityDivipola ?? null,
   }
+}
+
+export interface Opcion { code: string; name: string }
+
+/** Departamentos DIVIPOLA para el select en cascada de Configuración. */
+export async function listarDepartamentos(): Promise<Opcion[]> {
+  const session = await requireAuth(['ADMIN_CAMPANA'])
+  const db      = await dbTenant(session.user.tenantId)
+  const deptos  = await db.department.findMany({ orderBy: { name: 'asc' } })
+  return deptos.map((d) => ({ code: d.code, name: d.name }))
+}
+
+/** Municipios de un departamento (por código DIVIPOLA) para el select en cascada. */
+export async function listarMunicipios(departmentCode: string): Promise<Opcion[]> {
+  const session = await requireAuth(['ADMIN_CAMPANA'])
+  const db      = await dbTenant(session.user.tenantId)
+  const muns    = await db.municipality.findMany({
+    where:   { department: { code: departmentCode } },
+    orderBy: { name: 'asc' },
+  })
+  return muns.map((m) => ({ code: m.divipola, name: m.name }))
 }
 
 export async function guardarConfiguracion(
@@ -60,6 +95,9 @@ export async function guardarConfiguracion(
   if (input.primaryColor && !/^#[0-9a-fA-F]{6}$/.test(input.primaryColor)) {
     return { success: false, error: 'El color primario debe ser un hex como #7d2839.' }
   }
+  if (input.electionOffice && !CARGOS.includes(input.electionOffice)) {
+    return { success: false, error: 'Cargo de elección inválido.' }
+  }
 
   // TenantConfig: solo se actualiza lo provisto. Las claves solo se tocan si
   // llegan no vacías (así "guardar" sin re-escribir la clave no la borra).
@@ -67,6 +105,9 @@ export async function guardarConfiguracion(
   if (input.groqApiKey?.trim())  dataConfig.groqApiKey  = encrypt(input.groqApiKey.trim())
   if (input.zhipuApiKey?.trim()) dataConfig.zhipuApiKey = encrypt(input.zhipuApiKey.trim())
   if (input.primaryColor !== undefined) dataConfig.primaryColor = input.primaryColor || null
+  if (input.electionOffice !== undefined) dataConfig.electionOffice = input.electionOffice || null
+  if (input.electionDepartmentCode !== undefined) dataConfig.electionDepartmentCode = input.electionDepartmentCode || null
+  if (input.electionMunicipalityDivipola !== undefined) dataConfig.electionMunicipalityDivipola = input.electionMunicipalityDivipola || null
 
   await db.tenantConfig.upsert({
     where:  { tenantId },

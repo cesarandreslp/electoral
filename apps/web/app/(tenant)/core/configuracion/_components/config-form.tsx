@@ -1,16 +1,34 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { guardarConfiguracion, type ConfiguracionView } from '../actions'
+import { useState, useEffect, useTransition } from 'react'
+import { guardarConfiguracion, listarMunicipios, type ConfiguracionView, type Cargo, type Opcion } from '../actions'
 
-export function ConfigForm({ inicial }: { inicial: ConfiguracionView }) {
+const CARGOS: { value: Cargo; label: string }[] = [
+  { value: 'ALCALDE',       label: 'Alcalde/Alcaldesa' },
+  { value: 'GOBERNADOR',    label: 'Gobernador/Gobernadora' },
+  { value: 'CONCEJAL',      label: 'Concejal' },
+  { value: 'REPRESENTANTE', label: 'Representante a la Cámara' },
+  { value: 'SENADOR',       label: 'Senador/Senadora' },
+  { value: 'PRESIDENTE',    label: 'Presidente' },
+]
+
+export function ConfigForm({ inicial, departamentos }: { inicial: ConfiguracionView; departamentos: Opcion[] }) {
   const [groqKey,   setGroqKey]   = useState('')
   const [zhipuKey,  setZhipuKey]  = useState('')
   const [color,     setColor]     = useState(inicial.primaryColor ?? '#7d2839')
   const [domain,    setDomain]    = useState(inicial.domain ?? '')
   const [logoUrl,   setLogoUrl]   = useState(inicial.logoUrl)
+  const [cargo,     setCargo]     = useState<Cargo | ''>(inicial.electionOffice ?? '')
+  const [deptoCode, setDeptoCode] = useState(inicial.electionDepartmentCode ?? '')
+  const [muniCode,  setMuniCode]  = useState(inicial.electionMunicipalityDivipola ?? '')
+  const [municipios, setMunicipios] = useState<Opcion[]>([])
   const [msg,       setMsg]       = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null)
   const [subiendo,  setSubiendo]  = useState(false)
+
+  useEffect(() => {
+    if (!deptoCode) { setMunicipios([]); return }
+    listarMunicipios(deptoCode).then(setMunicipios)
+  }, [deptoCode])
   // Los campos sensibles arrancan readOnly para que el navegador NO los autocomplete
   // al cargar (metía el email en Dominio y una contraseña en las claves). Se
   // desbloquean al primer foco, cuando el autofill de carga ya pasó.
@@ -50,6 +68,9 @@ export function ConfigForm({ inicial }: { inicial: ConfiguracionView }) {
         zhipuApiKey:  zhipuKey || undefined,
         primaryColor: color,
         domain,
+        electionOffice:               cargo,
+        electionDepartmentCode:       deptoCode,
+        electionMunicipalityDivipola: muniCode,
       })
       if (res.success) {
         setGroqKey('')
@@ -90,6 +111,43 @@ export function ConfigForm({ inicial }: { inicial: ConfiguracionView }) {
             <input type="text" value={color} onChange={(e) => setColor(e.target.value)} placeholder="#7d2839" style={{ ...estiloInput, maxWidth: 140, fontFamily: 'monospace' }} />
           </div>
         </Campo>
+      </Seccion>
+
+      {/* ── Elección ─────────────────────────────────────────────────────── */}
+      <Seccion titulo="Elección">
+        <Campo label="País">
+          <input type="text" value={inicial.electionCountry} disabled style={{ ...estiloInput, background: '#f1f5f9', color: '#64748b' }} />
+        </Campo>
+        <Campo label="Cargo al que aspira el candidato">
+          <select value={cargo} onChange={(e) => setCargo(e.target.value as Cargo | '')} style={estiloInput}>
+            <option value="">Selecciona un cargo…</option>
+            {CARGOS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+        </Campo>
+        <Campo label="Departamento">
+          <select
+            value={deptoCode}
+            onChange={(e) => { setDeptoCode(e.target.value); setMuniCode('') }}
+            style={estiloInput}
+          >
+            <option value="">Selecciona un departamento…</option>
+            {departamentos.map((d) => <option key={d.code} value={d.code}>{d.name}</option>)}
+          </select>
+        </Campo>
+        <Campo label="Municipio">
+          <select
+            value={muniCode}
+            onChange={(e) => setMuniCode(e.target.value)}
+            disabled={!deptoCode}
+            style={{ ...estiloInput, ...(!deptoCode ? { background: '#f1f5f9', color: '#94a3b8' } : {}) }}
+          >
+            <option value="">{deptoCode ? 'Selecciona un municipio…' : 'Primero elige un departamento'}</option>
+            {municipios.map((m) => <option key={m.code} value={m.code}>{m.name}</option>)}
+          </select>
+        </Campo>
+        <p style={estiloHint}>
+          Acota el universo electoral para medir veracidad de votantes y proyecciones.
+        </p>
       </Seccion>
 
       {/* ── Dominio ──────────────────────────────────────────────────────── */}
