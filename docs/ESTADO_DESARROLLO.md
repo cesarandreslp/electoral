@@ -312,13 +312,28 @@ configurados. El plan de abajo NO asume suite automatizada previa.
    `DATABASE_URL_SUPERADMIN` como placeholder. Cualquier prueba de aislamiento
    hecha sobre este tenant dará un falso negativo. Estado: **ABIERTO**.
 
-2. **Crear un cliente en producción provisiona un proyecto Neon real y de pago.**
-   `NEON_API_KEY` está definida en Vercel, así que
+2. **Crear un cliente en producción provisiona un proyecto Neon real.**
+   Verificado: `NEON_API_KEY` está definida en el proyecto Vercel `vectra-web`
+   (cuenta `ceanlozanopu-9130`, team `team_BWwyWl5wYDp8DvggmGcGQ7Z6`), en
+   Production y Preview. Por tanto
    [superadmin/actions.ts:75](apps/web/app/superadmin/actions.ts#L75) toma la rama
-   real, no el mock. Cada cliente = un proyecto Neon nuevo llamado
-   `campaignos-<slug>`. La cuenta ya tiene **9 proyectos** (varios ajenos a este
-   producto). No se pudo leer el límite del plan por la API; hay que confirmarlo
-   en la consola de Neon antes de crear tenants de prueba. Estado: **ABIERTO**.
+   real y no el mock, y cada cliente crea un proyecto Neon nuevo llamado
+   `campaignos-<slug>`. Estado: **ABIERTO**.
+
+   *Corrección (2026-08-06):* una versión anterior de este hallazgo afirmaba que
+   «la cuenta ya tiene 9 proyectos». Ese conteo salió de la `NEON_API_KEY` del
+   `.env` **local**, que es una clave de organización de
+   `org-fragrant-hat-12076614` y lista proyectos de otro portafolio
+   (`contratacion`, `cartera`, `psicosports`…). Los valores de entorno en Vercel
+   están cifrados y el CLI los devuelve vacíos, así que **no se puede comprobar
+   desde aquí** si es la misma clave. El cupo de proyectos de la cuenta Neon que
+   usa producción sigue **sin verificar**: hay que mirarlo en la consola de Neon
+   de la cuenta correcta antes de crear tenants de prueba.
+
+2b. **La `NEON_API_KEY` local puede apuntar a otra organización que la de
+   producción.** Si es así, provisionar un tenant desde local crearía el proyecto
+   en la cuenta equivocada. Confirmar antes de usar `pnpm dev` para pruebas que
+   creen clientes. Estado: **ABIERTO**.
 
 3. **El nombre del proyecto Neon sigue siendo `campaignos-<slug>`**
    ([neon-provisioner.ts:110](packages/db/src/neon-provisioner.ts#L110)). Cosmético,
@@ -357,7 +372,9 @@ Todo lo creado durante el plan debe ser **identificable y borrable**:
       `db:create-superadmin`, que fuerza rol `SUPERADMIN`
       ([packages/db/src/create-superadmin.ts](packages/db/src/create-superadmin.ts)),
       así que **no hay forma de crear ADMIN_CAMPANA, COORDINADOR, LIDER ni TESTIGO**.
-- [ ] Confirmar en la consola de Neon el límite de proyectos del plan (Hallazgo 2).
+- [ ] Confirmar en la consola de Neon **de la cuenta que usa producción** cuál es
+      el cupo de proyectos del plan (Hallazgo 2) y verificar si la `NEON_API_KEY`
+      del `.env` local es esa misma o la de otra organización (Hallazgo 2b).
 - [ ] Decidir si el tenant de pruebas se crea desde el panel (provisiona Neon real,
       que es la metodología acordada en abril) o si se prueba primero sin crear tenant.
 
