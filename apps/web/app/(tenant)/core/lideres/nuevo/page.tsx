@@ -1,15 +1,17 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { useRouter }               from 'next/navigation'
+import { Suspense, useState, useTransition } from 'react'
+import { useRouter, useSearchParams }        from 'next/navigation'
 import { createLeader, listLeaders, type CreateLeaderInput } from '../../actions'
 
-export default function NuevoLiderPage() {
+function NuevoLiderForm() {
+  const searchParams = useSearchParams()
   const [nombre,         setNombre]         = useState('')
   const [zona,           setZona]           = useState('')
   const [telefono,       setTelefono]       = useState('')
   const [meta,           setMeta]           = useState(0)
-  const [parentId,       setParentId]       = useState('')
+  // Preseleccionar el líder superior si viene ?parent= (botón "+ Sub-líder").
+  const [parentId,       setParentId]       = useState(searchParams.get('parent') ?? '')
   const [lideresSuperiores, setLideresSuperiores] = useState<{ id: string; name: string; zone: string | null }[]>([])
   const [error,          setError]          = useState<string | null>(null)
 
@@ -143,4 +145,12 @@ function Campo({ label, children }: { label: string; children: React.ReactNode }
 const estiloInput: React.CSSProperties = {
   width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #cbd5e1',
   borderRadius: '6px', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box',
+}
+
+export default function NuevoLiderPage() {
+  return (
+    <Suspense fallback={null}>
+      <NuevoLiderForm />
+    </Suspense>
+  )
 }

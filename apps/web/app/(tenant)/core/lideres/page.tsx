@@ -10,6 +10,8 @@ export default async function LideresPage() {
   const esAdmin = ['ADMIN_CAMPANA', 'COORDINADOR'].includes(session?.user?.role ?? '')
 
   const lideres = await listLeaders()
+  // Solo líderes raíz: los sub-líderes se ven al entrar a su líder superior.
+  const raices  = lideres.filter((l) => l.parentLeaderId === null)
 
   return (
     <div>
@@ -32,14 +34,14 @@ export default async function LideresPage() {
         )}
       </div>
 
-      {lideres.length === 0 ? (
+      {raices.length === 0 ? (
         <div style={{ color: '#64748b', marginTop: '2rem' }}>
           No hay líderes registrados todavía.
           {esAdmin && <> <Link href="/core/lideres/nuevo">Crear el primero →</Link></>}
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-          {lideres.map((lider) => (
+          {raices.map((lider) => (
             <Link
               key={lider.id}
               href={`/core/lideres/${lider.id}`}

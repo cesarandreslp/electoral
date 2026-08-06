@@ -10,6 +10,14 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
+interface NodoArbol {
+  id:             string
+  name:           string
+  zone:           string | null
+  totalElectores: number
+  children:       NodoArbol[]
+}
+
 export default async function FichaLiderPage({ params }: Props) {
   const { id }  = await params
   const session = await auth()
@@ -24,12 +32,18 @@ export default async function FichaLiderPage({ params }: Props) {
   const lider = todosLideres.find((l) => l.id === id)
   if (!lider) notFound()
 
-  // Obtener sub-líderes directos
-  const subLideres = todosLideres.filter((l) => {
-    // No tenemos parentLeaderId en LeaderSummary; mostrar todos por ahora
-    // TODO: agregar parentLeaderId a LeaderSummary para filtrar correctamente
-    return false
-  })
+  // Árbol multinivel de sub-líderes (jerarquía parentLeaderId), construido en memoria.
+  const construirSubarbol = (padreId: string): NodoArbol[] =>
+    todosLideres
+      .filter((l) => l.parentLeaderId === padreId)
+      .map((l) => ({
+        id:             l.id,
+        name:           l.name,
+        zone:           l.zone,
+        totalElectores: l.totalElectores,
+        children:       construirSubarbol(l.id),
+      }))
+  const subLideres = construirSubarbol(id)
 
   const { voters, total } = datosElectores
 
@@ -63,6 +77,17 @@ export default async function FichaLiderPage({ params }: Props) {
           </Link>
           {esAdmin && (
             <Link
+              href={`/core/lideres/nuevo?parent=${id}`}
+              style={{
+                background: '#e2e8f0', color: '#0f172a', padding: '0.5rem 1rem',
+                borderRadius: '6px', textDecoration: 'none', fontSize: '0.875rem',
+              }}
+            >
+              + Sub-líder
+            </Link>
+          )}
+          {esAdmin && (
+            <Link
               href={`/core/lideres/${id}/editar`}
               style={{
                 background: '#0f172a', color: '#fff', padding: '0.5rem 1rem',
@@ -84,6 +109,16 @@ export default async function FichaLiderPage({ params }: Props) {
           <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '0.5rem' }}>Avance</div>
           <BarraProgreso valor={lider.comprometidos} meta={lider.targetVotes} pct={lider.pctAvance} />
         </div>
+      </div>
+
+      {/* Árbol multinivel de sub-líderes */}
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.25rem', marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Sub-líderes</h2>
+        {subLideres.length === 0 ? (
+          <div style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Este líder no tiene sub-líderes.</div>
+        ) : (
+          <ArbolLideres nodos={subLideres} nivel={0} />
+        )}
       </div>
 
       {/* Distribución por estado */}
@@ -159,6 +194,30 @@ const COLORES_ESTADO: Record<string, { bg: string; text: string }> = {
   SIMPATIZANTE:  { bg: '#fef9c3', text: '#854d0e' },
   COMPROMETIDO:  { bg: '#dcfce7', text: '#166534' },
   VOTO_SEGURO:   { bg: '#bbf7d0', text: '#14532d' },
+}
+
+/** Render recursivo del árbol de sub-líderes con sangría por nivel. */
+function ArbolLideres({ nodos, nivel }: { nodos: NodoArbol[]; nivel: number }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+      {nodos.map((n) => (
+        <div key={n.id}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingLeft: `${nivel * 1.25}rem` }}>
+            {nivel > 0 && <span style={{ color: '#cbd5e1' }}>└</span>}
+            <Link
+              href={`/core/lideres/${n.id}`}
+              style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a', textDecoration: 'none' }}
+            >
+              {n.name}
+            </Link>
+            {n.zone && <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>· {n.zone}</span>}
+            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>· {n.totalElectores} electores</span>
+          </div>
+          {n.children.length > 0 && <ArbolLideres nodos={n.children} nivel={nivel + 1} />}
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function Metrica({ titulo, valor }: { titulo: string; valor: string }) {

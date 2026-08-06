@@ -46,6 +46,7 @@ export interface LeaderSummary {
   totalElectores: number
   comprometidos:  number
   pctAvance:      number // 0-100
+  parentLeaderId: string | null
 }
 
 export interface LeaderNode {
@@ -247,6 +248,7 @@ export async function listLeaders(filters?: LeaderFilters): Promise<LeaderSummar
       pctAvance:      l.targetVotes > 0
         ? Math.round((comprometidos / l.targetVotes) * 100)
         : 0,
+      parentLeaderId: l.parentLeaderId,
     }
   })
 }
