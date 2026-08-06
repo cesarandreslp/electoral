@@ -42,7 +42,7 @@ export default async function SuperadminDashboard() {
           <p className="text-slate-600 text-sm">No hay clientes registrados todavía.</p>
           <Link
             href="/superadmin/clientes/nuevo"
-            className="inline-block mt-3 bg-granate text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-granate-dark transition"
+            className="inline-block mt-3 bg-oliva text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-oliva-dark transition"
           >
             Crear el primero
           </Link>
@@ -55,7 +55,7 @@ export default async function SuperadminDashboard() {
 function StatCard({ titulo, valor }: { titulo: string; valor: string }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5">
-      <div className="text-xs font-semibold uppercase tracking-wider text-oliva mb-2">
+      <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
         {titulo}
       </div>
       <div className="text-2xl font-bold text-slate-900 leading-tight">{valor}</div>

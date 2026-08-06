@@ -16,7 +16,7 @@ export default async function ClientesPage() {
         </div>
         <Link
           href="/superadmin/clientes/nuevo"
-          className="shrink-0 bg-granate text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-granate-dark transition"
+          className="shrink-0 bg-oliva text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-oliva-dark transition"
         >
           + Nuevo cliente
         </Link>
@@ -69,7 +69,7 @@ export default async function ClientesPage() {
                     {modulos.length === 0
                       ? <span className="text-slate-400">—</span>
                       : modulos.map((m) => (
-                          <span key={m} className="text-[11px] bg-oliva/10 text-oliva px-2 py-0.5 rounded font-medium">
+                          <span key={m} className="text-[11px] bg-oliva text-white px-2 py-0.5 rounded font-medium">
                             {m}
                           </span>
                         ))}

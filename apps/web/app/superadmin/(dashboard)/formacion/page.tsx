@@ -62,13 +62,13 @@ export default async function FormacionPage() {
           <label htmlFor="file" className={CLASE_LABEL}>Archivo</label>
           <input
             id="file" name="file" type="file" required
-            className="text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-granate/10 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-granate hover:file:bg-granate/20"
+            className="text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-oliva/10 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-oliva-dark hover:file:bg-oliva/20"
           />
         </div>
 
         <button
           type="submit"
-          className="self-start bg-granate text-white px-5 py-2.5 rounded-md text-sm font-semibold hover:bg-granate-dark transition"
+          className="self-start bg-oliva text-white px-5 py-2.5 rounded-md text-sm font-semibold hover:bg-oliva-dark transition"
         >
           Subir material
         </button>

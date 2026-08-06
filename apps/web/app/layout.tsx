@@ -18,9 +18,14 @@ export const metadata: Metadata = {
     title:           'Vectra',
   },
   icons: {
-    icon:     [{ url: '/icons/icon.svg', type: 'image/svg+xml' }],
-    apple:    [{ url: '/icons/icon.svg', type: 'image/svg+xml' }],
-    shortcut: ['/icons/icon.svg'],
+    icon: [
+      { url: '/icons/icon.svg', type: 'image/svg+xml' },
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    // Safari en iOS ignora el manifest y no admite SVG aquí: sin este PNG el
+    // icono de pantalla de inicio sale como una captura de la página.
+    apple:    [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    shortcut: ['/icons/icon-192.png'],
   },
   formatDetection: { telephone: false },
 }

@@ -12,6 +12,9 @@
   --color-granate-dark: #5f1e2b;
   --color-oliva:        #585d20;
   --color-oliva-dark:   #434718;
+  /* El oliva de marca es demasiado oscuro para leerse sobre granate. Esta
+     variante clara es la que se usa sobre fondos oscuros (sidebar, footer). */
+  --color-oliva-light:  #a8b054;
   --color-plata:        #c9c9c9;
   --color-plata-light:  #e7e7e7;
 }

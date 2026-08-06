@@ -66,7 +66,7 @@ export default function NuevoClientePage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div>
       <header className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Nuevo cliente</h1>
         <p className="text-sm text-slate-500 mt-1">
@@ -74,47 +74,57 @@ export default function NuevoClientePage() {
         </p>
       </header>
 
-      <form onSubmit={handleSubmit} className="rounded-xl border border-slate-200 bg-white p-6 flex flex-col gap-5">
+      {/* En escritorio: datos a la izquierda, módulos a la derecha. En móvil se
+          apila. Antes era una columna estrecha con media pantalla desperdiciada. */}
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
 
-        <Campo label="Nombre de la campaña *">
-          <input
-            type="text"
-            value={nombre}
-            onChange={e => setNombre(e.target.value)}
-            required
-            placeholder="Campaña Gómez 2026"
-            className={CLASE_INPUT}
-          />
-        </Campo>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 flex flex-col gap-5">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+            Datos de la campaña
+          </h2>
 
-        {/* Slug — componente cliente con validación en tiempo real */}
-        <SlugInput value={slug} onChange={setSlug} />
+          <Campo label="Nombre de la campaña *">
+            <input
+              type="text"
+              value={nombre}
+              onChange={e => setNombre(e.target.value)}
+              required
+              placeholder="Campaña Gómez 2026"
+              className={CLASE_INPUT}
+            />
+          </Campo>
 
-        <Campo label="Email del administrador *">
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            placeholder="admin@campana.com"
-            className={CLASE_INPUT}
-          />
-        </Campo>
+          {/* Slug — componente cliente con validación en tiempo real */}
+          <SlugInput value={slug} onChange={setSlug} />
 
-        <Campo label="Contraseña del administrador *">
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            minLength={8}
-            placeholder="Mínimo 8 caracteres"
-            className={CLASE_INPUT}
-          />
-        </Campo>
+          <Campo label="Email del administrador *">
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              placeholder="admin@campana.com"
+              className={CLASE_INPUT}
+            />
+          </Campo>
 
-        <div className="border-t border-slate-100 pt-5">
-          <div className="text-sm font-medium text-slate-700 mb-3">Módulos activos</div>
+          <Campo label="Contraseña del administrador *">
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              minLength={8}
+              placeholder="Mínimo 8 caracteres"
+              className={CLASE_INPUT}
+            />
+          </Campo>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-4">
+            Módulos activos
+          </h2>
           <div className="flex flex-col gap-2">
             {MODULOS_DISPONIBLES.map(({ key, label, descripcion }) => {
               const activo = modulos.includes(key)
@@ -147,25 +157,28 @@ export default function NuevoClientePage() {
           </div>
         </div>
 
-        {resultado && (
-          <div
-            className={`rounded-lg px-4 py-3 text-sm ${
-              esError
-                ? 'bg-red-50 text-red-800 border border-red-200'
-                : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-            }`}
-          >
-            {resultado}
-          </div>
-        )}
+        {/* Pie del formulario: ocupa las dos columnas */}
+        <div className="lg:col-span-2 flex flex-col gap-4">
+          {resultado && (
+            <div
+              className={`rounded-lg px-4 py-3 text-sm ${
+                esError
+                  ? 'bg-red-50 text-red-800 border border-red-200'
+                  : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+              }`}
+            >
+              {resultado}
+            </div>
+          )}
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="self-start bg-granate text-white px-5 py-2.5 rounded-md text-sm font-semibold hover:bg-granate-dark disabled:opacity-50 disabled:cursor-not-allowed transition"
-        >
-          {isPending ? 'Creando...' : 'Crear cliente'}
-        </button>
+          <button
+            type="submit"
+            disabled={isPending}
+            className="self-start bg-granate text-white px-5 py-2.5 rounded-md text-sm font-semibold hover:bg-granate-dark disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            {isPending ? 'Creando...' : 'Crear cliente'}
+          </button>
+        </div>
 
       </form>
     </div>
