@@ -12,6 +12,7 @@ import { requireModule }       from '@/lib/auth-helpers'
 import { getTenantConnection } from '@/lib/tenant'
 import { getTenantDb }         from '@campaignos/db'
 import { chatZhipu }           from '@campaignos/ai'
+import { getTenantAiKeys }     from '@/lib/tenant-ai'
 import { revalidatePath }      from 'next/cache'
 
 // ── Tipos exportados ──────────────────────────────────────────────────────────
@@ -554,8 +555,9 @@ export async function generarAnalisisLider(leaderId: string): Promise<LeaderAnal
     },
   }
 
-  // Llamar al agente Zhipu Flash
-  const respuesta = await chatZhipu(SYSTEM_PROMPT_ANALISIS, JSON.stringify(contexto))
+  // Llamar al agente Zhipu Flash (clave propia del tenant si la configuró)
+  const { zhipu } = await getTenantAiKeys(tenantId)
+  const respuesta = await chatZhipu(SYSTEM_PROMPT_ANALISIS, JSON.stringify(contexto), zhipu)
 
   // Parsear y validar JSON
   let resultado: {

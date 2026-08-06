@@ -31,10 +31,13 @@ interface GroqResponse {
  * @returns Contenido de la respuesta del modelo (string)
  * @throws Error si la API key no está configurada, la API falla, o la respuesta es vacía
  */
-export async function chatGroq(systemPrompt: string, userMessage: string): Promise<string> {
-  const apiKey = process.env.GROQ_API_KEY
+export async function chatGroq(
+  systemPrompt: string,
+  userMessage: string,
+  apiKey: string | undefined = process.env.GROQ_API_KEY,
+): Promise<string> {
   if (!apiKey) {
-    throw new Error('GROQ_API_KEY no está configurada en las variables de entorno.')
+    throw new Error('GROQ_API_KEY no está configurada (ni global ni por campaña).')
   }
 
   const res = await fetch(BASE_URL, {
@@ -85,10 +88,10 @@ No inventes datos — solo extrae lo que es legible.`
 export async function extractE14WithGroq(
   imageBase64: string,
   mimeType: string,
+  apiKey: string | undefined = process.env.GROQ_API_KEY,
 ): Promise<E14ExtractionResult> {
-  const apiKey = process.env.GROQ_API_KEY
   if (!apiKey) {
-    throw new Error('GROQ_API_KEY no está configurada en las variables de entorno.')
+    throw new Error('GROQ_API_KEY no está configurada (ni global ni por campaña).')
   }
 
   const res = await fetch(BASE_URL, {

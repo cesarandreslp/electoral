@@ -16,7 +16,8 @@ export class CandidateMatcher {
    */
   async matchCandidate(
     text: string,
-    candidatos: Candidate[]
+    candidatos: Candidate[],
+    groqApiKey?: string
   ): Promise<string | null> {
     if (!candidatos || candidatos.length === 0 || !text) {
       return null
@@ -47,7 +48,7 @@ INSTRUCCIONES:
 `
 
     try {
-      const responseText = await chatGroq(prompt, text)
+      const responseText = await chatGroq(prompt, text, groqApiKey)
       
       // Limpiar posibles bloques markdown del JSON
       const cleanJson = responseText.replace(/```json\n|\n```/g, '').trim()

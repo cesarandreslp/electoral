@@ -14,6 +14,7 @@ import {
   extractE14WithZhipu,
   consensoE14,
 }                              from '@campaignos/ai'
+import { getTenantAiKeys }     from '@/lib/tenant-ai'
 import { revalidatePath }      from 'next/cache'
 
 // ── Helper ───────────────────────────────────────────────────────────────────
@@ -412,13 +413,14 @@ export async function submitPhotoE14(
     const base64      = Buffer.from(arrayBuffer).toString('base64')
     const mimeType    = imageResponse.headers.get('content-type') ?? 'image/jpeg'
 
-    // Llamar a ambas IAs en paralelo
+    // Llamar a ambas IAs en paralelo (claves propias del tenant si las configuró)
+    const { groq: groqKey, zhipu: zhipuKey } = await getTenantAiKeys(tenantId)
     const [groqResult, zhipuResult] = await Promise.all([
-      extractE14WithGroq(base64, mimeType).catch(err => {
+      extractE14WithGroq(base64, mimeType, groqKey).catch(err => {
         console.error('[Groq E14]', err instanceof Error ? err.message : err)
         return null
       }),
-      extractE14WithZhipu(base64, mimeType).catch(err => {
+      extractE14WithZhipu(base64, mimeType, zhipuKey).catch(err => {
         console.error('[Zhipu E14]', err instanceof Error ? err.message : err)
         return null
       }),

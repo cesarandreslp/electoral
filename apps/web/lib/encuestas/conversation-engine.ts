@@ -1,6 +1,7 @@
 import { getTenantDb } from '@campaignos/db'
 import { sendMessage } from '@campaignos/messaging'
 import { candidateMatcher } from './candidate-matcher'
+import { getTenantAiKeys } from '@/lib/tenant-ai'
 
 const processingMessages = new Set<string>()
 
@@ -247,7 +248,8 @@ export class ConversationEngine {
     if (text !== "" && preguntaActual && voter.conversationState === 'RESPONDIENDO') {
       let candidatoId = null
       if (preguntaActual.cargoCandidatos.length > 0) {
-        candidatoId = await candidateMatcher.matchCandidate(text, preguntaActual.cargoCandidatos)
+        const { groq } = await getTenantAiKeys(tenantId)
+        candidatoId = await candidateMatcher.matchCandidate(text, preguntaActual.cargoCandidatos, groq)
       }
 
       await tenantDb.surveyResponse.create({
