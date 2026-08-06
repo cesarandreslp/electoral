@@ -1,5 +1,29 @@
 import Link from 'next/link'
+import { auth } from '@campaignos/auth'
+import { getTenantDb } from '@campaignos/db'
+import { getTenantConnection } from '@/lib/tenant'
 import { LogoutButton } from './logout-button'
+
+const SUPERADMIN_TENANT_ID = '__superadmin__'
+
+/** Branding del tenant activo (logo + color). Null/vacío = branding Vectra por defecto. */
+async function getBranding(): Promise<{ logoUrl: string | null; primaryColor: string | null }> {
+  const session  = await auth()
+  const tenantId = session?.user?.tenantId
+  if (!tenantId || tenantId === SUPERADMIN_TENANT_ID) {
+    return { logoUrl: null, primaryColor: null }
+  }
+  try {
+    const db  = getTenantDb(await getTenantConnection(tenantId))
+    const cfg = await db.tenantConfig.findUnique({
+      where:  { tenantId },
+      select: { logoUrl: true, primaryColor: true },
+    })
+    return { logoUrl: cfg?.logoUrl ?? null, primaryColor: cfg?.primaryColor ?? null }
+  } catch {
+    return { logoUrl: null, primaryColor: null }
+  }
+}
 
 export interface NavItem {
   href:   string
@@ -26,7 +50,7 @@ export interface AppShellProps {
  * cliente, así que funciona también en Server Components puros y mantiene
  * el shell sin hidratación.
  */
-export function AppShell({
+export async function AppShell({
   moduleName,
   tenantName,
   userEmail,
@@ -34,6 +58,10 @@ export function AppShell({
   nav,
   children,
 }: AppShellProps) {
+  const { logoUrl, primaryColor } = await getBranding()
+  // El color de campaña, si existe, sobreescribe el granate por defecto (inline > clase).
+  const brandStyle = primaryColor ? { backgroundColor: primaryColor } : undefined
+
   return (
     // md:flex — sin esto el sidebar `md:static` y el contenido se apilan en
     // vertical en desktop, y toda la app arranca debajo del menú.
@@ -46,7 +74,7 @@ export function AppShell({
       <input id="appshell-collapse" type="checkbox" className="peer/collapse hidden" />
 
       {/* Top bar — solo móvil */}
-      <header className="md:hidden fixed top-0 inset-x-0 z-20 flex items-center justify-between bg-granate-dark text-white px-3 h-14 shadow">
+      <header style={brandStyle} className="md:hidden fixed top-0 inset-x-0 z-20 flex items-center justify-between bg-granate-dark text-white px-3 h-14 shadow">
         <label
           htmlFor="appshell-toggle"
           className="cursor-pointer p-2 -ml-2 rounded-md hover:bg-white/10"
@@ -72,6 +100,7 @@ export function AppShell({
 
       {/* Sidebar */}
       <aside
+        style={brandStyle}
         className="
           fixed inset-y-0 left-0 z-40 w-64 bg-granate-dark text-white px-5 py-6
           flex flex-col gap-2 overflow-hidden
@@ -93,6 +122,10 @@ export function AppShell({
         </label>
 
         <div className="mb-6 whitespace-nowrap">
+          {logoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoUrl} alt={tenantName} className="h-9 w-auto max-w-[150px] object-contain mb-2" />
+          )}
           <div className="font-bold text-base leading-tight">{tenantName}</div>
           <div className="text-[11px] font-semibold text-plata mt-0.5 uppercase tracking-wider">
             Vectra · {moduleName}
