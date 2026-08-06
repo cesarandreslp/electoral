@@ -85,7 +85,9 @@ export async function GET(request: NextRequest) {
     })
 
     return NextResponse.json(
-      { electores: electoresDescifrados, syncAt: new Date().toISOString() },
+      // tenantSlug: necesario para construir el link de referido (?c=slug), que
+      // la página de registro exige para resolver el tenant.
+      { electores: electoresDescifrados, tenantSlug: session.user.tenantSlug, syncAt: new Date().toISOString() },
       {
         headers: {
           // Permitir que el service worker cachee esta respuesta

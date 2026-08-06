@@ -53,7 +53,7 @@ export default function FichaElectorPwaPage() {
   const [isPending, startTransition] = useTransition()
 
   // Obtener datos del elector del caché de mis-electores
-  const { data } = useSWR<{ electores: Elector[] }>('/api/core/mis-electores', fetcher, { keepPreviousData: true })
+  const { data } = useSWR<{ electores: Elector[]; tenantSlug: string | null }>('/api/core/mis-electores', fetcher, { keepPreviousData: true })
   const elector  = data?.electores.find((e) => e.id === voterId)
 
   function actualizarEstado(nuevoEstado: CommitmentStatus) {
@@ -148,7 +148,7 @@ export default function FichaElectorPwaPage() {
         {elector.qrTokenUsed && (
           <button
             onClick={() => {
-              const link = `${window.location.origin}/registro/${elector.qrTokenUsed}?ref=${elector.id}`
+              const link = `${window.location.origin}/registro/${elector.qrTokenUsed}?c=${data?.tenantSlug ?? ''}&ref=${elector.id}`
               navigator.clipboard.writeText(link).then(() => {
                 setCopiado(true)
                 setTimeout(() => setCopiado(false), 2500)
