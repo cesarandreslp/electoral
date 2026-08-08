@@ -5,13 +5,20 @@ import { BarraProgreso }         from './_components/barra-progreso'
 
 export const metadata = { title: 'Líderes' }
 
-export default async function LideresPage() {
+interface Props {
+  searchParams: Promise<{ q?: string }>
+}
+
+export default async function LideresPage({ searchParams }: Props) {
+  const params  = await searchParams
   const session = await auth()
   const esAdmin = ['ADMIN_CAMPANA', 'COORDINADOR'].includes(session?.user?.role ?? '')
 
-  const lideres = await listLeaders()
+  const lideres = await listLeaders({ search: params.q })
   // Solo líderes raíz: los sub-líderes se ven al entrar a su líder superior.
-  const raices  = lideres.filter((l) => l.parentLeaderId === null)
+  // Al buscar, se muestran también los sub-líderes que hagan match (si no, el
+  // filtro de raíz los escondería aunque la búsqueda sí los haya encontrado).
+  const raices  = params.q ? lideres : lideres.filter((l) => l.parentLeaderId === null)
 
   return (
     <div>
@@ -34,10 +41,26 @@ export default async function LideresPage() {
         )}
       </div>
 
+      <form method="GET" style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <input
+          name="q" defaultValue={params.q} placeholder="Buscar por nombre o cédula..."
+          style={{ padding: '0.5rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.875rem', flex: '1', maxWidth: '320px' }}
+        />
+        <button
+          type="submit"
+          style={{
+            background: '#0f172a', color: '#fff', padding: '0.5rem 1rem',
+            borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '0.875rem',
+          }}
+        >
+          Buscar
+        </button>
+      </form>
+
       {raices.length === 0 ? (
         <div style={{ color: '#64748b', marginTop: '2rem' }}>
-          No hay líderes registrados todavía.
-          {esAdmin && <> <Link href="/core/lideres/nuevo">Crear el primero →</Link></>}
+          {params.q ? 'Ningún líder coincide con la búsqueda.' : 'No hay líderes registrados todavía.'}
+          {esAdmin && !params.q && <> <Link href="/core/lideres/nuevo">Crear el primero →</Link></>}
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>

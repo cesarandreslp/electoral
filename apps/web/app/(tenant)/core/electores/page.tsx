@@ -60,7 +60,7 @@ export default async function ElectoresPage({ searchParams }: Props) {
       {/* Filtros */}
       <form method="GET" style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
         <input
-          name="q" defaultValue={params.q} placeholder="Buscar por nombre..."
+          name="q" defaultValue={params.q} placeholder="Buscar por nombre o cédula..."
           style={{ padding: '0.5rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '0.875rem', flex: '1', minWidth: '180px' }}
         />
         <select

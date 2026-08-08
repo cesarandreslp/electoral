@@ -34,12 +34,15 @@ const ETIQUETA_VISTA: Record<Vista, string> = {
 
 function dibujarCapaResidencia(L: typeof import('leaflet'), capa: import('leaflet').FeatureGroup, puntos: VoterGeo[]) {
   for (const p of puntos) {
+    const color = COLOR_ESTADO[p.commitmentStatus] ?? '#94a3b8'
     L.circleMarker([p.lat, p.lng], {
-      radius: 6, weight: 1, fillOpacity: 0.85,
-      color: COLOR_ESTADO[p.commitmentStatus] ?? '#94a3b8',
-      fillColor: COLOR_ESTADO[p.commitmentStatus] ?? '#94a3b8',
+      radius: 9, weight: 2, color: '#fff', // borde blanco para que resalte sobre el mapa base
+      fillOpacity: 1, fillColor: color,
     })
-      .bindPopup(`<b>${p.name}</b><br>${p.commitmentStatus.replace(/_/g, ' ')}`)
+      .bindPopup(
+        `<b>${p.name}</b><br>${p.commitmentStatus.replace(/_/g, ' ')}` +
+        (p.leaderName ? `<br>Líder: ${p.leaderName}` : ''),
+      )
       .addTo(capa)
   }
 }

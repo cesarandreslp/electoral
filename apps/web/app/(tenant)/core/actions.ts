@@ -40,6 +40,7 @@ export interface LeaderFilters {
   zone?:           string
   status?:         string
   parentLeaderId?: string
+  search?:         string  // nombre (contiene) o cédula exacta
 }
 
 export interface VoterOption {
@@ -243,6 +244,12 @@ export async function listLeaders(filters?: LeaderFilters): Promise<LeaderSummar
       ...(filters?.zone           && { zone:     filters.zone }),
       ...(filters?.status         && { status:   filters.status as any }),
       ...(filters?.parentLeaderId && { leaderId: filters.parentLeaderId }),
+      ...(filters?.search         && {
+        OR: [
+          { name: { contains: filters.search, mode: 'insensitive' } },
+          { cedulaHash: calcularCedulaHash(filters.search) },
+        ],
+      }),
     },
     include: {
       // "Electores" del líder = followers que NO son a su vez líderes (sin followers
@@ -425,7 +432,10 @@ export async function listVoters(
     ...(filters?.leaderId         && { leaderId:         filters.leaderId }),
     ...(filters?.commitmentStatus && { commitmentStatus: filters.commitmentStatus }),
     ...(filters?.search           && {
-      name: { contains: filters.search, mode: 'insensitive' },
+      OR: [
+        { name: { contains: filters.search, mode: 'insensitive' } },
+        { cedulaHash: calcularCedulaHash(filters.search) },
+      ],
     }),
   }
 
@@ -636,6 +646,75 @@ export async function getCoreStats(): Promise<CoreStats> {
   return { lideres, electores, puestos, mesas }
 }
 
+// ── Ranking de captadores (HALLAZGO 9) ─────────────────────────────────────────
+
+export interface LeaderRankingEntry {
+  id:                    string
+  name:                  string
+  zone:                  string | null
+  totalDownline:         number // directos + todo el sub-árbol (no solo followers directos)
+  comprometidosDownline: number
+  profundidad:           number // niveles de sub-líderes debajo de este
+}
+
+/**
+ * Rankea líderes (a cualquier nivel del árbol, no solo raíces) por el tamaño
+ * de todo su sub-árbol de electores — no solo sus followers directos, como
+ * hace listLeaders(). "Quién trae más gente", contando sub-líderes propios.
+ */
+export async function getLeaderRanking(limit?: number): Promise<LeaderRankingEntry[]> {
+  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const db      = await obtenerDbTenant(session.user.tenantId)
+
+  const todos = await db.voter.findMany({
+    where:  { tenantId: session.user.tenantId },
+    select: { id: true, name: true, zone: true, leaderId: true, commitmentStatus: true },
+  })
+
+  const hijosPorLider = new Map<string, typeof todos>()
+  for (const v of todos) {
+    if (!v.leaderId) continue
+    const lista = hijosPorLider.get(v.leaderId) ?? []
+    lista.push(v)
+    hijosPorLider.set(v.leaderId, lista)
+  }
+
+  const cache = new Map<string, { total: number; comprometidos: number; profundidad: number }>()
+  function subarbol(id: string): { total: number; comprometidos: number; profundidad: number } {
+    const cacheado = cache.get(id)
+    if (cacheado) return cacheado
+
+    const hijos = hijosPorLider.get(id) ?? []
+    let total         = hijos.length
+    let comprometidos = hijos.filter((h) => h.commitmentStatus === 'COMPROMETIDO' || h.commitmentStatus === 'VOTO_SEGURO').length
+    let profundidad   = hijos.length > 0 ? 1 : 0
+
+    for (const h of hijos) {
+      const sub = subarbol(h.id)
+      total         += sub.total
+      comprometidos += sub.comprometidos
+      profundidad    = Math.max(profundidad, 1 + sub.profundidad)
+    }
+
+    const resultado = { total, comprometidos, profundidad }
+    cache.set(id, resultado)
+    return resultado
+  }
+
+  const ranking = todos
+    .filter((v) => hijosPorLider.has(v.id)) // solo quienes tienen al menos 1 follower (son líderes)
+    .map((v) => {
+      const s = subarbol(v.id)
+      return {
+        id: v.id, name: v.name, zone: v.zone,
+        totalDownline: s.total, comprometidosDownline: s.comprometidos, profundidad: s.profundidad,
+      }
+    })
+    .sort((a, b) => b.totalDownline - a.totalDownline)
+
+  return limit ? ranking.slice(0, limit) : ranking
+}
+
 // ── Mapa de electores geolocalizados ──────────────────────────────────────────
 
 export interface VoterGeo {
@@ -644,6 +723,7 @@ export interface VoterGeo {
   lat:              number
   lng:              number
   commitmentStatus: string
+  leaderName:       string | null
 }
 
 /** Electores ya geocodificados (con lat/lng), para plotear en el mapa. */
@@ -653,11 +733,12 @@ export async function getVotersGeo(): Promise<VoterGeo[]> {
 
   const rows = await db.voter.findMany({
     where:  { tenantId: session.user.tenantId, lat: { not: null }, lng: { not: null } },
-    select: { id: true, name: true, lat: true, lng: true, commitmentStatus: true },
+    select: { id: true, name: true, lat: true, lng: true, commitmentStatus: true, leader: { select: { name: true } } },
   })
 
   return rows.map((r) => ({
     id: r.id, name: r.name, lat: r.lat!, lng: r.lng!, commitmentStatus: r.commitmentStatus,
+    leaderName: r.leader?.name ?? null,
   }))
 }
 

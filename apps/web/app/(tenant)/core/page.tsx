@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getCoreStats, getVotersGeo, getGeoStats, getVotingStationsGeo, getJurisdictionStats, getElectoresPorComuna } from './actions'
+import { getCoreStats, getVotersGeo, getGeoStats, getVotingStationsGeo, getJurisdictionStats, getElectoresPorComuna, getLeaderRanking } from './actions'
 import { MapaElectores } from './_components/mapa-electores'
 
 export const metadata = { title: 'Dashboard' }
@@ -13,13 +13,14 @@ export const maxDuration = 60
  * (ver app/page.tsx y app/login/page.tsx), así que debe existir y cargar rápido.
  */
 export default async function CoreDashboardPage() {
-  const [stats, puntos, geoStats, puestos, jurisdiccion, comunas] = await Promise.all([
+  const [stats, puntos, geoStats, puestos, jurisdiccion, comunas, ranking] = await Promise.all([
     getCoreStats(),
     getVotersGeo(),
     getGeoStats(),
     getVotingStationsGeo(),
     getJurisdictionStats(),
     getElectoresPorComuna(),
+    getLeaderRanking(5),
   ])
 
   const tarjetas = [
@@ -66,6 +67,43 @@ export default async function CoreDashboardPage() {
           <span style={{ color: '#991b1b' }}>{jurisdiccion.noCuenta} fuera de jurisdicción</span>
           <span style={{ color: '#64748b' }}>{jurisdiccion.sinVerificar} sin verificar (sin mesa asignada)</span>
         </div>
+      </div>
+
+      {/* Ranking de captadores */}
+      <div style={{ marginTop: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 700 }}>Ranking de líderes</h2>
+          <Link href="/core/lideres/ranking" style={{ fontSize: '0.85rem', color: '#1e40af', textDecoration: 'none' }}>
+            Ver más →
+          </Link>
+        </div>
+
+        {ranking.length === 0 ? (
+          <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Todavía no hay líderes con electores propios.</p>
+        ) : (
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+            {ranking.map((l, i) => (
+              <Link
+                key={l.id} href={`/core/lideres/${l.id}`}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem 1.25rem',
+                  textDecoration: 'none', color: 'inherit',
+                  borderTop: i === 0 ? 'none' : '1px solid #f1f5f9',
+                }}
+              >
+                <span style={{ fontWeight: 700, color: '#94a3b8', width: '1.5rem' }}>#{i + 1}</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{l.name}</div>
+                  {l.zone && <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{l.zone}</div>}
+                </div>
+                <div style={{ textAlign: 'right', fontSize: '0.8rem', color: '#64748b' }}>
+                  <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '1rem' }}>{l.totalDownline}</div>
+                  <div>{l.comprometidosDownline} comprometidos{l.profundidad > 0 ? ` · ${l.profundidad} nivel(es)` : ''}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
