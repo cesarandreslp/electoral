@@ -89,7 +89,7 @@ export function MapaElectores({ puntos, geoStats, puestos, comunas }: {
       if (cancelado || !contenedor.current) return
 
       if (!mapaRef.current) {
-        mapaRef.current = L.map(contenedor.current).setView([4.6, -74.08], 5) // centro Colombia
+        mapaRef.current = L.map(contenedor.current).setView([4.6, -74.08], 5) // centro Colombia, mientras no se conozca el municipio
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap',
           maxZoom: 19,
@@ -106,7 +106,17 @@ export function MapaElectores({ puntos, geoStats, puestos, comunas }: {
       capa.addTo(mapa)
       capaRef.current = capa
 
-      if (capa.getLayers().length > 0) mapa.fitBounds(capa.getBounds().pad(0.2))
+      if (capa.getLayers().length > 0) {
+        mapa.fitBounds(capa.getBounds().pad(0.2))
+      } else {
+        // Sin puntos que ubicar en esta vista (ej: nada geocodificado todavía) —
+        // igual centra en el municipio de la campaña en vez de dejar la vista de Colombia entera.
+        const puntosMunicipio: [number, number][] = [
+          ...puestos.map((s): [number, number] => [s.lat, s.lng]),
+          ...comunas.flatMap((c) => c.boundary),
+        ]
+        if (puntosMunicipio.length > 0) mapa.fitBounds(L.latLngBounds(puntosMunicipio).pad(0.2))
+      }
     })()
 
     return () => {
