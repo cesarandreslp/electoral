@@ -18,6 +18,12 @@ const COLOR_JURISDICCION: Record<StationGeo['estado'], string> = {
   NO_CUENTA: '#ef4444',
 }
 
+// Paleta para distinguir comunas/corregimientos entre sí (no por conteo)
+const PALETA_COMUNAS = [
+  '#3b82f6', '#ef4444', '#22c55e', '#eab308', '#a855f7', '#ec4899',
+  '#14b8a6', '#f97316', '#6366f1', '#84cc16', '#06b6d4', '#d946ef',
+]
+
 type Vista = 'residencia' | 'puesto' | 'comuna'
 
 const ETIQUETA_VISTA: Record<Vista, string> = {
@@ -39,15 +45,14 @@ function dibujarCapaResidencia(L: typeof import('leaflet'), capa: import('leafle
 }
 
 function dibujarCapaComunas(L: typeof import('leaflet'), capa: import('leaflet').FeatureGroup, comunas: ComunaGeo[]) {
-  const maxElectores = Math.max(1, ...comunas.map((c) => c.totalElectores))
-  for (const c of comunas) {
+  comunas.forEach((c, i) => {
+    const color = PALETA_COMUNAS[i % PALETA_COMUNAS.length]
     L.polygon(c.boundary, {
-      color: '#1e40af', weight: 2,
-      fillColor: '#3b82f6', fillOpacity: 0.15 + 0.5 * (c.totalElectores / maxElectores),
+      color, weight: 2, fillColor: color, fillOpacity: 0.35,
     })
       .bindPopup(`<b>${c.name}</b><br>${c.totalElectores} elector(es)`)
       .addTo(capa)
-  }
+  })
 }
 
 function dibujarCapaPuestos(L: typeof import('leaflet'), capa: import('leaflet').FeatureGroup, puestos: StationGeo[]) {

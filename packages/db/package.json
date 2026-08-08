@@ -16,6 +16,7 @@
     "db:migrate-leaders-to-voters": "tsx src/migrate-leaders-to-voters.ts",
     "db:seed-candidato-buga": "tsx src/seed-candidato-buga.ts",
     "db:import-comunas-boundary": "tsx src/import-comunas-boundary.ts",
+    "db:import-corregimientos-y-barrios": "tsx src/import-corregimientos-y-barrios.ts",
     "generate": "prisma generate --schema=./prisma/schema.prisma",
     "postinstall": "prisma generate --schema=./prisma/schema.prisma"
   },

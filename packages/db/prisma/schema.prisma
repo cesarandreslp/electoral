@@ -277,6 +277,7 @@ model Neighborhood {
   id        String @id @default(cuid())
   name      String
   communeId String
+  boundary  Json? // Polígono real: array de [lat, lng] (orden Leaflet), sin huecos
 
   commune Commune @relation(fields: [communeId], references: [id])
 }
