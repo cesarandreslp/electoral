@@ -25,7 +25,7 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
   const [mesaId,    setMesaId]    = useState('')
   const [mensaje,   setMensaje]   = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null)
   const [enviado,   setEnviado]   = useState(false)
-  const [voterId,   setVoterId]   = useState<string | null>(null)
+  const [miQrToken, setMiQrToken] = useState<string | null>(null)
   const [copiado,   setCopiado]   = useState(false)
 
   const [isPending, startTransition] = useTransition()
@@ -50,7 +50,7 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
       if (res.success) {
         setMensaje({ tipo: 'ok', texto: res.message })
         setEnviado(true)
-        if (res.voterId) setVoterId(res.voterId)
+        if (res.qrToken) setMiQrToken(res.qrToken)
       } else {
         setMensaje({ tipo: 'error', texto: res.error })
       }
@@ -59,8 +59,10 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
 
   // Pantalla de éxito — ya no se puede enviar de nuevo
   if (enviado && mensaje?.tipo === 'ok') {
-    const linkReferido = voterId
-      ? `${typeof window !== 'undefined' ? window.location.origin : ''}/registro/${token}?c=${slug}&ref=${voterId}`
+    // Su propio QR (no el que usó para registrarse) — quien se registre con
+    // este link queda bajo él en la jerarquía, no bajo quien lo invitó a él.
+    const linkReferido = miQrToken
+      ? `${typeof window !== 'undefined' ? window.location.origin : ''}/registro/${miQrToken}?c=${slug}`
       : null
 
     async function copiarLink() {

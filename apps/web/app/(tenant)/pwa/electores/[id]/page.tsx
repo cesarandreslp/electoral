@@ -24,7 +24,7 @@ interface Elector {
   commitmentStatus: CommitmentStatus
   lastContact:      string | null
   notes:            string | null
-  qrTokenUsed:      string | null
+  myQrToken:        string | null
 }
 
 const ESTADOS: { value: CommitmentStatus; label: string; color: string; bg: string }[] = [
@@ -144,11 +144,11 @@ export default function FichaElectorPwaPage() {
           </a>
         )}
 
-        {/* Botón link de referido */}
-        {elector.qrTokenUsed && (
+        {/* Botón: compartir mi propio QR — quien se registre con él queda bajo mí */}
+        {elector.myQrToken && (
           <button
             onClick={() => {
-              const link = `${window.location.origin}/registro/${elector.qrTokenUsed}?c=${data?.tenantSlug ?? ''}&ref=${elector.id}`
+              const link = `${window.location.origin}/registro/${elector.myQrToken}?c=${data?.tenantSlug ?? ''}`
               navigator.clipboard.writeText(link).then(() => {
                 setCopiado(true)
                 setTimeout(() => setCopiado(false), 2500)
@@ -177,7 +177,7 @@ export default function FichaElectorPwaPage() {
               cursor:       'pointer',
             }}
           >
-            {copiado ? '¡Copiado!' : '🔗 Copiar link de referido'}
+            {copiado ? '¡Copiado!' : '🔗 Copiar mi QR de captación'}
           </button>
         )}
       </div>

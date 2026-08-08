@@ -62,7 +62,6 @@ export async function GET(request: NextRequest) {
         lastContact:      true,
         votingTableId:    true,
         notes:            true,
-        qrTokenUsed:      true,   // Token del QR usado en el registro — permite construir el link de referido
         // cedula: NUNCA
       },
       orderBy: [
@@ -70,6 +69,18 @@ export async function GET(request: NextRequest) {
         { name:        'asc' },
       ],
     })
+
+    // QR propio de cada elector (leaderId = su id) — referencia suelta, no hay
+    // relación en el schema. Todo elector tiene el suyo desde que se crea.
+    const qrsPropios = await db.qrRegistration.findMany({
+      where:   { tenantId: session.user.tenantId, leaderId: { in: electores.map((e) => e.id) }, isActive: true },
+      orderBy: { createdAt: 'asc' },
+      select:  { leaderId: true, token: true },
+    })
+    const tokenPropioPorElector = new Map<string, string>()
+    for (const qr of qrsPropios) {
+      if (!tokenPropioPorElector.has(qr.leaderId)) tokenPropioPorElector.set(qr.leaderId, qr.token)
+    }
 
     const electoresDescifrados = electores.map((e) => {
       let phonePlain: string | null = null
@@ -81,7 +92,7 @@ export async function GET(request: NextRequest) {
           console.error(`[GET /api/core/mis-electores] phone no descifrable para voter ${e.id}`)
         }
       }
-      return { ...e, phone: phonePlain }
+      return { ...e, phone: phonePlain, myQrToken: tokenPropioPorElector.get(e.id) ?? null }
     })
 
     return NextResponse.json(

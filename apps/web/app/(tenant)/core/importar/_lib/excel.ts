@@ -11,6 +11,7 @@ import { createHash }         from 'crypto'
 import * as XLSX              from 'xlsx'
 import { encrypt }            from '@campaignos/db'
 import { crearAlertaDuplicado } from '../../actions'
+import { crearQrPropio }      from '@/lib/qr'
 import type { PrismaClient }  from '@campaignos/db'
 
 // ── Tipos ─────────────────────────────────────────────────────────────────────
@@ -201,7 +202,7 @@ export async function procesarImportExcel(
 
       // No existe → crear elector
       try {
-        await db.voter.create({
+        const nuevo = await db.voter.create({
           data: {
             tenantId,
             cedula:      encrypt(cedula),
@@ -214,6 +215,7 @@ export async function procesarImportExcel(
             captureDepth: 0,
           },
         })
+        await crearQrPropio(nuevo.id, tenantId, db as any)
         created++
       } catch (err: any) {
         if (err?.code === 'P2002') {

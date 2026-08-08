@@ -16,6 +16,7 @@ import { headers }                from 'next/headers'
 import { superadminDb, getTenantDb, encrypt } from '@campaignos/db'
 import { getTenantConnection }    from '@/lib/tenant'
 import { crearAlertaDuplicado }   from '@/app/(tenant)/core/actions'
+import { crearQrPropio }          from '@/lib/qr'
 import { verificarRateLimit }     from './_lib/rate-limit'
 
 export interface RegistroQRInput {
@@ -28,7 +29,7 @@ export interface RegistroQRInput {
 }
 
 export type RegistroQRResult =
-  | { success: true;  message: string; voterId?: string }
+  | { success: true;  message: string; voterId?: string; qrToken?: string }
   | { success: false; error: string }
 
 /**
@@ -163,6 +164,9 @@ export async function registrarseConQR(
     },
     select: { id: true },
   })
+  // Su propio QR queda listo de inmediato para que, si a su vez capta a
+  // alguien, esa persona quede bajo él — sin esperar a que "sea líder".
+  const qrTokenPropio = await crearQrPropio(nuevoElector.id, tenantId, db)
 
   // Incrementar contador de registros del QR
   await db.qrRegistration.update({
@@ -174,6 +178,7 @@ export async function registrarseConQR(
     success: true,
     message: `¡Gracias ${nombre}! Quedaste registrado exitosamente.`,
     voterId: nuevoElector.id,
+    qrToken: qrTokenPropio,
   }
 }
 

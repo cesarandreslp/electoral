@@ -14,6 +14,7 @@ import { calcularCedulaHash }         from '@/lib/cedula-hash'
 import { getTenantDb, encrypt, Prisma } from '@campaignos/db'
 import { geocodeAddress }             from '@/lib/geocode'
 import { puntoEnPoligono }            from '@/lib/geometry'
+import { crearQrPropio }              from '@/lib/qr'
 import { revalidatePath }             from 'next/cache'
 import type { Cargo }                 from './configuracion/actions'
 
@@ -160,6 +161,7 @@ export async function createLeader(
         targetVotes: data.targetVotes,
       },
     })
+    await crearQrPropio(lider.id, session.user.tenantId, db)
 
     revalidatePath('/core/lideres')
     return { success: true, leaderId: lider.id }
@@ -396,6 +398,7 @@ export async function createVoter(
         commitmentStatus: data.commitmentStatus ?? 'SIN_CONTACTAR',
       },
     })
+    await crearQrPropio(elector.id, session.user.tenantId, db)
 
     revalidatePath('/core/electores')
     return { success: true, voterId: elector.id }
@@ -579,7 +582,7 @@ export async function importVoters(rows: ImportVoterRow[]): Promise<ImportResult
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (db.voter.create as any)({
+      const nuevo = await (db.voter.create as any)({
         data: {
           tenantId,
           cedula:           cedulaCifrada,
@@ -590,6 +593,7 @@ export async function importVoters(rows: ImportVoterRow[]): Promise<ImportResult
           commitmentStatus: row.commitmentStatus ?? 'SIN_CONTACTAR',
         },
       })
+      await crearQrPropio(nuevo.id, tenantId, db)
       created++
     }
   }
