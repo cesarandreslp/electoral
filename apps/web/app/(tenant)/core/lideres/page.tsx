@@ -15,10 +15,14 @@ export default async function LideresPage({ searchParams }: Props) {
   const esAdmin = ['ADMIN_CAMPANA', 'COORDINADOR'].includes(session?.user?.role ?? '')
 
   const lideres = await listLeaders({ search: params.q })
-  // Solo líderes raíz: los sub-líderes se ven al entrar a su líder superior.
-  // Al buscar, se muestran también los sub-líderes que hagan match (si no, el
-  // filtro de raíz los escondería aunque la búsqueda sí los haya encontrado).
-  const raices  = params.q ? lideres : lideres.filter((l) => l.parentLeaderId === null)
+  const idsVisibles = new Set(lideres.map((l) => l.id))
+  // Raíz = sin padre, O cuyo padre no está en la lista (ej: el candidato, que
+  // se excluye a propósito de este panel — sus hijos directos pasan a ser
+  // la raíz visual). Al buscar, se muestran también los sub-líderes que hagan
+  // match (si no, este filtro los escondería aunque la búsqueda sí los encontró).
+  const raices  = params.q
+    ? lideres
+    : lideres.filter((l) => l.parentLeaderId === null || !idsVisibles.has(l.parentLeaderId))
 
   return (
     <div>

@@ -160,6 +160,10 @@ model Voter {
   zone             String? // Zona geográfica bajo su responsabilidad (si es líder)
   targetVotes      Int              @default(0) // Meta de votos a conseguir (si es líder)
   status           LeaderStatus     @default(ACTIVO)
+  // El candidato es el líder natural en la raíz del árbol, pero no es un "líder" de
+  // campaña — se excluye del panel de líderes y del ranking (sigue contando para
+  // el sub-árbol de quien sí aparece). A lo sumo uno por tenant.
+  isCandidate      Boolean          @default(false)
   votingTableId    String? // Mesa donde está inscrito
   commitmentStatus CommitmentStatus @default(SIN_CONTACTAR)
   lastContact      DateTime? // Último contacto registrado

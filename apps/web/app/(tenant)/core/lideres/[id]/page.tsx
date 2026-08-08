@@ -3,6 +3,7 @@ import { notFound }    from 'next/navigation'
 import { auth }        from '@campaignos/auth'
 import { listLeaders, listVoters } from '../../actions'
 import { BarraProgreso } from '../_components/barra-progreso'
+import { BotonCandidato } from '../_components/boton-candidato'
 
 export const metadata = { title: 'Ficha de líder' }
 
@@ -22,6 +23,7 @@ export default async function FichaLiderPage({ params }: Props) {
   const { id }  = await params
   const session = await auth()
   const esAdmin = ['ADMIN_CAMPANA', 'COORDINADOR'].includes(session?.user?.role ?? '')
+  const esAdminCampana = session?.user?.role === 'ADMIN_CAMPANA'
 
   // Obtener datos del líder y sus electores en paralelo.
   // `misDatos` busca puntualmente por id (funciona aunque el líder sea recién
@@ -65,10 +67,21 @@ export default async function FichaLiderPage({ params }: Props) {
           <Link href="/core/lideres" style={{ color: '#64748b', fontSize: '0.875rem', textDecoration: 'none' }}>
             ← Líderes
           </Link>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem' }}>{lider.name}</h1>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.5rem' }}>
+            {lider.name}
+            {lider.isCandidate && (
+              <span style={{
+                marginLeft: '0.6rem', verticalAlign: 'middle', background: '#fef2f2', color: '#991b1b',
+                padding: '0.15rem 0.5rem', borderRadius: 999, fontSize: '0.7rem', fontWeight: 600,
+              }}>
+                CANDIDATO
+              </span>
+            )}
+          </h1>
           {lider.zone && <div style={{ color: '#64748b', fontSize: '0.875rem' }}>{lider.zone}</div>}
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {esAdminCampana && <BotonCandidato id={id} esCandidato={lider.isCandidate} />}
           <Link
             href={`/core/lideres/${id}/arbol`}
             style={{

@@ -57,6 +57,7 @@ export interface LeaderSummary {
   targetVotes:    number
   totalElectores: number
   comprometidos:  number
+  isCandidate:    boolean
   pctAvance:      number // 0-100
   parentLeaderId: string | null
 }
@@ -223,6 +224,38 @@ export async function updateLeader(
 }
 
 /**
+ * Marca (o desmarca) a un Voter como el candidato de la campaña — el líder
+ * natural de la raíz, que no debe aparecer en el panel de líderes ni en el
+ * ranking. A lo sumo un candidato por tenant: marcar uno nuevo desmarca al
+ * anterior automáticamente.
+ */
+export async function setCandidato(id: string, isCandidate: boolean): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await requireModule('CORE', ['ADMIN_CAMPANA'])
+    const db      = await obtenerDbTenant(session.user.tenantId)
+
+    const existente = await db.voter.findFirst({ where: { id, tenantId: session.user.tenantId } })
+    if (!existente) return { success: false, error: 'Elector no encontrado.' }
+
+    if (isCandidate) {
+      await db.voter.updateMany({
+        where: { tenantId: session.user.tenantId, isCandidate: true },
+        data:  { isCandidate: false },
+      })
+    }
+    await db.voter.update({ where: { id }, data: { isCandidate } })
+
+    revalidatePath('/core/lideres')
+    revalidatePath('/core')
+    return { success: true }
+
+  } catch (err) {
+    console.error('[setCandidato]', err instanceof Error ? err.message : err)
+    return { success: false, error: 'Error al actualizar el candidato.' }
+  }
+}
+
+/**
  * Lista líderes (Voters con al menos un follower) con métricas de avance.
  * Los LIDER solo ven sus propios datos.
  */
@@ -240,7 +273,9 @@ export async function listLeaders(filters?: LeaderFilters): Promise<LeaderSummar
       tenantId: session.user.tenantId,
       // Buscar por id puntual (ej. la ficha de un líder recién creado, sin
       // followers todavía) NO exige "es líder"; listar/rankear sí lo exige.
-      ...(filters?.id ? { id: filters.id } : { followers: { some: {} } }),
+      // El candidato es el líder natural de la raíz, pero no debe aparecer en el
+      // panel — sigue siendo visible al entrar directo a su ficha por id.
+      ...(filters?.id ? { id: filters.id } : { followers: { some: {} }, isCandidate: false }),
       ...(filters?.zone           && { zone:     filters.zone }),
       ...(filters?.status         && { status:   filters.status as any }),
       ...(filters?.parentLeaderId && { leaderId: filters.parentLeaderId }),
@@ -276,6 +311,7 @@ export async function listLeaders(filters?: LeaderFilters): Promise<LeaderSummar
       targetVotes:    l.targetVotes,
       totalElectores: l.followers.length,
       comprometidos,
+      isCandidate:    l.isCandidate,
       pctAvance:      l.targetVotes > 0
         ? Math.round((comprometidos / l.targetVotes) * 100)
         : 0,
@@ -637,7 +673,7 @@ export async function getCoreStats(): Promise<CoreStats> {
   // Voter lleva tenantId (defensa en profundidad además de la DB aislada).
   // VotingStation/VotingTable son territoriales (DIVIPOLA) — sin tenantId.
   const [lideres, electores, puestos, mesas] = await Promise.all([
-    db.voter.count({ where: { tenantId: session.user.tenantId, followers: { some: {} } } }),
+    db.voter.count({ where: { tenantId: session.user.tenantId, followers: { some: {} }, isCandidate: false } }),
     db.voter.count({ where: { tenantId: session.user.tenantId } }),
     db.votingStation.count(),
     db.votingTable.count(),
@@ -668,7 +704,7 @@ export async function getLeaderRanking(limit?: number): Promise<LeaderRankingEnt
 
   const todos = await db.voter.findMany({
     where:  { tenantId: session.user.tenantId },
-    select: { id: true, name: true, zone: true, leaderId: true, commitmentStatus: true },
+    select: { id: true, name: true, zone: true, leaderId: true, commitmentStatus: true, isCandidate: true },
   })
 
   const hijosPorLider = new Map<string, typeof todos>()
@@ -702,7 +738,9 @@ export async function getLeaderRanking(limit?: number): Promise<LeaderRankingEnt
   }
 
   const ranking = todos
-    .filter((v) => hijosPorLider.has(v.id)) // solo quienes tienen al menos 1 follower (son líderes)
+    // solo quienes tienen al menos 1 follower (son líderes); el candidato cuenta
+    // para el sub-árbol de quien sí aparece, pero no se lista él mismo.
+    .filter((v) => hijosPorLider.has(v.id) && !v.isCandidate)
     .map((v) => {
       const s = subarbol(v.id)
       return {
