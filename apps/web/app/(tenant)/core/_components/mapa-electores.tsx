@@ -47,7 +47,7 @@ function dibujarCapaResidencia(L: typeof import('leaflet'), capa: import('leafle
   }
 }
 
-function dibujarCapaComunas(L: typeof import('leaflet'), capa: import('leaflet').FeatureGroup, comunas: ComunaGeo[]) {
+function dibujarCapaComunas(L: typeof import('leaflet'), capa: import('leaflet').FeatureGroup, comunas: ComunaGeo[], puntos: VoterGeo[]) {
   comunas.forEach((c, i) => {
     const color = PALETA_COMUNAS[i % PALETA_COMUNAS.length]
     L.polygon(c.boundary, {
@@ -56,6 +56,8 @@ function dibujarCapaComunas(L: typeof import('leaflet'), capa: import('leaflet')
       .bindPopup(`<b>${c.name}</b><br>${c.totalElectores} elector(es)`)
       .addTo(capa)
   })
+  // Encima de las comunas sombreadas, los electores ubicados (mismos puntos que "por residencia").
+  dibujarCapaResidencia(L, capa, puntos)
 }
 
 function dibujarCapaPuestos(L: typeof import('leaflet'), capa: import('leaflet').FeatureGroup, puestos: StationGeo[]) {
@@ -105,7 +107,7 @@ export function MapaElectores({ puntos, geoStats, puestos, comunas }: {
       const capa = L.featureGroup()
       if (vista === 'residencia')    dibujarCapaResidencia(L, capa, puntos)
       else if (vista === 'puesto')   dibujarCapaPuestos(L, capa, puestos)
-      else                           dibujarCapaComunas(L, capa, comunas)
+      else                           dibujarCapaComunas(L, capa, comunas, puntos)
       capa.addTo(mapa)
       capaRef.current = capa
 
