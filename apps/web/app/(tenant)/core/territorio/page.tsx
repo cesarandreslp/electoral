@@ -4,6 +4,7 @@ import { getDefaultMunicipioDivipola, getMunicipalityByDivipola, listCommunes, l
 import { SelectorMunicipio }     from './_components/selector-municipio'
 import { ComunasPanel }          from './_components/comunas-panel'
 import { PuestosPanel }          from './_components/puestos-panel'
+import { ImportarPanel }         from './_components/importar-panel'
 
 export const metadata = { title: 'Territorio' }
 
@@ -48,6 +49,7 @@ export default async function TerritorioPage({ searchParams }: Props) {
 
       {municipio && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1.5rem' }}>
+          <ImportarPanel municipalityId={municipio.id} />
           <ComunasPanel municipalityId={municipio.id} comunasIniciales={comunas} />
           <PuestosPanel municipalityId={municipio.id} puestosIniciales={puestos} />
         </div>

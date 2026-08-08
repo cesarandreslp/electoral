@@ -6,6 +6,7 @@ import {
   createCommune, updateCommune, listNeighborhoods, createNeighborhood, updateNeighborhood,
   type CommuneSummary, type NeighborhoodSummary, type CommuneKind,
 } from '../actions'
+import { EditableTexto } from './editable-texto'
 
 export function ComunasPanel({ municipalityId, comunasIniciales }: {
   municipalityId: string
@@ -125,34 +126,6 @@ function FormNuevoBarrio({ onAgregar }: { onAgregar: (nombre: string) => void })
         + Barrio
       </button>
     </div>
-  )
-}
-
-/** Texto que se convierte en input al hacer clic, para corregir nombres sin una pantalla aparte. */
-function EditableTexto({ valor, onGuardar, negrita }: { valor: string; onGuardar: (v: string) => void; negrita?: boolean }) {
-  const [editando, setEditando] = useState(false)
-  const [texto, setTexto] = useState(valor)
-
-  if (!editando) {
-    return (
-      <span
-        onClick={(e) => { e.stopPropagation(); setEditando(true) }}
-        style={{ fontSize: '0.875rem', fontWeight: negrita ? 600 : 400, cursor: 'text' }}
-        title="Clic para corregir"
-      >
-        {valor}
-      </span>
-    )
-  }
-
-  return (
-    <input
-      type="text" autoFocus value={texto} onChange={(e) => setTexto(e.target.value)}
-      onClick={(e) => e.stopPropagation()}
-      onBlur={() => { setEditando(false); if (texto.trim() && texto !== valor) onGuardar(texto.trim()) }}
-      onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
-      style={{ fontSize: '0.875rem', padding: '0.1rem 0.3rem', border: '1px solid #cbd5e1', borderRadius: 4 }}
-    />
   )
 }
 

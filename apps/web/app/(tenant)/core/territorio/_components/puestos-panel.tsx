@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { createVotingStation, type VotingStationSummary } from '../actions'
+import { createVotingStation, updateVotingStation, type VotingStationSummary } from '../actions'
+import { EditableTexto } from './editable-texto'
 
 export function PuestosPanel({ municipalityId, puestosIniciales }: {
   municipalityId: string
@@ -16,6 +17,14 @@ export function PuestosPanel({ municipalityId, puestosIniciales }: {
   const [error, setError]       = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+
+  function guardarCampo(id: string, data: { name?: string; address?: string; lat?: number; lng?: number; specialLabel?: string }) {
+    startTransition(async () => {
+      const res = await updateVotingStation(id, data)
+      if (res.success) router.refresh()
+      else setError(res.error)
+    })
+  }
 
   function agregar() {
     setError(null)
@@ -47,6 +56,8 @@ export function PuestosPanel({ municipalityId, puestosIniciales }: {
             <tr style={{ background: '#f8fafc' }}>
               <Th>Nombre</Th>
               <Th>Dirección</Th>
+              <Th>Lat</Th>
+              <Th>Lng</Th>
               <Th>Mesas</Th>
               <Th>Especial</Th>
             </tr>
@@ -54,18 +65,30 @@ export function PuestosPanel({ municipalityId, puestosIniciales }: {
           <tbody>
             {puestosIniciales.map((p) => (
               <tr key={p.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                <Td>{p.name}</Td>
-                <Td>{p.address}</Td>
+                <Td>
+                  <EditableTexto valor={p.name} onGuardar={(v) => guardarCampo(p.id, { name: v })} negrita />
+                </Td>
+                <Td>
+                  <EditableTexto valor={p.address} onGuardar={(v) => guardarCampo(p.id, { address: v })} />
+                </Td>
+                <Td>
+                  <EditableTexto
+                    valor={p.lat != null ? String(p.lat) : ''} placeholder="—"
+                    onGuardar={(v) => { const n = Number(v); if (Number.isFinite(n)) guardarCampo(p.id, { lat: n }) }}
+                  />
+                </Td>
+                <Td>
+                  <EditableTexto
+                    valor={p.lng != null ? String(p.lng) : ''} placeholder="—"
+                    onGuardar={(v) => { const n = Number(v); if (Number.isFinite(n)) guardarCampo(p.id, { lng: n }) }}
+                  />
+                </Td>
                 <Td>{p.tablesCount}</Td>
                 <Td>
-                  {p.specialLabel && (
-                    <span style={{
-                      background: '#fef2f2', color: '#991b1b', padding: '0.15rem 0.5rem',
-                      borderRadius: 999, fontSize: '0.72rem', fontWeight: 600,
-                    }}>
-                      ⚑ {p.specialLabel}
-                    </span>
-                  )}
+                  <EditableTexto
+                    valor={p.specialLabel ?? ''} placeholder="normal" permitirVacio
+                    onGuardar={(v) => guardarCampo(p.id, { specialLabel: v })}
+                  />
                 </Td>
               </tr>
             ))}
