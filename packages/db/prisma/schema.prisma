@@ -266,6 +266,7 @@ model Commune {
   name           String
   type           CommuneType // COMUNA o CORREGIMIENTO
   municipalityId String
+  boundary       Json? // Polígono real: array de [lat, lng] (orden Leaflet), sin huecos
 
   municipality  Municipality   @relation(fields: [municipalityId], references: [id])
   neighborhoods Neighborhood[]

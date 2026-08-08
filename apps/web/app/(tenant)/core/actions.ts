@@ -11,8 +11,9 @@
 import { requireAuth, requireModule } from '@/lib/auth-helpers'
 import { getTenantConnection }        from '@/lib/tenant'
 import { calcularCedulaHash }         from '@/lib/cedula-hash'
-import { getTenantDb, encrypt }       from '@campaignos/db'
+import { getTenantDb, encrypt, Prisma } from '@campaignos/db'
 import { geocodeAddress }             from '@/lib/geocode'
+import { puntoEnPoligono }            from '@/lib/geometry'
 import { revalidatePath }             from 'next/cache'
 import type { Cargo }                 from './configuracion/actions'
 
@@ -830,6 +831,34 @@ export async function getVotingStationsGeo(): Promise<StationGeo[]> {
     specialLabel: r.specialLabel,
     estado: resolverJurisdiccion(cfg, r) === 'NO_CUENTA' ? 'NO_CUENTA' : 'CUENTA',
   }))
+}
+
+export interface ComunaGeo {
+  id:             string
+  name:           string
+  boundary:       [number, number][]
+  totalElectores: number
+}
+
+/** Comunas con polígono real y cuántos electores propios (geocodificados) caen dentro, para la vista de mapa "por comuna". */
+export async function getElectoresPorComuna(): Promise<ComunaGeo[]> {
+  const session  = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const db       = await obtenerDbTenant(session.user.tenantId)
+  const tenantId = session.user.tenantId
+
+  const [comunas, electores] = await Promise.all([
+    db.commune.findMany({ where: { boundary: { not: Prisma.JsonNull } } }),
+    db.voter.findMany({
+      where:  { tenantId, lat: { not: null }, lng: { not: null } },
+      select: { lat: true, lng: true },
+    }),
+  ])
+
+  return comunas.map((c) => {
+    const boundary = c.boundary as unknown as [number, number][]
+    const totalElectores = electores.filter((e) => puntoEnPoligono([e.lat!, e.lng!], boundary)).length
+    return { id: c.id, name: c.name, boundary, totalElectores }
+  })
 }
 
 export interface StationOption {
