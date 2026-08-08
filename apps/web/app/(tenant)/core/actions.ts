@@ -793,6 +793,7 @@ export interface StationGeo {
   lng:            number
   totalElectores: number
   estado:         'CUENTA' | 'NO_CUENTA'
+  specialLabel:   string | null
 }
 
 /** Puestos de votación con electores propios asignados, para la vista de mapa "por puesto". */
@@ -809,10 +810,10 @@ export async function getVotingStationsGeo(): Promise<StationGeo[]> {
   }
 
   const rows = await db.$queryRaw<{
-    id: string; name: string; lat: number; lng: number
+    id: string; name: string; lat: number; lng: number; specialLabel: string | null
     divipola: string; departmentCode: string; total: bigint
   }[]>`
-    SELECT vs.id, vs.name, vs.lat, vs.lng, m.divipola, d.code AS "departmentCode",
+    SELECT vs.id, vs.name, vs.lat, vs.lng, vs."specialLabel", m.divipola, d.code AS "departmentCode",
            COUNT(v.id)::bigint AS total
     FROM "Voter" v
     JOIN "VotingTable"   vt ON v."votingTableId"   = vt.id
@@ -821,11 +822,12 @@ export async function getVotingStationsGeo(): Promise<StationGeo[]> {
     JOIN "Department"    d  ON m."departmentId"    = d.id
     WHERE v."tenantId" = ${tenantId}
       AND vs.lat IS NOT NULL AND vs.lng IS NOT NULL
-    GROUP BY vs.id, vs.name, vs.lat, vs.lng, m.divipola, d.code
+    GROUP BY vs.id, vs.name, vs.lat, vs.lng, vs."specialLabel", m.divipola, d.code
   `
 
   return rows.map((r) => ({
     id: r.id, name: r.name, lat: r.lat, lng: r.lng, totalElectores: Number(r.total),
+    specialLabel: r.specialLabel,
     estado: resolverJurisdiccion(cfg, r) === 'NO_CUENTA' ? 'NO_CUENTA' : 'CUENTA',
   }))
 }

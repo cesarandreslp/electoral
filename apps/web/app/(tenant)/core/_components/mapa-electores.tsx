@@ -35,11 +35,15 @@ function dibujarCapaResidencia(L: typeof import('leaflet'), capa: import('leafle
 function dibujarCapaPuestos(L: typeof import('leaflet'), capa: import('leaflet').FeatureGroup, puestos: StationGeo[]) {
   for (const s of puestos) {
     L.circleMarker([s.lat, s.lng], {
-      radius: 8, weight: 1, fillOpacity: 0.85,
-      color: COLOR_JURISDICCION[s.estado],
+      radius: 8,
+      weight: s.specialLabel ? 3 : 1,
+      color: s.specialLabel ? '#0f172a' : COLOR_JURISDICCION[s.estado],
+      fillOpacity: 0.85,
       fillColor: COLOR_JURISDICCION[s.estado],
     })
-      .bindPopup(`<b>${s.name}</b><br>${s.totalElectores} elector(es) · ${s.estado === 'CUENTA' ? 'dentro de jurisdicción' : 'fuera de jurisdicción'}`)
+      .bindPopup(
+        `${s.specialLabel ? `⚑ ${s.specialLabel}<br>` : ''}<b>${s.name}</b><br>${s.totalElectores} elector(es) · ${s.estado === 'CUENTA' ? 'dentro de jurisdicción' : 'fuera de jurisdicción'}`,
+      )
       .addTo(capa)
   }
 }

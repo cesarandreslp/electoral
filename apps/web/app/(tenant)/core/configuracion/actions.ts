@@ -65,9 +65,9 @@ export async function getConfiguracion(): Promise<ConfiguracionView> {
 
 export interface Opcion { code: string; name: string }
 
-/** Departamentos DIVIPOLA para el select en cascada de Configuración. */
+/** Departamentos DIVIPOLA para el select en cascada de Configuración y Territorio. */
 export async function listarDepartamentos(): Promise<Opcion[]> {
-  const session = await requireAuth(['ADMIN_CAMPANA'])
+  const session = await requireAuth(['ADMIN_CAMPANA', 'COORDINADOR'])
   const db      = await dbTenant(session.user.tenantId)
   const deptos  = await db.department.findMany({ orderBy: { name: 'asc' } })
   return deptos.map((d) => ({ code: d.code, name: d.name }))
@@ -75,7 +75,7 @@ export async function listarDepartamentos(): Promise<Opcion[]> {
 
 /** Municipios de un departamento (por código DIVIPOLA) para el select en cascada. */
 export async function listarMunicipios(departmentCode: string): Promise<Opcion[]> {
-  const session = await requireAuth(['ADMIN_CAMPANA'])
+  const session = await requireAuth(['ADMIN_CAMPANA', 'COORDINADOR'])
   const db      = await dbTenant(session.user.tenantId)
   const muns    = await db.municipality.findMany({
     where:   { department: { code: departmentCode } },

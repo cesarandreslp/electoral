@@ -282,12 +282,13 @@ model Neighborhood {
 
 /// Puesto de votación. Lugar físico donde se instalan las mesas.
 model VotingStation {
-  id             String @id @default(cuid())
+  id             String  @id @default(cuid())
   name           String // Ej: "Institución Educativa San José"
   address        String
   municipalityId String
   lat            Float? // Latitud para mapa de calor
   lng            Float? // Longitud para mapa de calor
+  specialLabel   String? // null = puesto normal. Con texto = especial: "Cárcel", "Base militar", etc.
 
   municipality Municipality  @relation(fields: [municipalityId], references: [id])
   tables       VotingTable[]
