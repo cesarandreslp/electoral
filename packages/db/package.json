@@ -14,6 +14,7 @@
     "db:create-user": "tsx src/create-user.ts",
     "db:create-test-users": "tsx src/create-test-users.ts",
     "db:migrate-leaders-to-voters": "tsx src/migrate-leaders-to-voters.ts",
+    "db:seed-candidato-buga": "tsx src/seed-candidato-buga.ts",
     "generate": "prisma generate --schema=./prisma/schema.prisma",
     "postinstall": "prisma generate --schema=./prisma/schema.prisma"
   },
