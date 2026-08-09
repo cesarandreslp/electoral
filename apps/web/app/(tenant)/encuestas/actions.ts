@@ -2,8 +2,9 @@
 
 import { revalidatePath } from 'next/cache'
 import { requireModule } from '@/lib/auth-helpers'
-import { getTenantDb } from '@campaignos/db'
+import { getTenantDb, encrypt } from '@campaignos/db'
 import { getTenantConnection } from '@/lib/tenant'
+import { enviarPendientesTenant, type ResultadoEnvio } from '@/lib/encuestas/enviar-pendientes'
 
 /**
  * Obtiene las campañas de encuestas del tenant.
@@ -104,6 +105,8 @@ export async function createSurveyCampaign(data: {
 
 /**
  * Obtiene la configuración de WhatsApp y el límite diario del tenant.
+ * El token NUNCA se devuelve al cliente (va cifrado en DB) — solo si está
+ * configurado, igual que las claves de IA en /core/configuracion.
  */
 export async function getSurveyConfig() {
   const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA'])
@@ -120,20 +123,21 @@ export async function getSurveyConfig() {
     }
   })
 
-  return config || {
-    whatsappToken: '',
-    whatsappPhoneId: '',
-    whatsappVerifyToken: '',
-    botName: 'Asistente Virtual',
-    surveyDailyLimit: 250,
+  return {
+    hasWhatsappToken:    Boolean(config?.whatsappToken),
+    whatsappPhoneId:     config?.whatsappPhoneId ?? '',
+    whatsappVerifyToken: config?.whatsappVerifyToken ?? '',
+    botName:             config?.botName ?? 'Asistente Virtual',
+    surveyDailyLimit:    config?.surveyDailyLimit ?? 250,
   }
 }
 
 /**
  * Guarda la configuración de WhatsApp y límites.
+ * whatsappToken: vacío/omitido = no cambiar el que ya hay guardado (cifrado).
  */
 export async function saveSurveyConfig(data: {
-  whatsappToken: string
+  whatsappToken?: string
   whatsappPhoneId: string
   whatsappVerifyToken: string
   botName: string
@@ -143,18 +147,20 @@ export async function saveSurveyConfig(data: {
     const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA'])
     const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
+    const tokenCifrado = data.whatsappToken?.trim() ? encrypt(data.whatsappToken.trim()) : undefined
+
     await db.tenantConfig.upsert({
       where: { tenantId: session.user.tenantId },
       create: {
         tenantId: session.user.tenantId,
-        whatsappToken: data.whatsappToken,
+        whatsappToken: tokenCifrado,
         whatsappPhoneId: data.whatsappPhoneId,
         whatsappVerifyToken: data.whatsappVerifyToken,
         botName: data.botName,
         surveyDailyLimit: data.surveyDailyLimit,
       },
       update: {
-        whatsappToken: data.whatsappToken,
+        ...(tokenCifrado !== undefined && { whatsappToken: tokenCifrado }),
         whatsappPhoneId: data.whatsappPhoneId,
         whatsappVerifyToken: data.whatsappVerifyToken,
         botName: data.botName,
@@ -167,6 +173,48 @@ export async function saveSurveyConfig(data: {
   } catch (err) {
     return { success: false, error: 'Error guardando configuración' }
   }
+}
+
+/**
+ * Envía ahora mismo el primer mensaje a electores PENDIENTE del tenant
+ * (respeta el límite diario y requiere credenciales de WhatsApp configuradas).
+ * No depende de que haya un cron externo corriendo.
+ */
+export async function enviarEncuestasAhora(): Promise<ResultadoEnvio> {
+  const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA'])
+  const db = getTenantDb(await getTenantConnection(session.user.tenantId))
+
+  const resultado = await enviarPendientesTenant(session.user.tenantId, db)
+  revalidatePath('/encuestas/campanas')
+  return resultado
+}
+
+/**
+ * Fidelidad de los electores ya inscritos (commitmentStatus, el mismo dato
+ * que mantienen los líderes desde la PWA) — la fuente principal de "qué tan
+ * fiel es la gente" en la mayoría de campañas, el bot de WhatsApp es un
+ * complemento, no el reemplazo de esto.
+ */
+export async function getFidelidadStats() {
+  const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const db = getTenantDb(await getTenantConnection(session.user.tenantId))
+
+  const grupos = await db.voter.groupBy({
+    by: ['commitmentStatus'],
+    where: { tenantId: session.user.tenantId },
+    _count: { id: true },
+  })
+
+  const porEstado: Record<string, number> = {
+    SIN_CONTACTAR: 0, CONTACTADO: 0, SIMPATIZANTE: 0, COMPROMETIDO: 0, VOTO_SEGURO: 0,
+  }
+  let total = 0
+  for (const g of grupos) {
+    porEstado[g.commitmentStatus] = g._count.id
+    total += g._count.id
+  }
+
+  return { total, porEstado }
 }
 
 export async function getSurveyStats() {

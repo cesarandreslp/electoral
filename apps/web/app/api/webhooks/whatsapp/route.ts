@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { waitUntil } from '@vercel/functions'
 import { conversationEngine } from '@/lib/encuestas/conversation-engine'
 import { getTenantConnection } from '@/lib/tenant'
-import { getTenantDb, superadminDb } from '@campaignos/db'
+import { getTenantDb, superadminDb, decrypt } from '@campaignos/db'
 
 /**
  * Webhook Verification (GET) - Meta API
@@ -112,7 +112,7 @@ async function processMessageInTenant(fromPhone: string, text: string, messageId
       if (config?.whatsappPhoneId === phoneNumberId) {
         targetTenantId = tenant.id
         tenantConnectionString = connStr
-        whatsappToken = config.whatsappToken
+        whatsappToken = config.whatsappToken ? decrypt(config.whatsappToken) : null
         break
       }
     } catch (e) {

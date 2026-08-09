@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server'
 import { getTenantDb, superadminDb } from '@campaignos/db'
 import { getTenantConnection } from '@/lib/tenant'
-import { dailyLimitService } from '@/lib/encuestas/daily-limit'
-import { conversationEngine } from '@/lib/encuestas/conversation-engine'
+import { enviarPendientesTenant } from '@/lib/encuestas/enviar-pendientes'
 import { formatInTimeZone } from 'date-fns-tz'
 
 const TIMEZONE = 'America/Bogota'
-const BATCH_SIZE = 50
 
 /**
  * Verifica si la hora actual en Bogotá está dentro del horario permitido:
@@ -28,10 +26,15 @@ function isWithinAllowedHours(): boolean {
  * GET /api/encuestas/cron
  * Endpoint protegido para ejecutar el envío automático de mensajes de encuestas a
  * electores pendientes en todos los tenants activos.
+ *
+ * No hay ninguna entrada "crons" en vercel.json — Vercel no llama esto solo.
+ * Hace falta apuntarle un cron externo (Vercel Cron o cron-job.org) a esta URL
+ * con el header Authorization: Bearer <CRON_SECRET>. Mientras tanto, el botón
+ * "Enviar ahora" en /encuestas/campanas cubre el envío bajo demanda.
  */
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization')
-  
+
   // En producción, Vercel envía el CRON_SECRET en el header de autorización.
   // cron-job.org puede enviar un token estático en el header o params.
   if (
@@ -43,11 +46,12 @@ export async function GET(request: Request) {
   }
 
   if (!isWithinAllowedHours()) {
-    console.log('[CRON ENCUESTAS] Fuera de horario permitido. Skiped.')
+    console.log('[CRON ENCUESTAS] Fuera de horario permitido. Skipped.')
     return NextResponse.json({ status: 'skipped', reason: 'outside_allowed_hours' })
   }
 
   let totalProcessed = 0
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const resultsByTenant: Record<string, any> = {}
 
   try {
@@ -55,78 +59,22 @@ export async function GET(request: Request) {
 
     for (const tenant of tenants) {
       try {
-        const connStr = await getTenantConnection(tenant.id)
+        const connStr  = await getTenantConnection(tenant.id)
         const tenantDb = getTenantDb(connStr)
-        const config = await tenantDb.tenantConfig.findUnique({ where: { tenantId: tenant.id } })
-        
-        // Si no tiene token de WhatsApp configurado, saltamos este tenant
-        if (!config || !config.whatsappToken || !config.whatsappPhoneId) {
-          continue
-        }
 
-        const dailyLimit = config.surveyDailyLimit || 250
-        const remaining = await dailyLimitService.getRemainingCapacity(tenantDb, dailyLimit)
-
-        if (remaining <= 0) {
-          resultsByTenant[tenant.id] = { status: 'skipped', reason: 'daily_limit_reached' }
-          continue
-        }
-
-        const effectiveBatchSize = Math.min(BATCH_SIZE, remaining)
-
-        // Buscar electores en estado PENDIENTE de este tenant, limitados al lote
-        const pendingVoters = await tenantDb.voter.findMany({
-          where: {
-            tenantId: tenant.id,
-            conversationState: 'PENDIENTE',
-            phone: { not: null },
-          },
-          take: effectiveBatchSize,
-          orderBy: { createdAt: 'asc' }
-        })
-
-        if (pendingVoters.length === 0) {
-          resultsByTenant[tenant.id] = { status: 'success', count: 0 }
-          continue
-        }
-
-        console.log(`[CRON ENCUESTAS] Tenant ${tenant.id}: Procesando ${pendingVoters.length} pendientes.`)
-        
-        let successCount = 0
-        const credentials = { token: config.whatsappToken, phoneId: config.whatsappPhoneId }
-
-        for (const voter of pendingVoters) {
-          if (!voter.phone) continue
-          
-          try {
-            await conversationEngine.startConversation(
-              voter.id,
-              voter.phone,
-              tenant.id,
-              tenantDb,
-              credentials
-            )
-            successCount++
-            totalProcessed++
-            // Delay ligero para no saturar la API de Meta
-            await new Promise(r => setTimeout(r, 500))
-          } catch (err) {
-            console.error(`[CRON ENCUESTAS] Error con voter ${voter.id}:`, err)
-          }
-        }
-
-        resultsByTenant[tenant.id] = { status: 'success', count: successCount, dailyRemaining: remaining - successCount }
-
+        const resultado = await enviarPendientesTenant(tenant.id, tenantDb)
+        resultsByTenant[tenant.id] = resultado
+        totalProcessed += resultado.count ?? 0
       } catch (e) {
         console.error(`[CRON ENCUESTAS] Error procesando tenant ${tenant.id}:`, e)
-        resultsByTenant[tenant.id] = { status: 'error', message: (e as Error).message }
+        resultsByTenant[tenant.id] = { status: 'error', error: (e as Error).message }
       }
     }
 
     return NextResponse.json({
       status: 'success',
       totalProcessed,
-      resultsByTenant
+      resultsByTenant,
     })
 
   } catch (error) {

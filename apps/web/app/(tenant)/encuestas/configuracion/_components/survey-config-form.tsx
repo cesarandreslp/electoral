@@ -11,8 +11,10 @@ export function SurveyConfigForm({ initial }: { initial: any }) {
     setLoading(true)
     setMessage('')
 
+    const tokenIngresado = (formData.get('whatsappToken') as string)?.trim()
+
     const res = await saveSurveyConfig({
-      whatsappToken: formData.get('whatsappToken') as string,
+      whatsappToken: tokenIngresado || undefined,
       whatsappPhoneId: formData.get('whatsappPhoneId') as string,
       whatsappVerifyToken: formData.get('whatsappVerifyToken') as string,
       botName: formData.get('botName') as string,
@@ -36,7 +38,12 @@ export function SurveyConfigForm({ initial }: { initial: any }) {
 
       <div>
         <label className="block text-sm font-semibold mb-1">WhatsApp Token (Meta)</label>
-        <input name="whatsappToken" type="password" defaultValue={initial.whatsappToken} className="w-full border rounded px-3 py-2" />
+        <input
+          name="whatsappToken" type="password" autoComplete="off"
+          placeholder={initial.hasWhatsappToken ? '•••••••• (ya configurado)' : 'EAAG…'}
+          className="w-full border rounded px-3 py-2"
+        />
+        <p className="text-xs text-slate-500 mt-1">Dejar en blanco para no cambiar el que ya está guardado.</p>
       </div>
 
       <div>

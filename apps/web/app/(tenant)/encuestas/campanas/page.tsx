@@ -2,6 +2,7 @@ import { getSurveyCampaigns, toggleSurveyEnabled } from '../actions'
 import { requireModule } from '@/lib/auth-helpers'
 import Link from 'next/link'
 import { ToggleSurveyButton } from './_components/toggle-survey-button'
+import { EnviarAhoraButton } from './_components/enviar-ahora-button'
 
 export default async function CampanasEncuestasPage() {
   await requireModule('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'])
@@ -17,9 +18,12 @@ export default async function CampanasEncuestasPage() {
             Administra las encuestas activas. Activar una encuesta permitirá al bot interactuar con los electores.
           </p>
         </div>
-        <Link href="/encuestas/campanas/nueva" className="bg-granate text-white px-4 py-2 rounded-md font-semibold hover:bg-granate-dark transition">
-          + Nueva Campaña
-        </Link>
+        <div className="flex items-start gap-3">
+          <EnviarAhoraButton />
+          <Link href="/encuestas/campanas/nueva" className="bg-granate text-white px-4 py-2 rounded-md font-semibold hover:bg-granate-dark transition h-fit">
+            + Nueva Campaña
+          </Link>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
