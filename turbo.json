@@ -15,7 +15,11 @@
     "TENANT_BASE_DOMAIN",
     "MONOREPO_ROOT",
     "PRISMA_SCHEMA_PATH",
-    "AUTH_TRUST_HOST"
+    "AUTH_TRUST_HOST",
+    "VAPID_PUBLIC_KEY",
+    "VAPID_PRIVATE_KEY",
+    "VAPID_SUBJECT",
+    "WS_NO_BUFFER_UTIL"
   ],
   "tasks": {
     "build": {
