@@ -115,6 +115,34 @@ async function obtenerDbTenant(tenantId: string) {
   return getTenantDb(connectionString)
 }
 
+/**
+ * IDs de un elector y todo su sub-árbol (directos + todos los niveles),
+ * incluyéndolo a él. Usado para acotar qué ve un usuario con rol LIDER —
+ * "su gente", no toda la campaña.
+ */
+export async function idsSubarbol(
+  raizId: string, tenantId: string, db: ReturnType<typeof getTenantDb>,
+): Promise<Set<string>> {
+  const todos = await db.voter.findMany({ where: { tenantId }, select: { id: true, leaderId: true } })
+  const hijosPorLider = new Map<string, string[]>()
+  for (const v of todos) {
+    if (!v.leaderId) continue
+    const lista = hijosPorLider.get(v.leaderId) ?? []
+    lista.push(v.id)
+    hijosPorLider.set(v.leaderId, lista)
+  }
+
+  const ids  = new Set<string>([raizId])
+  const pila = [raizId]
+  while (pila.length > 0) {
+    const actual = pila.pop()!
+    for (const hijoId of hijosPorLider.get(actual) ?? []) {
+      if (!ids.has(hijoId)) { ids.add(hijoId); pila.push(hijoId) }
+    }
+  }
+  return ids
+}
+
 // ── Acciones de líderes ───────────────────────────────────────────────────────
 
 /**
@@ -269,29 +297,36 @@ export async function listLeaders(filters?: LeaderFilters): Promise<LeaderSummar
   const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
   const db      = await obtenerDbTenant(session.user.tenantId)
 
-  // Los LIDER solo ven a sí mismos
-  // Para esto necesitamos saber cuál es el líder asociado al usuario.
-  // Por ahora filtramos por parentLeaderId si el rol es LIDER y se pasa el filtro.
-  const esLider = session.user.role === 'LIDER'
+  // Los LIDER solo ven a su propio sub-árbol (ellos + todos sus descendientes),
+  // no toda la campaña. Si su User no está vinculado a un Voter, no ve nada
+  // (falla cerrado) en vez de caer de vuelta a ver toda la campaña.
+  const idsPermitidos = session.user.role === 'LIDER'
+    ? (session.user.voterId ? await idsSubarbol(session.user.voterId, session.user.tenantId, db) : new Set<string>())
+    : null
+
+  const condiciones: any[] = [{ tenantId: session.user.tenantId }]
+  // Buscar por id puntual (ej. la ficha de un líder recién creado, sin
+  // followers todavía) NO exige "es líder"; listar/rankear sí lo exige.
+  // El candidato es el líder natural de la raíz, pero no debe aparecer en el
+  // panel — sigue siendo visible al entrar directo a su ficha por id.
+  condiciones.push(
+    filters?.id ? { id: filters.id } : { followers: { some: {} }, isCandidate: false },
+  )
+  if (idsPermitidos) condiciones.push({ id: { in: [...idsPermitidos] } })
+  if (filters?.zone)           condiciones.push({ zone: filters.zone })
+  if (filters?.status)         condiciones.push({ status: filters.status as any })
+  if (filters?.parentLeaderId) condiciones.push({ leaderId: filters.parentLeaderId })
+  if (filters?.search) {
+    condiciones.push({
+      OR: [
+        { name: { contains: filters.search, mode: 'insensitive' } },
+        { cedulaHash: calcularCedulaHash(filters.search) },
+      ],
+    })
+  }
 
   const lideres = await db.voter.findMany({
-    where: {
-      tenantId: session.user.tenantId,
-      // Buscar por id puntual (ej. la ficha de un líder recién creado, sin
-      // followers todavía) NO exige "es líder"; listar/rankear sí lo exige.
-      // El candidato es el líder natural de la raíz, pero no debe aparecer en el
-      // panel — sigue siendo visible al entrar directo a su ficha por id.
-      ...(filters?.id ? { id: filters.id } : { followers: { some: {} }, isCandidate: false }),
-      ...(filters?.zone           && { zone:     filters.zone }),
-      ...(filters?.status         && { status:   filters.status as any }),
-      ...(filters?.parentLeaderId && { leaderId: filters.parentLeaderId }),
-      ...(filters?.search         && {
-        OR: [
-          { name: { contains: filters.search, mode: 'insensitive' } },
-          { cedulaHash: calcularCedulaHash(filters.search) },
-        ],
-      }),
-    },
+    where: { AND: condiciones },
     include: {
       // "Electores" del líder = followers que NO son a su vez líderes (sin followers
       // propios). Un sub-líder no cuenta como elector hacia la meta de votos del padre —
@@ -437,10 +472,12 @@ export async function updateVoterCommitment(
     })
     if (!elector) return { success: false, error: 'Elector no encontrado.' }
 
-    // Los LIDER solo pueden actualizar electores asignados a ellos.
-    // La verificación exacta requeriría mapear userId → leaderId.
-    // Por ahora se implementa la verificación de tenantId (suficiente para MVP).
-    // TODO: cuando exista la relación User↔Leader, agregar verificación de leaderId.
+    // Los LIDER solo pueden actualizar electores de su propio sub-árbol.
+    if (session.user.role === 'LIDER') {
+      if (!session.user.voterId) return { success: false, error: 'Tu usuario no está vinculado a un elector.' }
+      const permitidos = await idsSubarbol(session.user.voterId, session.user.tenantId, db)
+      if (!permitidos.has(voterId)) return { success: false, error: 'No tienes acceso a este elector.' }
+    }
 
     await db.voter.update({
       where: { id: voterId },
@@ -471,8 +508,14 @@ export async function listVoters(
   const session = await requireModule('CORE')
   const db      = await obtenerDbTenant(session.user.tenantId)
 
+  // Los LIDER solo ven su propio sub-árbol; si no está vinculado a un Voter, no ve nada.
+  const idsPermitidos = session.user.role === 'LIDER'
+    ? (session.user.voterId ? await idsSubarbol(session.user.voterId, session.user.tenantId, db) : new Set<string>())
+    : null
+
   const where: any = {
     tenantId: session.user.tenantId,
+    ...(idsPermitidos             && { id: { in: [...idsPermitidos] } }),
     ...(filters?.leaderId         && { leaderId:         filters.leaderId }),
     ...(filters?.commitmentStatus && { commitmentStatus: filters.commitmentStatus }),
     ...(filters?.search           && {

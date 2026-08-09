@@ -79,6 +79,16 @@ async function main() {
       console.log(`  → Tenant: ${tenant.name} (${tenant.id})`)
     }
 
+    // ── Vincular a un Voter (para LIDER/TESTIGO) ──────────────────────────
+    // Acota qué ve en el panel a su propio sub-árbol de electores (en vez de
+    // toda la campaña). El id se copia de la URL de la ficha del líder en el
+    // admin (/core/lideres/{id}) — no se valida aquí contra la DB del tenant.
+    let voterId: string | null = null
+    if (role === 'LIDER' || role === 'TESTIGO') {
+      const respuesta = await readLine('Voter id a vincular (opcional, Enter para omitir): ')
+      voterId = respuesta.trim() || null
+    }
+
     // ── Contraseña (oculta) ───────────────────────────────────────────────
     const password = await readPassword('Contraseña (mínimo 12 caracteres): ')
     if (password.length < 12) {
@@ -108,6 +118,7 @@ async function main() {
         passwordHash,
         role: role as UserRole,
         isActive: true,
+        voterId,
       },
     })
     console.log(' ✓')

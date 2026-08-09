@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth }                      from '@campaignos/auth'
 import { getTenantConnection }        from '@/lib/tenant'
 import { getTenantDb, decrypt }      from '@campaignos/db'
+import { idsSubarbol }               from '@/app/(tenant)/core/actions'
 
 /**
  * GET /api/core/mis-electores
@@ -43,9 +44,15 @@ export async function GET(request: NextRequest) {
     const sinceParam = request.nextUrl.searchParams.get('since')
     const desde      = sinceParam ? new Date(sinceParam) : undefined
 
+    // LIDER solo ve su propio sub-árbol; si no está vinculado a un Voter, no ve nada.
+    const idsPermitidos = session.user.role === 'LIDER'
+      ? (session.user.voterId ? await idsSubarbol(session.user.voterId, session.user.tenantId, db as any) : new Set<string>())
+      : null
+
     const electores = await db.voter.findMany({
       where: {
         tenantId: session.user.tenantId,
+        ...(idsPermitidos && { id: { in: [...idsPermitidos] } }),
         // Si hay parámetro since, retornar solo registros modificados después
         ...(desde && {
           OR: [

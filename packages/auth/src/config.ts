@@ -33,6 +33,8 @@ declare module 'next-auth' {
       role: UserRole
       /** Claves de módulos activos para este tenant (vacío para SUPERADMIN) */
       activeModules: string[]
+      /** Voter.id de este usuario en la DB del tenant (null si no está vinculado) — acota "mi gente" para LIDER */
+      voterId: string | null
     } & DefaultSession['user']
   }
 
@@ -43,6 +45,7 @@ declare module 'next-auth' {
     tenantName: string | null
     role: UserRole
     activeModules: string[]
+    voterId: string | null
   }
 }
 
@@ -60,6 +63,7 @@ interface ResultadoAuth {
   tenantSlug:    string | null
   tenantName:    string | null
   activeModules: string[]
+  voterId:       string | null
 }
 
 async function autenticarUsuario(email: string, password: string): Promise<ResultadoAuth | null> {
@@ -81,6 +85,7 @@ async function autenticarUsuario(email: string, password: string): Promise<Resul
       tenantSlug:    null,
       tenantName:    null,
       activeModules: [],
+      voterId:       null,
     }
   }
 
@@ -107,6 +112,7 @@ async function autenticarUsuario(email: string, password: string): Promise<Resul
     tenantSlug:    tenant.slug,
     tenantName:    tenant.name,
     activeModules: tenant.modules.map((m) => m.moduleKey),
+    voterId:       usuario.voterId,
   }
 }
 
@@ -141,6 +147,7 @@ const nextAuth: NextAuthResult = NextAuth({
         token.tenantName    = u.tenantName
         token.role          = u.role
         token.activeModules = u.activeModules
+        token.voterId       = u.voterId
       }
       return token
     },
@@ -152,6 +159,7 @@ const nextAuth: NextAuthResult = NextAuth({
       session.user.tenantName    = token.tenantName    as string | null
       session.user.role          = token.role          as UserRole
       session.user.activeModules = token.activeModules as string[]
+      session.user.voterId       = token.voterId        as string | null
       return session
     },
   },

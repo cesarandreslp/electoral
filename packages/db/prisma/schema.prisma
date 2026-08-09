@@ -129,6 +129,10 @@ model User {
   email        String   @unique // Único en toda la plataforma — login universal
   passwordHash String // Nunca almacenar contraseña en texto plano
   role         UserRole
+  // Referencia suelta al Voter.id de este usuario en SU base de tenant (User vive
+  // en la DB del superadmin, Voter en la del tenant — no puede ser @relation).
+  // Para roles LIDER/TESTIGO: acota qué ve a su propio sub-árbol de electores.
+  voterId      String?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
 
