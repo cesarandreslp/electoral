@@ -6,10 +6,14 @@ import { useRouter } from 'next/navigation'
 
 interface LoginFormProps {
   /** URL a la que volver tras login exitoso (la setea el middleware en redirects) */
-  callbackUrl?: string
+  callbackUrl?:  string
+  /** Branding de campaña (?c=slug) — solo cosmético, null = branding Vectra por defecto (SUPERADMIN). */
+  tenantName?:   string | null
+  logoUrl?:      string | null
+  primaryColor?: string | null
 }
 
-export function LoginForm({ callbackUrl }: LoginFormProps) {
+export function LoginForm({ callbackUrl, tenantName, logoUrl, primaryColor }: LoginFormProps) {
   const [email,         setEmail]         = useState('')
   const [password,      setPassword]      = useState('')
   const [showPassword,  setShowPassword]  = useState(false)
@@ -66,12 +70,17 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/logo.png"
-            alt="Vectra"
-            style={{ height: '52px', width: 'auto', margin: '0 auto', display: 'block' }}
+            src={logoUrl ?? '/logo.png'}
+            alt={tenantName ?? 'Vectra'}
+            style={{ height: '52px', width: 'auto', margin: '0 auto', display: 'block', objectFit: 'contain' }}
           />
-          <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.5rem' }}>
-            Dirección estratégica para campañas electorales
+          {tenantName && (
+            <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginTop: '0.5rem' }}>
+              {tenantName}
+            </div>
+          )}
+          <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: tenantName ? '0.15rem' : '0.5rem' }}>
+            {tenantName ? 'Acceso del equipo de campaña' : 'Dirección estratégica para campañas electorales'}
           </div>
         </div>
 
@@ -159,7 +168,7 @@ export function LoginForm({ callbackUrl }: LoginFormProps) {
             type="submit"
             disabled={isPending}
             style={{
-              background:   isPending ? '#94a3b8' : '#7d2839',
+              background:   isPending ? '#94a3b8' : (primaryColor || '#7d2839'),
               color:        '#fff',
               padding:      '0.625rem 1rem',
               borderRadius: '6px',

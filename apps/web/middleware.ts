@@ -96,12 +96,14 @@ export async function middleware(request: NextRequest) {
       return NextResponse.rewrite(url)
     }
 
-    // Sin sesión → al login del baseDomain
+    // Sin sesión → al login del baseDomain, con el slug para que muestre
+    // el branding de esa campaña en vez del genérico de Vectra.
     if (!token) {
       const url = request.nextUrl.clone()
       url.hostname = baseDomain
       url.pathname = '/login'
       url.searchParams.set('callbackUrl', pathname)
+      url.searchParams.set('c', subdominio)
       return NextResponse.redirect(url)
     }
 
