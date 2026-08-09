@@ -9,6 +9,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter, useParams }    from 'next/navigation'
 import useSWR                      from 'swr'
+import { IconPhone, IconWhatsapp, IconCopy, IconCheck } from '@/app/_components/icons'
 
 type CommitmentStatus =
   | 'SIN_CONTACTAR'
@@ -135,13 +136,13 @@ export default function FichaElectorPwaPage() {
           <a
             href={`tel:${elector.phone}`}
             style={{
-              display: 'inline-block', marginTop: '0.75rem',
+              display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.75rem',
               background: '#dbeafe', color: '#1e40af',
               padding: '0.5rem 1rem', borderRadius: '8px', textDecoration: 'none',
               fontSize: '0.875rem', fontWeight: 600,
             }}
           >
-            📞 Llamar
+            <IconPhone size={16} /> Llamar
           </a>
         )}
 
@@ -174,16 +175,20 @@ export default function FichaElectorPwaPage() {
                 href={`https://wa.me/?text=${encodeURIComponent(mensaje)}`}
                 target="_blank" rel="noopener noreferrer"
                 style={{
-                  display: 'inline-block', background: '#25D366', color: '#fff',
+                  display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                  background: '#25D366', color: '#fff',
                   padding: '0.5rem 1rem', borderRadius: '8px', textDecoration: 'none',
                   fontSize: '0.875rem', fontWeight: 600,
                 }}
               >
-                📲 Compartir por WhatsApp
+                <IconWhatsapp size={16} /> Compartir por WhatsApp
               </a>
               <button
                 onClick={copiarMensaje}
                 style={{
+                  display:      'inline-flex',
+                  alignItems:   'center',
+                  gap:          '0.4rem',
                   background:   copiado ? '#dcfce7' : '#f1f5f9',
                   color:        copiado ? '#166534' : '#475569',
                   border:       'none',
@@ -194,7 +199,8 @@ export default function FichaElectorPwaPage() {
                   cursor:       'pointer',
                 }}
               >
-                {copiado ? '¡Copiado!' : 'Copiar mensaje'}
+                {copiado ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                {copiado ? 'Copiado' : 'Copiar mensaje'}
               </button>
             </div>
           )
@@ -213,6 +219,9 @@ export default function FichaElectorPwaPage() {
               onClick={() => actualizarEstado(e.value)}
               disabled={isPending || e.value === elector.commitmentStatus}
               style={{
+                display:      'flex',
+                alignItems:   'center',
+                justifyContent: 'space-between',
                 background:   e.value === elector.commitmentStatus ? e.bg : '#fff',
                 color:        e.value === elector.commitmentStatus ? e.color : '#475569',
                 border:       `2px solid ${e.value === elector.commitmentStatus ? e.color : '#e2e8f0'}`,
@@ -227,7 +236,7 @@ export default function FichaElectorPwaPage() {
               }}
             >
               {e.label}
-              {e.value === elector.commitmentStatus && ' ✓'}
+              {e.value === elector.commitmentStatus && <IconCheck size={16} />}
             </button>
           ))}
         </div>

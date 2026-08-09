@@ -143,6 +143,37 @@ export async function idsSubarbol(
   return ids
 }
 
+/**
+ * Profundidad de cada elector del sub-árbol respecto a la raíz (0 = la raíz
+ * misma, 1 = directos, 2 = "nietos", etc.). Usado para que "mis electores"
+ * distinga quién es directo de quién viene de más abajo en la cadena.
+ */
+export async function profundidadSubarbol(
+  raizId: string, tenantId: string, db: ReturnType<typeof getTenantDb>,
+): Promise<Map<string, number>> {
+  const todos = await db.voter.findMany({ where: { tenantId }, select: { id: true, leaderId: true } })
+  const hijosPorLider = new Map<string, string[]>()
+  for (const v of todos) {
+    if (!v.leaderId) continue
+    const lista = hijosPorLider.get(v.leaderId) ?? []
+    lista.push(v.id)
+    hijosPorLider.set(v.leaderId, lista)
+  }
+
+  const profundidad = new Map<string, number>([[raizId, 0]])
+  const cola = [raizId]
+  while (cola.length > 0) {
+    const actual = cola.shift()!
+    for (const hijoId of hijosPorLider.get(actual) ?? []) {
+      if (!profundidad.has(hijoId)) {
+        profundidad.set(hijoId, profundidad.get(actual)! + 1)
+        cola.push(hijoId)
+      }
+    }
+  }
+  return profundidad
+}
+
 // ── Acciones de líderes ───────────────────────────────────────────────────────
 
 /**

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { registrarseConQR, type RegistroQRInput } from '../actions'
+import { IconCheckCircle, IconWhatsapp, IconCopy, IconCheck } from '@/app/_components/icons'
 
 interface Puesto {
   id:     string
@@ -103,7 +104,9 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
           textAlign:    'center',
         }}
       >
-        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
+        <div style={{ color: '#16a34a', marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}>
+          <IconCheckCircle size={48} />
+        </div>
         <p style={{ fontSize: '1rem', fontWeight: 600, color: '#166534', margin: '0 0 1.5rem' }}>
           {mensaje.texto}
         </p>
@@ -139,7 +142,10 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
               href={`https://wa.me/?text=${encodeURIComponent(mensajeInvitacion)}`}
               target="_blank" rel="noopener noreferrer"
               style={{
-                display:      'block',
+                display:      'flex',
+                alignItems:   'center',
+                justifyContent: 'center',
+                gap:          '0.5rem',
                 width:        '100%',
                 boxSizing:    'border-box',
                 background:   '#25D366',
@@ -154,11 +160,15 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
                 marginBottom: '0.5rem',
               }}
             >
-              📲 Compartir por WhatsApp
+              <IconWhatsapp size={18} /> Compartir por WhatsApp
             </a>
             <button
               onClick={copiarMensaje}
               style={{
+                display:      'flex',
+                alignItems:   'center',
+                justifyContent: 'center',
+                gap:          '0.4rem',
                 width:        '100%',
                 background:   copiado ? '#dcfce7' : 'transparent',
                 color:        copiado ? '#166534' : '#64748b',
@@ -171,7 +181,8 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
                 transition:   'all 0.2s',
               }}
             >
-              {copiado ? '¡Copiado!' : 'Copiar mensaje'}
+              {copiado ? <IconCheck size={14} /> : <IconCopy size={14} />}
+              {copiado ? 'Copiado' : 'Copiar mensaje'}
             </button>
           </div>
         )}

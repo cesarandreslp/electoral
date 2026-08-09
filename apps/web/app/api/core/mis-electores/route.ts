@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth }                      from '@campaignos/auth'
 import { getTenantConnection }        from '@/lib/tenant'
 import { getTenantDb, decrypt }      from '@campaignos/db'
-import { idsSubarbol }               from '@/app/(tenant)/core/actions'
+import { idsSubarbol, profundidadSubarbol } from '@/app/(tenant)/core/actions'
 
 /**
  * GET /api/core/mis-electores
@@ -49,6 +49,11 @@ export async function GET(request: NextRequest) {
     const idsPermitidos = esAcotado
       ? (session.user.voterId ? await idsSubarbol(session.user.voterId, session.user.tenantId, db as any) : new Set<string>())
       : null
+    // Profundidad respecto a quién inició sesión (0 = él mismo, 1 = directos, 2+ = "de mi
+    // gente") — para que la PWA distinga quién le reporta a él de quién viene de más abajo.
+    const profundidades = esAcotado && session.user.voterId
+      ? await profundidadSubarbol(session.user.voterId, session.user.tenantId, db as any)
+      : null
 
     const electores = await db.voter.findMany({
       where: {
@@ -71,6 +76,8 @@ export async function GET(request: NextRequest) {
         lastContact:      true,
         votingTableId:    true,
         notes:            true,
+        lat:              true,   // para el mapa de calor de la PWA
+        lng:              true,
         // cedula: NUNCA
       },
       orderBy: [
@@ -101,13 +108,22 @@ export async function GET(request: NextRequest) {
           console.error(`[GET /api/core/mis-electores] phone no descifrable para voter ${e.id}`)
         }
       }
-      return { ...e, phone: phonePlain, myQrToken: tokenPropioPorElector.get(e.id) ?? null }
+      return {
+        ...e,
+        phone:     phonePlain,
+        myQrToken: tokenPropioPorElector.get(e.id) ?? null,
+        depth:     profundidades?.get(e.id) ?? null,
+      }
     })
+    // Con vista acotada, no tiene sentido que aparezca él mismo en "mis electores".
+    const listaFinal = esAcotado
+      ? electoresDescifrados.filter((e) => e.depth !== 0)
+      : electoresDescifrados
 
     return NextResponse.json(
       // tenantSlug: necesario para construir el link de referido (?c=slug), que
       // la página de registro exige para resolver el tenant.
-      { electores: electoresDescifrados, tenantSlug: session.user.tenantSlug, syncAt: new Date().toISOString() },
+      { electores: listaFinal, tenantSlug: session.user.tenantSlug, syncAt: new Date().toISOString() },
       {
         headers: {
           // Permitir que el service worker cachee esta respuesta

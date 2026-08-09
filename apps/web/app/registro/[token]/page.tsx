@@ -1,6 +1,7 @@
 import { getTenantConnection } from '@/lib/tenant'
 import { superadminDb, getTenantDb } from '@campaignos/db'
 import { FormularioRegistro } from './_components/formulario-registro'
+import { IconLinkOff } from '@/app/_components/icons'
 
 interface Props {
   params:      Promise<{ token: string }>
@@ -95,7 +96,9 @@ function PaginaError({ mensaje }: { mensaje: string }) {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ textAlign: 'center', maxWidth: '360px', padding: '2rem' }}>
-        <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>🔗</div>
+        <div style={{ color: '#94a3b8', marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}>
+          <IconLinkOff size={40} />
+        </div>
         <h1 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.5rem' }}>Enlace no disponible</h1>
         <p style={{ color: '#64748b', fontSize: '0.875rem' }}>{mensaje}</p>
       </div>
