@@ -133,6 +133,7 @@ export async function getSurveyConfig() {
   const config = await db.tenantConfig.findUnique({
     where: { tenantId: session.user.tenantId },
     select: {
+      whatsappSurveyEnabled: true,
       whatsappToken: true,
       whatsappPhoneId: true,
       whatsappVerifyToken: true,
@@ -142,6 +143,7 @@ export async function getSurveyConfig() {
   })
 
   return {
+    whatsappSurveyEnabled: config?.whatsappSurveyEnabled ?? true,
     hasWhatsappToken:    Boolean(config?.whatsappToken),
     whatsappPhoneId:     config?.whatsappPhoneId ?? '',
     whatsappVerifyToken: config?.whatsappVerifyToken ?? '',
@@ -155,6 +157,7 @@ export async function getSurveyConfig() {
  * whatsappToken: vacío/omitido = no cambiar el que ya hay guardado (cifrado).
  */
 export async function saveSurveyConfig(data: {
+  whatsappSurveyEnabled: boolean
   whatsappToken?: string
   whatsappPhoneId: string
   whatsappVerifyToken: string
@@ -171,6 +174,7 @@ export async function saveSurveyConfig(data: {
       where: { tenantId: session.user.tenantId },
       create: {
         tenantId: session.user.tenantId,
+        whatsappSurveyEnabled: data.whatsappSurveyEnabled,
         whatsappToken: tokenCifrado,
         whatsappPhoneId: data.whatsappPhoneId,
         whatsappVerifyToken: data.whatsappVerifyToken,
@@ -178,6 +182,7 @@ export async function saveSurveyConfig(data: {
         surveyDailyLimit: data.surveyDailyLimit,
       },
       update: {
+        whatsappSurveyEnabled: data.whatsappSurveyEnabled,
         ...(tokenCifrado !== undefined && { whatsappToken: tokenCifrado }),
         whatsappPhoneId: data.whatsappPhoneId,
         whatsappVerifyToken: data.whatsappVerifyToken,
@@ -287,5 +292,44 @@ export async function getSurveyStats() {
       preguntas,
       candidatos
     }
+  }
+}
+
+/**
+ * Resultados por pregunta de UNA campaña puntual — lo que se ve al hacer clic
+ * en su tarjeta desde /encuestas/campanas. A diferencia de getSurveyStats()
+ * (agregado de todo el tenant), esto solo trae lo de esta campaña.
+ */
+export async function getSurveyStatsByCampaign(campaignId: string) {
+  const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const db = getTenantDb(await getTenantConnection(session.user.tenantId))
+
+  const campania = await db.surveyCampaign.findFirst({
+    where: { id: campaignId, tenantId: session.user.tenantId },
+  })
+  if (!campania) return null
+
+  const filtroCampania = { cargo: { surveyCampaignId: campaignId } }
+
+  const [responsesGrouped, responsesByText, preguntas, candidatos] = await Promise.all([
+    db.surveyResponse.groupBy({
+      by: ['surveyPreguntaId', 'surveyCandidatoId'],
+      where: { tenantId: session.user.tenantId, pregunta: filtroCampania },
+      _count: { id: true },
+    }),
+    db.surveyResponse.groupBy({
+      by: ['surveyPreguntaId', 'text'],
+      where: { tenantId: session.user.tenantId, pregunta: filtroCampania },
+      _count: { id: true },
+    }),
+    db.surveyPregunta.findMany({ where: filtroCampania, orderBy: { order: 'asc' } }),
+    db.surveyCandidato.findMany({ where: { cargo: { surveyCampaignId: campaignId } } }),
+  ])
+
+  return {
+    campania,
+    rawResponsesGrouped: responsesGrouped,
+    rawResponsesByText: responsesByText,
+    metadata: { preguntas, candidatos },
   }
 }

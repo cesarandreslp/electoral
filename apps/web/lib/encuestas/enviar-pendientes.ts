@@ -24,6 +24,10 @@ export async function enviarPendientesTenant(
 ): Promise<ResultadoEnvio> {
   const config = await tenantDb.tenantConfig.findUnique({ where: { tenantId } })
 
+  if (config && !config.whatsappSurveyEnabled) {
+    return { status: 'skipped', reason: 'whatsapp_deshabilitado' }
+  }
+
   if (!config?.whatsappToken || !config.whatsappPhoneId) {
     return { status: 'skipped', reason: 'sin_credenciales_whatsapp' }
   }

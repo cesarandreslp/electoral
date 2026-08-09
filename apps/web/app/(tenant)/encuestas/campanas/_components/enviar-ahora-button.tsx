@@ -7,6 +7,7 @@ const MENSAJES: Record<string, (count?: number) => string> = {
   success_count: (count) => `Enviado a ${count} elector(es) pendiente(s).`,
   success_zero:  () => 'No hay electores pendientes — todos ya fueron contactados.',
   sin_credenciales_whatsapp: () => 'Falta configurar el WhatsApp Token y Phone ID en Configuración.',
+  whatsapp_deshabilitado: () => 'WhatsApp está apagado para encuestas — actívalo en Configuración.',
   daily_limit_reached: () => 'Se alcanzó el límite diario de mensajes de esta campaña.',
   outside_allowed_hours: () => 'Fuera del horario permitido (5:00 a.m. – 8:00 p.m.).',
 }

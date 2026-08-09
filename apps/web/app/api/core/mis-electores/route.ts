@@ -55,6 +55,18 @@ export async function GET(request: NextRequest) {
       ? await profundidadSubarbol(session.user.voterId, session.user.tenantId, db as any)
       : null
 
+    // Estado de la encuesta activa por elector — para que un líder vea de un
+    // vistazo quién de su gente ya la diligenció. null = no hay encuesta activa
+    // (módulo apagado, sin campaña activa, o campaña sin preguntas).
+    let preguntaIdsActivas: string[] = []
+    if (session.user.activeModules.includes('ENCUESTAS')) {
+      const campania = await db.surveyCampaign.findFirst({
+        where:   { tenantId: session.user.tenantId, isActive: true, isSurveyEnabled: true },
+        include: { cargos: { include: { preguntas: { select: { id: true } } } } },
+      })
+      preguntaIdsActivas = campania?.cargos.flatMap((c) => c.preguntas.map((p) => p.id)) ?? []
+    }
+
     const electores = await db.voter.findMany({
       where: {
         tenantId: session.user.tenantId,
@@ -98,6 +110,16 @@ export async function GET(request: NextRequest) {
       if (!tokenPropioPorElector.has(qr.leaderId)) tokenPropioPorElector.set(qr.leaderId, qr.token)
     }
 
+    const respondidasPorVoter = new Map<string, number>()
+    if (preguntaIdsActivas.length > 0) {
+      const respuestas = await db.surveyResponse.groupBy({
+        by:    ['voterId'],
+        where: { voterId: { in: electores.map((e) => e.id) }, surveyPreguntaId: { in: preguntaIdsActivas } },
+        _count: { id: true },
+      })
+      for (const r of respuestas) respondidasPorVoter.set(r.voterId, r._count.id)
+    }
+
     const electoresDescifrados = electores.map((e) => {
       let phonePlain: string | null = null
       if (e.phone) {
@@ -108,11 +130,16 @@ export async function GET(request: NextRequest) {
           console.error(`[GET /api/core/mis-electores] phone no descifrable para voter ${e.id}`)
         }
       }
+      const encuestaEstado = preguntaIdsActivas.length === 0
+        ? null
+        : (respondidasPorVoter.get(e.id) ?? 0) >= preguntaIdsActivas.length ? 'completa' : 'pendiente'
+
       return {
         ...e,
         phone:     phonePlain,
         myQrToken: tokenPropioPorElector.get(e.id) ?? null,
         depth:     profundidades?.get(e.id) ?? null,
+        encuestaEstado,
       }
     })
     // Con vista acotada, no tiene sentido que aparezca él mismo en "mis electores".

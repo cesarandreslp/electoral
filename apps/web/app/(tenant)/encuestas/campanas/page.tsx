@@ -1,4 +1,4 @@
-import { getSurveyCampaigns, toggleSurveyEnabled } from '../actions'
+import { getSurveyCampaigns } from '../actions'
 import { requireModule } from '@/lib/auth-helpers'
 import Link from 'next/link'
 import { ToggleSurveyButton } from './_components/toggle-survey-button'
@@ -15,7 +15,7 @@ export default async function CampanasEncuestasPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Campañas de Encuesta</h1>
           <p className="text-slate-500 text-sm mt-1">
-            Administra las encuestas activas. Activar una encuesta permitirá al bot interactuar con los electores.
+            Toca una campaña para ver sus resultados.
           </p>
         </div>
         <div className="flex items-start gap-3">
@@ -26,40 +26,28 @@ export default async function CampanasEncuestasPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <table className="min-w-full divide-y divide-slate-200">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nombre</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Fecha Elección</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Cargos</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Encuesta Activa</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-slate-200">
-            {campaigns.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-slate-500 italic">No hay campañas configuradas.</td>
-              </tr>
-            ) : (
-              campaigns.map((camp) => (
-                <tr key={camp.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">{camp.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                    {new Date(camp.electionDate).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                    {camp.cargos.length} cargo(s)
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <ToggleSurveyButton campaignId={camp.id} isEnabled={camp.isSurveyEnabled} />
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      {campaigns.length === 0 ? (
+        <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm text-center text-slate-500 italic">
+          No hay campañas configuradas.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {campaigns.map((camp) => (
+            <div key={camp.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <Link href={`/encuestas/campanas/${camp.id}`} className="block p-5 hover:bg-slate-50 transition">
+                <h2 className="font-bold text-slate-900 truncate">{camp.name}</h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  {new Date(camp.electionDate).toLocaleDateString('es-CO')} · {camp.cargos.length} cargo(s)
+                </p>
+              </Link>
+              <div className="flex justify-between items-center px-5 py-3 border-t border-slate-100 bg-slate-50">
+                <span className="text-xs text-slate-500">Encuesta</span>
+                <ToggleSurveyButton campaignId={camp.id} isEnabled={camp.isSurveyEnabled} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

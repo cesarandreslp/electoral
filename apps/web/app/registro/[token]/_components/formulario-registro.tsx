@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react'
 import { registrarseConQR, type RegistroQRInput } from '../actions'
+import { getEncuestaPendiente } from '@/app/(tenant)/pwa/encuestas/actions'
 import { IconCheckCircle, IconWhatsapp, IconCopy, IconCheck } from '@/app/_components/icons'
 
 interface Puesto {
@@ -29,8 +32,11 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
   const [enviado,   setEnviado]   = useState(false)
   const [miQrToken, setMiQrToken] = useState<string | null>(null)
   const [copiado,   setCopiado]   = useState(false)
+  // Encuesta pendiente justo tras registrarse — solo si quedó logueado (requiere teléfono).
+  const [preguntasEncuesta, setPreguntasEncuesta] = useState<number | null>(null)
 
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   const mesasDelPuesto = puestos.find((p) => p.id === puestoId)?.tables ?? []
 
@@ -54,6 +60,17 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
         setMensaje({ tipo: 'ok', texto: res.message })
         setEnviado(true)
         if (res.qrToken) setMiQrToken(res.qrToken)
+
+        // Si dejó teléfono, lo logueamos de una vez (mismas credenciales que
+        // el login de elector) para que pueda responder la encuesta sin dar
+        // otro paso — "contestarla de una vez" tal como se registra.
+        if (input.telefono) {
+          const auth = await signIn('elector', { slug, cedula: input.cedula, telefono: input.telefono, redirect: false })
+          if (!auth?.error) {
+            const pendientes = await getEncuestaPendiente()
+            setPreguntasEncuesta(pendientes.length)
+          }
+        }
       } else {
         setMensaje({ tipo: 'error', texto: res.error })
       }
@@ -110,6 +127,20 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
         <p style={{ fontSize: '1rem', fontWeight: 600, color: '#166534', margin: '0 0 1.5rem' }}>
           {mensaje.texto}
         </p>
+
+        {!!preguntasEncuesta && (
+          <button
+            onClick={() => router.push('/pwa/encuestas')}
+            style={{
+              display: 'block', width: '100%', boxSizing: 'border-box',
+              background: '#4338ca', color: '#fff', border: 'none', borderRadius: '10px',
+              padding: '0.875rem 1rem', fontSize: '0.95rem', fontWeight: 700,
+              cursor: 'pointer', marginBottom: '1.25rem',
+            }}
+          >
+            Responder encuesta ahora ({preguntasEncuesta} pregunta{preguntasEncuesta === 1 ? '' : 's'}) →
+          </button>
+        )}
 
         {mensajeInvitacion && (
           <div

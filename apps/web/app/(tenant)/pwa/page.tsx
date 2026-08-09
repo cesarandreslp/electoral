@@ -31,6 +31,8 @@ interface Elector {
   lng?:             number | null
   /** Nivel respecto a quien inició sesión: 1 = directo, 2+ = "de mi gente". null = vista sin acotar (staff). */
   depth?:           number | null
+  /** Estado frente a la encuesta activa. null = no hay encuesta activa. */
+  encuestaEstado?:  'completa' | 'pendiente' | null
 }
 
 const COLORES: Record<string, string> = {
@@ -186,6 +188,16 @@ function TarjetaElector({ elector, router }: { elector: Elector; router: ReturnT
               ? `Último contacto: ${new Date(elector.lastContact).toLocaleDateString('es-CO')}`
               : 'Sin contacto registrado'}
           </div>
+          {elector.encuestaEstado && (
+            <div style={{
+              display: 'inline-block', marginTop: '4px', padding: '0.1rem 0.5rem',
+              borderRadius: '999px', fontSize: '0.7rem', fontWeight: 600,
+              background: elector.encuestaEstado === 'completa' ? '#dcfce7' : '#fef3c7',
+              color:      elector.encuestaEstado === 'completa' ? '#166534' : '#92400e',
+            }}>
+              {elector.encuestaEstado === 'completa' ? 'Encuesta respondida' : 'Encuesta pendiente'}
+            </div>
+          )}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

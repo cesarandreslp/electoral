@@ -370,6 +370,9 @@ model TenantConfig {
   electionMunicipalityDivipola String? // Municipality.divipola
 
   // Configuración Módulo Encuestas (WhatsApp & Limites)
+  // Apaga el canal WhatsApp sin borrar las credenciales guardadas — la fuente
+  // principal es la respuesta in-app, WhatsApp queda opcional por switch.
+  whatsappSurveyEnabled Boolean @default(true)
   whatsappToken       String?
   whatsappPhoneId     String?
   whatsappVerifyToken String?
