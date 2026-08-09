@@ -14,9 +14,11 @@ export default async function ResultadosEncuestasPage() {
   await requireModule('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'])
 
   const [stats, fidelidad] = await Promise.all([getSurveyStats(), getFidelidadStats()])
-  const { rawResponsesGrouped, metadata } = stats
+  const { rawResponsesGrouped, rawResponsesByText, metadata } = stats
 
-  // Procesar respuestas agrupadas
+  // Procesar respuestas agrupadas — FREE_TEXT se agrupa por candidato (matcher IA),
+  // BOOLEAN/SINGLE_CHOICE no tienen candidato así que se agrupan por el texto
+  // guardado (SI/NO, o el texto de la opción elegida).
   const resultsByPregunta: Record<string, {
     pregunta: any,
     candidatos: { id: string, name: string, count: number }[],
@@ -24,26 +26,44 @@ export default async function ResultadosEncuestasPage() {
   }> = {}
 
   metadata.preguntas.forEach(p => {
+    const esCerradaSinCandidato = p.type !== 'FREE_TEXT'
     resultsByPregunta[p.id] = {
       pregunta: p,
-      candidatos: metadata.candidatos
-        .filter(c => c.surveyCargoId === p.surveyCargoId)
-        .map(c => ({ id: c.id, name: c.name, count: 0 })),
+      candidatos: esCerradaSinCandidato
+        ? []
+        : metadata.candidatos
+            .filter(c => c.surveyCargoId === p.surveyCargoId)
+            .map(c => ({ id: c.id, name: c.name, count: 0 })),
       total: 0
     }
-    // Añadir "Blanco/Nulo"
-    resultsByPregunta[p.id].candidatos.push({ id: 'null', name: 'Blanco / No identificado', count: 0 })
+    if (!esCerradaSinCandidato) {
+      resultsByPregunta[p.id].candidatos.push({ id: 'null', name: 'Blanco / No identificado', count: 0 })
+    }
   })
 
   rawResponsesGrouped.forEach(group => {
     const rbp = resultsByPregunta[group.surveyPreguntaId]
-    if (rbp) {
+    if (rbp && rbp.pregunta.type === 'FREE_TEXT') {
       const cId = group.surveyCandidatoId || 'null'
       const cand = rbp.candidatos.find(c => c.id === cId)
       if (cand) {
         cand.count += group._count.id
         rbp.total += group._count.id
       }
+    }
+  })
+
+  rawResponsesByText.forEach(group => {
+    const rbp = resultsByPregunta[group.surveyPreguntaId]
+    if (rbp && rbp.pregunta.type !== 'FREE_TEXT') {
+      const etiqueta = group.text === 'SI' ? 'Sí' : group.text === 'NO' ? 'No' : group.text
+      let opcion = rbp.candidatos.find(c => c.name === etiqueta)
+      if (!opcion) {
+        opcion = { id: `texto-${etiqueta}`, name: etiqueta, count: 0 }
+        rbp.candidatos.push(opcion)
+      }
+      opcion.count += group._count.id
+      rbp.total += group._count.id
     }
   })
 

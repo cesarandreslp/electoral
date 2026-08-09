@@ -9,10 +9,12 @@
  * para que el líder vea quiénes necesitan atención urgente.
  */
 
-import useSWR         from 'swr'
-import dynamic        from 'next/dynamic'
-import { useRouter }  from 'next/navigation'
-import { IconPhone }  from '@/app/_components/icons'
+import useSWR              from 'swr'
+import dynamic             from 'next/dynamic'
+import { useRouter }       from 'next/navigation'
+import { IconPhone }       from '@/app/_components/icons'
+import { SuscripcionPush } from './_components/suscripcion-push'
+import { BannerEncuesta }  from './encuestas/_components/banner-encuesta'
 
 // Leaflet toca `window` — debe cargar solo en cliente, nunca en el render del servidor.
 const MapaCalor = dynamic(() => import('./_components/mapa-calor').then(m => m.MapaCalor), { ssr: false })
@@ -93,6 +95,9 @@ export default function PwaHomePage() {
           Actualizar
         </button>
       </div>
+
+      <SuscripcionPush />
+      <BannerEncuesta />
 
       {/* Estado de carga / error */}
       {isLoading && (

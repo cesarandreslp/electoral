@@ -5,6 +5,7 @@ import { requireModule } from '@/lib/auth-helpers'
 import { getTenantDb, encrypt } from '@campaignos/db'
 import { getTenantConnection } from '@/lib/tenant'
 import { enviarPendientesTenant, type ResultadoEnvio } from '@/lib/encuestas/enviar-pendientes'
+import { enviarPushATenant } from '@/lib/push'
 
 /**
  * Obtiene las campañas de encuestas del tenant.
@@ -58,7 +59,12 @@ export async function createSurveyCampaign(data: {
   cargos: {
     name: string
     order: number
-    preguntas: { text: string; order: number; type: 'FREE_TEXT' | 'BOOLEAN' }[]
+    preguntas: {
+      text: string
+      order: number
+      type: 'FREE_TEXT' | 'BOOLEAN' | 'SINGLE_CHOICE'
+      opciones?: string[]
+    }[]
     candidatos: { name: string; code?: string }[]
   }[]
 }) {
@@ -81,7 +87,10 @@ export async function createSurveyCampaign(data: {
               create: cargo.preguntas.map(pregunta => ({
                 text: pregunta.text,
                 order: pregunta.order,
-                type: pregunta.type
+                type: pregunta.type,
+                opciones: pregunta.type === 'SINGLE_CHOICE'
+                  ? { create: (pregunta.opciones ?? []).map((text, i) => ({ text, order: i })) }
+                  : undefined,
               }))
             },
             candidatos: {
@@ -96,6 +105,15 @@ export async function createSurveyCampaign(data: {
     })
 
     revalidatePath('/encuestas/campanas')
+
+    // Aviso push best-effort a electores con la PWA instalada — no bloquea
+    // la creación de la campaña si Web Push no está configurado o falla.
+    enviarPushATenant(db, session.user.tenantId, {
+      title: 'Nueva encuesta disponible',
+      body: 'Revisa tu panel, hay una nueva encuesta para responder.',
+      url: '/pwa/encuestas',
+    }).catch((err) => console.error('[PUSH] Error al avisar nueva encuesta:', err))
+
     return { success: true }
   } catch (err) {
     console.error('Error creating campaign:', err)
@@ -231,18 +249,26 @@ export async function getSurveyStats() {
     db.voter.count({ where: { tenantId: session.user.tenantId, conversationState: 'RESPONDIENDO' } })
   ])
 
-  // Obtener conteo de respuestas por candidato de forma agrupada
+  // Obtener conteo de respuestas por candidato de forma agrupada (preguntas FREE_TEXT)
   const responsesGrouped = await db.surveyResponse.groupBy({
     by: ['surveyPreguntaId', 'surveyCandidatoId'],
     where: { tenantId: session.user.tenantId },
     _count: { id: true },
   })
-  
+
+  // Conteo por texto de respuesta — cubre BOOLEAN (SI/NO) y SINGLE_CHOICE
+  // (el texto guardado es el de la opción elegida), donde no hay candidatoId.
+  const responsesByText = await db.surveyResponse.groupBy({
+    by: ['surveyPreguntaId', 'text'],
+    where: { tenantId: session.user.tenantId },
+    _count: { id: true },
+  })
+
   // Buscar información de las preguntas y candidatos para presentar bien en UI
   const preguntas = await db.surveyPregunta.findMany({
     where: { cargo: { campaign: { tenantId: session.user.tenantId } } }
   })
-  
+
   const candidatos = await db.surveyCandidato.findMany({
     where: { cargo: { campaign: { tenantId: session.user.tenantId } } }
   })
@@ -256,6 +282,7 @@ export async function getSurveyStats() {
       rejected
     },
     rawResponsesGrouped: responsesGrouped,
+    rawResponsesByText: responsesByText,
     metadata: {
       preguntas,
       candidatos

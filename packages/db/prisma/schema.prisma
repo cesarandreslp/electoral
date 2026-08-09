@@ -186,6 +186,7 @@ model Voter {
   surveyResponseDate DateTime?
   surveyResponses    SurveyResponse[]
   surveyMessageLogs  SurveyMessageLog[]
+  pushSubscriptions  VoterPushSubscription[]
 
   leader      Voter?       @relation("VoterHierarchy", fields: [leaderId], references: [id])
   followers   Voter[]      @relation("VoterHierarchy")
@@ -819,6 +820,7 @@ model SurveyCargo {
 enum SurveyPreguntaType {
   FREE_TEXT
   BOOLEAN
+  SINGLE_CHOICE
 }
 
 /// Pregunta asociada a un cargo en la encuesta
@@ -831,8 +833,22 @@ model SurveyPregunta {
 
   cargo     SurveyCargo      @relation(fields: [surveyCargoId], references: [id], onDelete: Cascade)
   responses SurveyResponse[]
+  opciones  SurveyOpcion[]
 
   @@index([surveyCargoId])
+}
+
+/// Opción fija para una pregunta SINGLE_CHOICE (no ligada a candidatos)
+model SurveyOpcion {
+  id               String @id @default(cuid())
+  surveyPreguntaId String
+  text             String
+  order            Int    @default(0)
+
+  pregunta  SurveyPregunta   @relation(fields: [surveyPreguntaId], references: [id], onDelete: Cascade)
+  responses SurveyResponse[]
+
+  @@index([surveyPreguntaId])
 }
 
 /// Candidato oficial para un cargo electoral, usado para matcher IA
@@ -849,17 +865,20 @@ model SurveyCandidato {
 }
 
 /// Respuesta de un elector a una pregunta, con posible mapeo IA a candidato
+/// o selección directa de opción (preguntas SINGLE_CHOICE)
 model SurveyResponse {
   id                String  @id @default(cuid())
   tenantId          String
   voterId           String
   surveyPreguntaId  String
   surveyCandidatoId String?
+  surveyOpcionId    String?
   text              String
 
   voter     Voter            @relation(fields: [voterId], references: [id], onDelete: Cascade)
   pregunta  SurveyPregunta   @relation(fields: [surveyPreguntaId], references: [id], onDelete: Cascade)
   candidato SurveyCandidato? @relation(fields: [surveyCandidatoId], references: [id], onDelete: SetNull)
+  opcion    SurveyOpcion?    @relation(fields: [surveyOpcionId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
 
@@ -888,4 +907,21 @@ model SurveyMessageLog {
 
   @@index([voterId, messageId])
   @@index([tenantId])
+}
+
+/// Suscripción Web Push de un elector desde la PWA — para avisarle
+/// "hay una nueva encuesta" sin depender de WhatsApp.
+model VoterPushSubscription {
+  id        String   @id @default(cuid())
+  tenantId  String
+  voterId   String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  voter Voter @relation(fields: [voterId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([voterId])
 }

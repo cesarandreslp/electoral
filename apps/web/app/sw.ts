@@ -55,3 +55,33 @@ const serwist = new Serwist({
 })
 
 serwist.addEventListeners()
+
+// ── Web Push — aviso de nueva encuesta a electores con la PWA instalada ────
+self.addEventListener('push', (event) => {
+  if (!event.data) return
+
+  const payload = event.data.json() as { title: string; body: string; url?: string }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      data: { url: payload.url ?? '/pwa' },
+    }),
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const url = (event.notification.data as { url?: string } | undefined)?.url ?? '/pwa'
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes(url) && 'focus' in client) return client.focus()
+      }
+      return self.clients.openWindow(url)
+    }),
+  )
+})
