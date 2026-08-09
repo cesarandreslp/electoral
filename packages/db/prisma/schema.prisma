@@ -187,6 +187,7 @@ model Voter {
   surveyResponses    SurveyResponse[]
   surveyMessageLogs  SurveyMessageLog[]
   pushSubscriptions  VoterPushSubscription[]
+  meetingAttendances MeetingAttendance[]
 
   leader      Voter?       @relation("VoterHierarchy", fields: [leaderId], references: [id])
   followers   Voter[]      @relation("VoterHierarchy")
@@ -926,5 +927,34 @@ model VoterPushSubscription {
   voter Voter @relation(fields: [voterId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
+  @@index([voterId])
+}
+
+/// Reunión convocada por un elector (líder implícito) para su gente — señal
+/// de compromiso: quién asiste a las actividades de la campaña.
+model Meeting {
+  id        String   @id @default(cuid())
+  tenantId  String
+  leaderId  String // Voter que convocó
+  title     String
+  date      DateTime
+  createdAt DateTime @default(now())
+
+  attendees MeetingAttendance[]
+
+  @@index([tenantId, leaderId])
+}
+
+/// Asistencia confirmada de un elector a una reunión — la fila existe solo
+/// si asistió (lista de presentes, no de invitados).
+model MeetingAttendance {
+  id        String @id @default(cuid())
+  meetingId String
+  voterId   String
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  voter   Voter   @relation(fields: [voterId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, voterId])
   @@index([voterId])
 }

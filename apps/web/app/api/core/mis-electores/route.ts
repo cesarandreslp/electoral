@@ -3,6 +3,7 @@ import { auth }                      from '@campaignos/auth'
 import { getTenantConnection }        from '@/lib/tenant'
 import { getTenantDb, decrypt }      from '@campaignos/db'
 import { idsSubarbol, profundidadSubarbol } from '@/app/(tenant)/core/actions'
+import { calcularIndiceCompromiso }  from '@/lib/compromiso'
 
 /**
  * GET /api/core/mis-electores
@@ -120,6 +121,24 @@ export async function GET(request: NextRequest) {
       for (const r of respuestas) respondidasPorVoter.set(r.voterId, r._count.id)
     }
 
+    // Señales del índice de compromiso (encuestas + reuniones + masificación) —
+    // ver lib/compromiso.ts para el cálculo.
+    const electorIds = electores.map((e) => e.id)
+    const [asistenciasPorVoter, capturadosPorLider] = await Promise.all([
+      db.meetingAttendance.groupBy({
+        by: ['voterId'],
+        where: { voterId: { in: electorIds } },
+        _count: { id: true },
+      }),
+      db.voter.groupBy({
+        by: ['leaderId'],
+        where: { tenantId: session.user.tenantId, leaderId: { in: electorIds } },
+        _count: { id: true },
+      }),
+    ])
+    const reunionesPorVoter = new Map(asistenciasPorVoter.map((a) => [a.voterId, a._count.id]))
+    const capturadosMap     = new Map(capturadosPorLider.map((c) => [c.leaderId as string, c._count.id]))
+
     const electoresDescifrados = electores.map((e) => {
       let phonePlain: string | null = null
       if (e.phone) {
@@ -134,12 +153,20 @@ export async function GET(request: NextRequest) {
         ? null
         : (respondidasPorVoter.get(e.id) ?? 0) >= preguntaIdsActivas.length ? 'completa' : 'pendiente'
 
+      const compromiso = calcularIndiceCompromiso({
+        encuestasRespondidas: respondidasPorVoter.get(e.id) ?? 0,
+        encuestasTotal:       preguntaIdsActivas.length,
+        reunionesAsistidas:   reunionesPorVoter.get(e.id) ?? 0,
+        personasCaptadas:     capturadosMap.get(e.id) ?? 0,
+      })
+
       return {
         ...e,
         phone:     phonePlain,
         myQrToken: tokenPropioPorElector.get(e.id) ?? null,
         depth:     profundidades?.get(e.id) ?? null,
         encuestaEstado,
+        compromiso,
       }
     })
     // Con vista acotada, no tiene sentido que aparezca él mismo en "mis electores".

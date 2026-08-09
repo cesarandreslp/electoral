@@ -33,6 +33,14 @@ interface Elector {
   depth?:           number | null
   /** Estado frente a la encuesta activa. null = no hay encuesta activa. */
   encuestaEstado?:  'completa' | 'pendiente' | null
+  /** Índice de compromiso (encuestas + reuniones + masificación). */
+  compromiso?:      { score: number; nivel: 'alto' | 'medio' | 'bajo' } | null
+}
+
+const COLOR_COMPROMISO: Record<string, { bg: string; fg: string }> = {
+  alto:  { bg: '#dcfce7', fg: '#166534' },
+  medio: { bg: '#fef3c7', fg: '#92400e' },
+  bajo:  { bg: '#fee2e2', fg: '#991b1b' },
 }
 
 const COLORES: Record<string, string> = {
@@ -87,15 +95,26 @@ export default function PwaHomePage() {
             </div>
           )}
         </div>
-        <button
-          onClick={() => mutate()}
-          style={{
-            background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '6px',
-            padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem', color: '#64748b',
-          }}
-        >
-          Actualizar
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            onClick={() => router.push('/pwa/reuniones')}
+            style={{
+              background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '6px',
+              padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem', color: '#64748b',
+            }}
+          >
+            Reuniones
+          </button>
+          <button
+            onClick={() => mutate()}
+            style={{
+              background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '6px',
+              padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem', color: '#64748b',
+            }}
+          >
+            Actualizar
+          </button>
+        </div>
       </div>
 
       <SuscripcionPush />
@@ -188,16 +207,28 @@ function TarjetaElector({ elector, router }: { elector: Elector; router: ReturnT
               ? `Último contacto: ${new Date(elector.lastContact).toLocaleDateString('es-CO')}`
               : 'Sin contacto registrado'}
           </div>
-          {elector.encuestaEstado && (
-            <div style={{
-              display: 'inline-block', marginTop: '4px', padding: '0.1rem 0.5rem',
-              borderRadius: '999px', fontSize: '0.7rem', fontWeight: 600,
-              background: elector.encuestaEstado === 'completa' ? '#dcfce7' : '#fef3c7',
-              color:      elector.encuestaEstado === 'completa' ? '#166534' : '#92400e',
-            }}>
-              {elector.encuestaEstado === 'completa' ? 'Encuesta respondida' : 'Encuesta pendiente'}
-            </div>
-          )}
+          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+            {elector.encuestaEstado && (
+              <div style={{
+                display: 'inline-block', marginTop: '4px', padding: '0.1rem 0.5rem',
+                borderRadius: '999px', fontSize: '0.7rem', fontWeight: 600,
+                background: elector.encuestaEstado === 'completa' ? '#dcfce7' : '#fef3c7',
+                color:      elector.encuestaEstado === 'completa' ? '#166534' : '#92400e',
+              }}>
+                {elector.encuestaEstado === 'completa' ? 'Encuesta respondida' : 'Encuesta pendiente'}
+              </div>
+            )}
+            {elector.compromiso && (
+              <div style={{
+                display: 'inline-block', marginTop: '4px', padding: '0.1rem 0.5rem',
+                borderRadius: '999px', fontSize: '0.7rem', fontWeight: 600,
+                background: COLOR_COMPROMISO[elector.compromiso.nivel].bg,
+                color:      COLOR_COMPROMISO[elector.compromiso.nivel].fg,
+              }}>
+                Compromiso {elector.compromiso.nivel}
+              </div>
+            )}
+          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
