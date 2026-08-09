@@ -9,12 +9,32 @@ export interface NavItem {
 }
 
 export interface AppShellProps {
-  moduleName: string
-  tenantName: string
-  userEmail:  string
-  userRole:   string
-  nav:        NavItem[]
-  children:   React.ReactNode
+  /** Etiqueta a mostrar (ej: "DÍA E", con acentos) — solo para UI. */
+  moduleName:     string
+  /**
+   * Clave real del módulo (ej: "DIA_E", tal cual vive en TenantModule/
+   * activeModules) — para saber cuál excluir del switcher. Si se omite,
+   * cae a moduleName (sirve para módulos donde ambos coinciden, ej. CORE).
+   */
+  moduleKey?:     string
+  tenantName:     string
+  userEmail:      string
+  userRole:       string
+  nav:            NavItem[]
+  /** Módulos activos del tenant (session.user.activeModules) — arma el switcher entre módulos. */
+  activeModules?: string[]
+  children:       React.ReactNode
+}
+
+/** Ruta raíz + etiqueta de cada módulo, para el switcher del sidebar. */
+const MODULOS: Record<string, { path: string; label: string }> = {
+  CORE:           { path: '/core',           label: 'CORE' },
+  ANALYTICS:      { path: '/analytics',      label: 'Analytics' },
+  FORMACION:      { path: '/formacion',      label: 'Formación' },
+  DIA_E:          { path: '/dia-e',          label: 'Día E' },
+  COMUNICACIONES: { path: '/comunicaciones', label: 'Comunicaciones' },
+  FINANZAS:       { path: '/finanzas',       label: 'Finanzas' },
+  ENCUESTAS:      { path: '/encuestas',      label: 'Encuestas' },
 }
 
 /**
@@ -29,15 +49,23 @@ export interface AppShellProps {
  */
 export async function AppShell({
   moduleName,
+  moduleKey,
   tenantName,
   userEmail,
   userRole,
   nav,
+  activeModules = [],
   children,
 }: AppShellProps) {
   const { logoUrl, primaryColor } = await getBranding()
   // El color de campaña, si existe, sobreescribe el granate por defecto (inline > clase).
   const brandStyle = primaryColor ? { backgroundColor: primaryColor } : undefined
+
+  // Otros módulos activos del tenant, para saltar entre ellos sin salir por la URL a mano.
+  const claveActual = moduleKey ?? moduleName
+  const otrosModulos = activeModules
+    .filter((m) => m !== claveActual && MODULOS[m])
+    .map((m) => ({ key: m, ...MODULOS[m] }))
 
   return (
     // md:flex — sin esto el sidebar `md:static` y el contenido se apilan en
@@ -122,6 +150,26 @@ export async function AppShell({
             </Link>
           ))}
         </nav>
+
+        {otrosModulos.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <div className="text-[10px] font-semibold text-plata/70 uppercase tracking-wider px-3 mb-1">
+              Otros módulos
+            </div>
+            <nav className="flex flex-col gap-0.5">
+              {otrosModulos.map((m) => (
+                <Link
+                  key={m.key}
+                  href={m.path}
+                  className="group flex items-center gap-2 text-plata/80 hover:bg-white/10 hover:text-white rounded-md px-3 py-2 text-sm whitespace-nowrap transition"
+                >
+                  <span className="w-0.5 h-4 rounded-full bg-transparent group-hover:bg-oliva-light transition" aria-hidden />
+                  <span className="flex-1">{m.label}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+        )}
 
         <div className="mt-auto pt-4 border-t border-white/10 text-xs leading-tight whitespace-nowrap">
           <div className="truncate text-plata">{userEmail}</div>

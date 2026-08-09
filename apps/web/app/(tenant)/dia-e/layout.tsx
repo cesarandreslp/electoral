@@ -27,10 +27,12 @@ export default async function DiaELayout({ children }: { children: React.ReactNo
   return (
     <AppShell
       moduleName="DÍA E"
+      moduleKey="DIA_E"
       tenantName={session.user.tenantName ?? 'Campaña'}
       userEmail={session.user.email ?? ''}
       userRole={session.user.role}
       nav={nav}
+      activeModules={session.user.activeModules}
     >
       {children}
     </AppShell>

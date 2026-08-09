@@ -29,10 +29,12 @@ export default async function ComunicacionesLayout({ children }: { children: Rea
   return (
     <AppShell
       moduleName="COMUNICACIONES"
+      moduleKey="COMUNICACIONES"
       tenantName={session.user.tenantName ?? 'Campaña'}
       userEmail={session.user.email ?? ''}
       userRole={session.user.role}
       nav={nav}
+      activeModules={session.user.activeModules}
     >
       {children}
     </AppShell>

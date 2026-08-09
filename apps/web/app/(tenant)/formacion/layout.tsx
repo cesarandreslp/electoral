@@ -25,10 +25,12 @@ export default async function FormacionLayout({ children }: { children: React.Re
   return (
     <AppShell
       moduleName="FORMACIÓN"
+      moduleKey="FORMACION"
       tenantName={session.user.tenantName ?? 'Campaña'}
       userEmail={session.user.email ?? ''}
       userRole={session.user.role}
       nav={nav}
+      activeModules={session.user.activeModules}
     >
       {children}
     </AppShell>

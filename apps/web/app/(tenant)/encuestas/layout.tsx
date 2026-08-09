@@ -28,10 +28,12 @@ export default async function EncuestasLayout({ children }: { children: React.Re
   return (
     <AppShell
       moduleName="ENCUESTAS"
+      moduleKey="ENCUESTAS"
       tenantName={session.user.tenantName ?? 'Campaña'}
       userEmail={session.user.email ?? ''}
       userRole={session.user.role}
       nav={nav}
+      activeModules={session.user.activeModules}
     >
       {children}
     </AppShell>

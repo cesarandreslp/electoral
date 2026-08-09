@@ -35,10 +35,12 @@ export default async function CoreLayout({ children }: { children: React.ReactNo
   return (
     <AppShell
       moduleName={'CORE'}
+      moduleKey="CORE"
       tenantName={session.user.tenantName ?? 'Campaña'}
       userEmail={session.user.email ?? ''}
       userRole={session.user.role}
       nav={nav}
+      activeModules={session.user.activeModules}
     >
       {children}
     </AppShell>

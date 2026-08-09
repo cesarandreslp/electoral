@@ -29,10 +29,12 @@ export default async function FinanzasLayout({ children }: { children: React.Rea
   return (
     <AppShell
       moduleName="FINANZAS"
+      moduleKey="FINANZAS"
       tenantName={session.user.tenantName ?? 'Campaña'}
       userEmail={session.user.email ?? ''}
       userRole={session.user.role}
       nav={nav}
+      activeModules={session.user.activeModules}
     >
       {children}
     </AppShell>
