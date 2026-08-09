@@ -1,18 +1,25 @@
 import NextAuth, { type DefaultSession, type NextAuthResult } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
-import { superadminDb } from '@campaignos/db'
+import { createHash } from 'crypto'
+import { superadminDb, getTenantDb, decrypt } from '@campaignos/db'
 
 // ── Tipos de sesión ───────────────────────────────────────────────────────────
 // Extender las interfaces de NextAuth para incluir los campos del dominio.
 
-/** Roles del sistema. Debe mantenerse sincronizado con el enum UserRole del schema Prisma. */
+/**
+ * Roles del sistema. SUPERADMIN..TESTIGO deben mantenerse sincronizados con el
+ * enum UserRole del schema Prisma (respaldados por una fila en User). ELECTOR
+ * es solo de sesión — un Voter que entra con cédula+teléfono nunca tiene fila
+ * en User, así que no existe en el enum de Prisma.
+ */
 export type UserRole =
   | 'SUPERADMIN'
   | 'ADMIN_CAMPANA'
   | 'COORDINADOR'
   | 'LIDER'
   | 'TESTIGO'
+  | 'ELECTOR'
 
 // El tenantId del superadmin — debe coincidir con create-superadmin.ts
 export const SUPERADMIN_TENANT_ID = '__superadmin__'
@@ -116,6 +123,61 @@ async function autenticarUsuario(email: string, password: string): Promise<Resul
   }
 }
 
+// ── Autenticación de electores (cédula + teléfono) ────────────────────────────
+// Login propio para Voters — nunca pasan por User/bcrypt. El tenant se resuelve
+// por slug (viene en la URL, igual que /registro/[token]?c=slug) porque acá no
+// hay subdominio configurado que lo resuelva. La cédula se busca por su hash
+// (nunca se guarda en plano); el teléfono se descifra solo del candidato ya
+// encontrado por cédula, y se compara solo por dígitos (tolera espacios/guiones).
+//
+// Advertencia de seguridad asumida a propósito: cédula y teléfono no son un
+// secreto fuerte (circulan fácil). Aceptable para una app de campaña, no para
+// datos sensibles — si eso cambia, esto necesita un factor más fuerte.
+
+function soloDigitos(s: string): string {
+  return s.replace(/\D/g, '')
+}
+
+async function autenticarElector(slug: string, cedula: string, telefono: string): Promise<ResultadoAuth | null> {
+  const tenant = await superadminDb.tenant.findUnique({
+    where: { slug },
+    include: { modules: { where: { isActive: true }, select: { moduleKey: true } } },
+  })
+  if (!tenant || !tenant.isActive) return null
+
+  let connectionString: string
+  try {
+    connectionString = decrypt(tenant.connectionString)
+  } catch {
+    return null
+  }
+  const db = getTenantDb(connectionString)
+
+  const cedulaHash = createHash('sha256').update(cedula.trim()).digest('hex')
+  const voter = await db.voter.findFirst({ where: { tenantId: tenant.id, cedulaHash } })
+  if (!voter || !voter.phone) return null
+
+  let telefonoGuardado: string
+  try {
+    telefonoGuardado = decrypt(voter.phone)
+  } catch {
+    return null
+  }
+  if (soloDigitos(telefonoGuardado) !== soloDigitos(telefono)) return null
+
+  return {
+    id:            `voter:${voter.id}`,
+    email:         '',
+    name:          voter.apodo?.trim() || voter.name,
+    role:          'ELECTOR',
+    tenantId:      tenant.id,
+    tenantSlug:    tenant.slug,
+    tenantName:    tenant.name,
+    activeModules: tenant.modules.map((m) => m.moduleKey),
+    voterId:       voter.id,
+  }
+}
+
 // ── Configuración de NextAuth v5 ──────────────────────────────────────────────
 
 const nextAuth: NextAuthResult = NextAuth({
@@ -133,6 +195,27 @@ const nextAuth: NextAuthResult = NextAuth({
         if (!email || !password) return null
 
         return autenticarUsuario(email, password)
+      },
+    }),
+
+    // Login de electores por cédula + teléfono — provider separado (id: "elector")
+    // para no tocar el flujo de staff. Ver autenticarElector() arriba.
+    Credentials({
+      id:   'elector',
+      name: 'elector',
+      credentials: {
+        slug:     { label: 'Campaña',  type: 'text' },
+        cedula:   { label: 'Cédula',   type: 'text' },
+        telefono: { label: 'Teléfono', type: 'text' },
+      },
+      async authorize(credentials) {
+        const slug     = credentials?.slug     as string | undefined
+        const cedula   = credentials?.cedula   as string | undefined
+        const telefono = credentials?.telefono as string | undefined
+
+        if (!slug || !cedula || !telefono) return null
+
+        return autenticarElector(slug, cedula, telefono)
       },
     }),
   ],

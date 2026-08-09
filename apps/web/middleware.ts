@@ -9,6 +9,7 @@ export const runtime = 'nodejs'
 const RUTAS_PUBLICAS = [
   '/login',
   '/registro/',
+  '/electores/login',
   '/no-autorizado',
   '/api/auth',
   '/api/resolve-tenant',

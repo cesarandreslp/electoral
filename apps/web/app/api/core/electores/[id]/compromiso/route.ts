@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth }                      from '@campaignos/auth'
 import { getTenantConnection }        from '@/lib/tenant'
 import { getTenantDb }               from '@campaignos/db'
+import { idsSubarbol }               from '@/app/(tenant)/core/actions'
 
 type CommitmentStatus =
   | 'SIN_CONTACTAR'
@@ -68,6 +69,17 @@ export async function PATCH(
 
     if (!elector) {
       return NextResponse.json({ error: 'Elector no encontrado' }, { status: 404 })
+    }
+
+    // LIDER/ELECTOR solo pueden actualizar electores de su propio sub-árbol.
+    if (session.user.role === 'LIDER' || session.user.role === 'ELECTOR') {
+      if (!session.user.voterId) {
+        return NextResponse.json({ error: 'Tu usuario no está vinculado a un elector' }, { status: 403 })
+      }
+      const permitidos = await idsSubarbol(session.user.voterId, session.user.tenantId, db as any)
+      if (!permitidos.has(id)) {
+        return NextResponse.json({ error: 'No tienes acceso a este elector' }, { status: 403 })
+      }
     }
 
     // Deduplicación offline: si llega un timestamp anterior al lastContact actual,

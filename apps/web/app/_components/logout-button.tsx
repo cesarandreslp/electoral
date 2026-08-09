@@ -15,10 +15,10 @@ const TONOS = {
   claro:  'border-slate-300 text-slate-600 hover:border-granate hover:bg-granate/5 hover:text-granate',
 } as const
 
-export function LogoutButton({ tono = 'oscuro' }: { tono?: keyof typeof TONOS }) {
+export function LogoutButton({ tono = 'oscuro', redirectTo = '/login' }: { tono?: keyof typeof TONOS; redirectTo?: string }) {
   async function cerrarSesion() {
     'use server'
-    await signOut({ redirectTo: '/login' })
+    await signOut({ redirectTo })
   }
 
   return (

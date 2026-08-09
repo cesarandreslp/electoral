@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Solo roles con acceso al módulo CORE
-  const rolesPermitidos = ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO']
+  const rolesPermitidos = ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO', 'ELECTOR']
   if (!rolesPermitidos.includes(session.user.role)) {
     return NextResponse.json({ error: 'Sin autorización' }, { status: 403 })
   }
@@ -44,8 +44,9 @@ export async function GET(request: NextRequest) {
     const sinceParam = request.nextUrl.searchParams.get('since')
     const desde      = sinceParam ? new Date(sinceParam) : undefined
 
-    // LIDER solo ve su propio sub-árbol; si no está vinculado a un Voter, no ve nada.
-    const idsPermitidos = session.user.role === 'LIDER'
+    // LIDER/ELECTOR solo ven su propio sub-árbol; si no está vinculado a un Voter, no ve nada.
+    const esAcotado = session.user.role === 'LIDER' || session.user.role === 'ELECTOR'
+    const idsPermitidos = esAcotado
       ? (session.user.voterId ? await idsSubarbol(session.user.voterId, session.user.tenantId, db as any) : new Set<string>())
       : null
 

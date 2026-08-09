@@ -10,7 +10,7 @@
  */
 
 import useSWR         from 'swr'
-import Link           from 'next/link'
+import { useRouter }  from 'next/navigation'
 
 interface Elector {
   id:               string
@@ -37,6 +37,7 @@ async function fetcher(url: string) {
 }
 
 export default function PwaHomePage() {
+  const router = useRouter()
   const { data, error, isLoading, mutate } = useSWR<{ electores: Elector[] }>(
     '/api/core/mis-electores',
     fetcher,
@@ -96,10 +97,12 @@ export default function PwaHomePage() {
       {/* Lista de electores */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {electores.map((elector) => (
-          <Link
+          // div+onClick en vez de <Link>: el botón de llamada de adentro es un <a>
+          // (tel:), y <a> dentro de <a> es HTML inválido — causaba error de hidratación.
+          <div
             key={elector.id}
-            href={`/pwa/electores/${elector.id}`}
-            style={{ textDecoration: 'none', color: 'inherit' }}
+            onClick={() => router.push(`/pwa/electores/${elector.id}`)}
+            style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer' }}
           >
             <div
               style={{
@@ -153,7 +156,7 @@ export default function PwaHomePage() {
                 />
               </div>
             </div>
-          </Link>
+          </div>
         ))}
 
         {!isLoading && electores.length === 0 && (

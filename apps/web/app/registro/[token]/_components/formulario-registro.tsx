@@ -175,6 +175,15 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
             </button>
           </div>
         )}
+
+        {telefono.trim() && (
+          <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '1.25rem' }}>
+            <a href={`/electores/login?c=${slug}`} style={{ color: '#1e40af', fontWeight: 600, textDecoration: 'none' }}>
+              Entra con tu cédula y tu teléfono →
+            </a>
+            {' '}para ver y compartir tu QR cuando quieras.
+          </p>
+        )}
       </div>
     )
   }
