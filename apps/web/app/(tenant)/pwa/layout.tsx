@@ -26,7 +26,10 @@ export default async function PwaLayout({ children }: { children: React.ReactNod
   const { logoUrl, primaryColor } = await getBranding()
 
   return (
-    <div>
+    // Sin este fondo explícito, el navegador aplica su oscurecimiento automático
+    // a la página (se ve negra) — el resto de la app lo evita con bg-slate-50
+    // del AppShell, pero /pwa no pasa por ahí.
+    <div style={{ minHeight: '100vh', background: '#f1f5f9' }}>
       <div
         style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',

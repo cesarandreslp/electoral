@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import 'leaflet/dist/leaflet.css'
 import { geocodificarPendientes, type VoterGeo, type GeoStats, type StationGeo, type ComunaGeo } from '../actions'
+import { intensidadDeEstado, COLOR_TEMPERATURA, ETIQUETA_TEMPERATURA, GRADIENTE_CALOR } from '@/lib/temperatura'
 
 const COLOR_ESTADO: Record<string, string> = {
   SIN_CONTACTAR: '#94a3b8',
@@ -24,12 +25,13 @@ const PALETA_COMUNAS = [
   '#14b8a6', '#f97316', '#6366f1', '#84cc16', '#06b6d4', '#d946ef',
 ]
 
-type Vista = 'residencia' | 'puesto' | 'comuna'
+type Vista = 'residencia' | 'puesto' | 'comuna' | 'calor'
 
 const ETIQUETA_VISTA: Record<Vista, string> = {
   residencia: 'Por residencia',
   puesto:     'Por puesto de votación',
   comuna:     'Por comuna',
+  calor:      'Mapa de calor',
 }
 
 function dibujarCapaResidencia(L: typeof import('leaflet'), capa: import('leaflet').FeatureGroup, puntos: VoterGeo[]) {
@@ -82,6 +84,8 @@ export function MapaElectores({ puntos, geoStats, puestos, comunas }: {
   const contenedor = useRef<HTMLDivElement>(null)
   const mapaRef    = useRef<import('leaflet').Map | null>(null)
   const capaRef    = useRef<import('leaflet').FeatureGroup | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const heatCapaRef = useRef<any>(null)
   const [vista, setVista] = useState<Vista>('residencia')
   const [msg, setMsg] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -90,7 +94,14 @@ export function MapaElectores({ puntos, geoStats, puestos, comunas }: {
   useEffect(() => {
     let cancelado = false
     void (async () => {
+      // leaflet.heat es un plugin viejo escrito para <script> global (usa `L` a secas,
+      // no importa leaflet) — hay que setear window.L ANTES de cargarlo, si no revienta
+      // con "L is not defined". No sirve Promise.all: deben cargar en este orden exacto.
       const L = (await import('leaflet')).default
+      if (vista === 'calor') {
+        if (typeof window !== 'undefined') (window as unknown as { L: typeof L }).L = L
+        await import('leaflet.heat')
+      }
       if (cancelado || !contenedor.current) return
 
       if (!mapaRef.current) {
@@ -102,25 +113,39 @@ export function MapaElectores({ puntos, geoStats, puestos, comunas }: {
       }
       const mapa = mapaRef.current
 
-      capaRef.current?.remove() // saca la capa de la vista anterior antes de dibujar la nueva
+      // Sacar la capa de la vista anterior (de cualquiera de los dos tipos) antes de dibujar la nueva.
+      capaRef.current?.remove();     capaRef.current = null
+      heatCapaRef.current?.remove(); heatCapaRef.current = null
 
-      const capa = L.featureGroup()
-      if (vista === 'residencia')    dibujarCapaResidencia(L, capa, puntos)
-      else if (vista === 'puesto')   dibujarCapaPuestos(L, capa, puestos)
-      else                           dibujarCapaComunas(L, capa, comunas, puntos)
-      capa.addTo(mapa)
-      capaRef.current = capa
-
-      if (capa.getLayers().length > 0) {
-        mapa.fitBounds(capa.getBounds().pad(0.2))
-      } else {
-        // Sin puntos que ubicar en esta vista (ej: nada geocodificado todavía) —
-        // igual centra en el municipio de la campaña en vez de dejar la vista de Colombia entera.
+      const centrarEnMunicipioSiVacio = () => {
         const puntosMunicipio: [number, number][] = [
           ...puestos.map((s): [number, number] => [s.lat, s.lng]),
           ...comunas.flatMap((c) => c.boundary),
         ]
         if (puntosMunicipio.length > 0) mapa.fitBounds(L.latLngBounds(puntosMunicipio).pad(0.2))
+      }
+
+      if (vista === 'calor') {
+        const puntosHeat: [number, number, number][] = puntos.map((p) => [p.lat, p.lng, intensidadDeEstado(p.commitmentStatus)])
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const heat = (L as any).heatLayer(puntosHeat, {
+          radius: 35, blur: 25, maxZoom: 16, max: 1.0, gradient: GRADIENTE_CALOR,
+        })
+        heat.addTo(mapa)
+        heatCapaRef.current = heat
+
+        if (puntos.length > 0) mapa.fitBounds(L.latLngBounds(puntos.map((p): [number, number] => [p.lat, p.lng])).pad(0.2))
+        else centrarEnMunicipioSiVacio()
+      } else {
+        const capa = L.featureGroup()
+        if (vista === 'residencia')    dibujarCapaResidencia(L, capa, puntos)
+        else if (vista === 'puesto')   dibujarCapaPuestos(L, capa, puestos)
+        else                           dibujarCapaComunas(L, capa, comunas, puntos)
+        capa.addTo(mapa)
+        capaRef.current = capa
+
+        if (capa.getLayers().length > 0) mapa.fitBounds(capa.getBounds().pad(0.2))
+        else centrarEnMunicipioSiVacio()
       }
     })()
 
@@ -145,7 +170,7 @@ export function MapaElectores({ puntos, geoStats, puestos, comunas }: {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-        {(['residencia', 'puesto', 'comuna'] as const).map((v) => (
+        {(['residencia', 'puesto', 'comuna', 'calor'] as const).map((v) => (
           <button
             key={v}
             onClick={() => setVista(v)}
@@ -164,6 +189,7 @@ export function MapaElectores({ puntos, geoStats, puestos, comunas }: {
       {vista === 'residencia' && <ControlesResidencia puntos={puntos} geoStats={geoStats} msg={msg} isPending={isPending} onUbicar={ubicar} />}
       {vista === 'puesto'     && <ControlesPuesto puestos={puestos} />}
       {vista === 'comuna'     && <ControlesComuna comunas={comunas} />}
+      {vista === 'calor'      && <ControlesCalor puntos={puntos} />}
 
       <div
         ref={contenedor}
@@ -183,6 +209,11 @@ export function MapaElectores({ puntos, geoStats, puestos, comunas }: {
       {vista === 'comuna' && comunas.length === 0 && (
         <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '0.5rem' }}>
           Todavía no hay comunas con límites cargados para este municipio.
+        </p>
+      )}
+      {vista === 'calor' && puntos.length === 0 && (
+        <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '0.5rem' }}>
+          Aún no hay electores ubicados para calcular el mapa de calor.
         </p>
       )}
     </div>
@@ -221,6 +252,20 @@ function ControlesPuesto({ puestos }: { puestos: StationGeo[] }) {
       <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
         {puestos.length} puesto(s) con electores propios — verde: dentro de jurisdicción, rojo: fuera
       </span>
+    </div>
+  )
+}
+
+function ControlesCalor({ puntos }: { puntos: VoterGeo[] }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+      <span style={{ fontSize: '0.85rem', color: '#64748b' }}>{puntos.length} elector(es) ubicados</span>
+      {(['frio', 'tibio', 'caliente'] as const).map((t) => (
+        <span key={t} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', color: '#64748b' }}>
+          <span style={{ width: 10, height: 10, borderRadius: '50%', background: COLOR_TEMPERATURA[t], display: 'inline-block' }} />
+          {ETIQUETA_TEMPERATURA[t]}
+        </span>
+      ))}
     </div>
   )
 }

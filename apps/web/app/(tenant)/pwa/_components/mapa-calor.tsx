@@ -1,15 +1,15 @@
 'use client'
 
 /**
- * Mapa de calor de "mi gente" en la PWA — versión simplificada del mapa del
- * dashboard (core/_components/mapa-electores.tsx), solo con los electores del
- * sub-árbol de quien inició sesión, coloreados por temperatura en vez de por
- * los 5 estados de compromiso uno a uno (más legible en un mapa chico: 3
- * zonas — fría/tibia/caliente — en vez de 5 colores).
+ * Mapa de calor de "mi gente" en la PWA — gradiente real (leaflet.heat), no
+ * puntos de color: azul=frío, amarillo=tibio, rojo=caliente, según qué tan
+ * compromentidos estén. Mismo esquema de temperatura que el mapa del admin
+ * (lib/temperatura.ts), para que ambos hablen el mismo idioma de colores.
  */
 
 import { useEffect, useRef } from 'react'
 import 'leaflet/dist/leaflet.css'
+import { intensidadDeEstado, COLOR_TEMPERATURA, ETIQUETA_TEMPERATURA, GRADIENTE_CALOR } from '@/lib/temperatura'
 
 export interface PuntoCalor {
   id:               string
@@ -19,36 +19,21 @@ export interface PuntoCalor {
   commitmentStatus: string
 }
 
-type Temperatura = 'frio' | 'tibio' | 'caliente'
-
-const TEMPERATURA_POR_ESTADO: Record<string, Temperatura> = {
-  SIN_CONTACTAR: 'frio',
-  CONTACTADO:    'frio',
-  SIMPATIZANTE:  'tibio',
-  COMPROMETIDO:  'caliente',
-  VOTO_SEGURO:   'caliente',
-}
-
-const COLOR_TEMPERATURA: Record<Temperatura, string> = {
-  frio:     '#3b82f6',
-  tibio:    '#f59e0b',
-  caliente: '#ef4444',
-}
-
-const ETIQUETA_TEMPERATURA: Record<Temperatura, string> = {
-  frio:     'Fría',
-  tibio:    'Tibia',
-  caliente: 'Caliente',
-}
-
 export function MapaCalor({ puntos }: { puntos: PuntoCalor[] }) {
   const contenedor = useRef<HTMLDivElement>(null)
   const mapaRef    = useRef<import('leaflet').Map | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const capaRef     = useRef<any>(null)
 
   useEffect(() => {
     let cancelado = false
     void (async () => {
+      // leaflet.heat es un plugin viejo escrito para <script> global (usa `L` a secas,
+      // no importa leaflet) — hay que setear window.L ANTES de cargarlo, si no revienta
+      // con "L is not defined". No sirve Promise.all: deben cargar en este orden exacto.
       const L = (await import('leaflet')).default
+      if (typeof window !== 'undefined') (window as unknown as { L: typeof L }).L = L
+      await import('leaflet.heat')
       if (cancelado || !contenedor.current) return
 
       if (!mapaRef.current) {
@@ -60,19 +45,19 @@ export function MapaCalor({ puntos }: { puntos: PuntoCalor[] }) {
       }
       const mapa = mapaRef.current
 
-      const capa = L.featureGroup()
-      for (const p of puntos) {
-        const temp  = TEMPERATURA_POR_ESTADO[p.commitmentStatus] ?? 'frio'
-        const color = COLOR_TEMPERATURA[temp]
-        L.circleMarker([p.lat, p.lng], {
-          radius: 9, weight: 2, color: '#fff', fillOpacity: 1, fillColor: color,
-        })
-          .bindPopup(`<b>${p.name}</b><br>Zona ${ETIQUETA_TEMPERATURA[temp].toLowerCase()}`)
-          .addTo(capa)
-      }
-      capa.addTo(mapa)
+      capaRef.current?.remove() // saca la capa de la corrida anterior antes de dibujar la nueva
 
-      if (capa.getLayers().length > 0) mapa.fitBounds(capa.getBounds().pad(0.3))
+      const puntosHeat: [number, number, number][] = puntos.map((p) => [p.lat, p.lng, intensidadDeEstado(p.commitmentStatus)])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const capa = (L as any).heatLayer(puntosHeat, {
+        radius: 30, blur: 22, maxZoom: 16, max: 1.0, gradient: GRADIENTE_CALOR,
+      })
+      capa.addTo(mapa)
+      capaRef.current = capa
+
+      if (puntos.length > 0) {
+        mapa.fitBounds(L.latLngBounds(puntos.map((p) => [p.lat, p.lng] as [number, number])).pad(0.3))
+      }
     })()
 
     return () => { cancelado = true }
