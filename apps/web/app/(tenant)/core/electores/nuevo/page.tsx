@@ -7,6 +7,7 @@ import { createVoter, listVoterOptions, listVotingStations, type CreateVoterInpu
 export default function NuevoElectorPage() {
   const [cedula,    setCedula]    = useState('')
   const [nombre,    setNombre]    = useState('')
+  const [apodo,     setApodo]     = useState('')
   const [telefono,  setTelefono]  = useState('')
   const [direccion, setDireccion] = useState('')
   const [leaderId,  setLeaderId]  = useState('')
@@ -37,6 +38,7 @@ export default function NuevoElectorPage() {
       const input: CreateVoterInput = {
         cedula,
         name:             nombre,
+        apodo:            apodo || undefined,
         phone:            telefono || undefined,
         address:          direccion || undefined,
         leaderId:         leaderId || undefined,
@@ -49,7 +51,7 @@ export default function NuevoElectorPage() {
       if (res.success) {
         setExito(true)
         // Limpiar para crear otro
-        setCedula(''); setNombre(''); setTelefono(''); setDireccion('')
+        setCedula(''); setNombre(''); setApodo(''); setTelefono(''); setDireccion('')
         setLeaderId(''); setEstado('SIN_CONTACTAR'); setPuestoId(''); setMesaId('')
         setTimeout(() => setExito(false), 3000)
       } else {
@@ -79,6 +81,16 @@ export default function NuevoElectorPage() {
             type="text" value={nombre} onChange={e => setNombre(e.target.value)}
             required placeholder="María García López" style={estiloInput}
           />
+        </Campo>
+
+        <Campo label="Apodo">
+          <input
+            type="text" value={apodo} onChange={e => setApodo(e.target.value)}
+            placeholder="Como le dicen normalmente (ej: Nacho, La Cucha)" style={estiloInput}
+          />
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '3px' }}>
+            Se usa en el mensaje de invitación cuando comparte su QR — hace que sea más cercano.
+          </div>
         </Campo>
 
         <Campo label="Teléfono">

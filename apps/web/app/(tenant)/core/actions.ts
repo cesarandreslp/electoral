@@ -30,6 +30,7 @@ export type CommitmentStatus =
 export interface CreateLeaderInput {
   cedula:         string
   name:           string
+  apodo?:         string
   phone?:         string
   zone?:          string
   parentLeaderId?: string
@@ -66,6 +67,7 @@ export interface LeaderSummary {
 export interface CreateVoterInput {
   cedula:           string
   name:             string
+  apodo?:           string
   phone?:           string
   address?:         string
   leaderId?:        string
@@ -155,6 +157,7 @@ export async function createLeader(
         cedula:      cedulaCifrada,
         cedulaHash,
         name:        data.name,
+        apodo:       data.apodo?.trim() || undefined,
         phone:       phoneCifrado,
         zone:        data.zone,
         leaderId:    data.parentLeaderId,
@@ -209,6 +212,7 @@ export async function updateLeader(
       where: { id },
       data: {
         ...(data.name           !== undefined && { name:        data.name }),
+        ...(data.apodo          !== undefined && { apodo:       data.apodo.trim() || null }),
         ...(phoneCifrado        !== undefined && { phone:       phoneCifrado }),
         ...(data.zone           !== undefined && { zone:        data.zone }),
         ...(data.parentLeaderId !== undefined && { leaderId:    data.parentLeaderId }),
@@ -391,6 +395,7 @@ export async function createVoter(
         cedula:           cedulaCifrada,
         cedulaHash,
         name:             data.name,
+        apodo:            data.apodo?.trim() || undefined,
         phone:            phoneCifrado,
         address:          data.address?.trim() || undefined,
         leaderId:         data.leaderId,

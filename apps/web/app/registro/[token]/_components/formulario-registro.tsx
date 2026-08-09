@@ -18,6 +18,7 @@ interface FormularioRegistroProps {
 
 export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRegistroProps) {
   const [nombre,    setNombre]    = useState('')
+  const [apodo,     setApodo]     = useState('')
   const [cedula,    setCedula]    = useState('')
   const [telefono,  setTelefono]  = useState('')
   const [direccion, setDireccion] = useState('')
@@ -38,6 +39,7 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
 
     const input: RegistroQRInput = {
       nombre:    nombre.trim(),
+      apodo:     apodo.trim() || undefined,
       cedula:    cedula.trim(),
       telefono:  telefono.trim() || undefined,
       direccion: direccion.trim() || undefined,
@@ -65,16 +67,23 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
       ? `${typeof window !== 'undefined' ? window.location.origin : ''}/registro/${miQrToken}?c=${slug}`
       : null
 
-    async function copiarLink() {
-      if (!linkReferido) return
+    // Mensaje personalizado con el nombre/apodo de quien invita — en Colombia
+    // es normal llamarse por apodo, hace el mensaje más cercano que un link pelado.
+    const comoLoLlaman = apodo.trim() || nombre.trim()
+    const mensajeInvitacion = linkReferido
+      ? `¡Hola! Soy ${comoLoLlaman} 👋 Te invito a que te registres, es rápido: ${linkReferido}`
+      : null
+
+    async function copiarMensaje() {
+      if (!mensajeInvitacion) return
       try {
-        await navigator.clipboard.writeText(linkReferido)
+        await navigator.clipboard.writeText(mensajeInvitacion)
         setCopiado(true)
         setTimeout(() => setCopiado(false), 2500)
       } catch {
         // Fallback para navegadores sin soporte de clipboard API
         const el = document.createElement('input')
-        el.value = linkReferido
+        el.value = mensajeInvitacion
         document.body.appendChild(el)
         el.select()
         document.execCommand('copy')
@@ -99,7 +108,7 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
           {mensaje.texto}
         </p>
 
-        {linkReferido && (
+        {mensajeInvitacion && (
           <div
             style={{
               background:   '#f8fafc',
@@ -110,7 +119,7 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
             }}
           >
             <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151', margin: '0 0 0.75rem' }}>
-              ¿Quieres invitar a tus conocidos? Comparte este link:
+              ¿Quieres invitar a tus conocidos? Este es tu mensaje:
             </p>
             <div
               style={{
@@ -118,31 +127,51 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
                 border:       '1px solid #cbd5e1',
                 borderRadius: '8px',
                 padding:      '0.6rem 0.75rem',
-                fontSize:     '0.75rem',
-                color:        '#64748b',
-                wordBreak:    'break-all',
+                fontSize:     '0.8rem',
+                color:        '#374151',
+                wordBreak:    'break-word',
                 marginBottom: '0.75rem',
-                fontFamily:   'monospace',
               }}
             >
-              {linkReferido}
+              {mensajeInvitacion}
             </div>
-            <button
-              onClick={copiarLink}
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(mensajeInvitacion)}`}
+              target="_blank" rel="noopener noreferrer"
               style={{
+                display:      'block',
                 width:        '100%',
-                background:   copiado ? '#dcfce7' : '#0f172a',
-                color:        copiado ? '#166534' : '#fff',
+                boxSizing:    'border-box',
+                background:   '#25D366',
+                color:        '#fff',
                 border:       'none',
                 borderRadius: '8px',
                 padding:      '0.75rem',
                 fontSize:     '0.9rem',
                 fontWeight:   700,
+                textAlign:    'center',
+                textDecoration: 'none',
+                marginBottom: '0.5rem',
+              }}
+            >
+              📲 Compartir por WhatsApp
+            </a>
+            <button
+              onClick={copiarMensaje}
+              style={{
+                width:        '100%',
+                background:   copiado ? '#dcfce7' : 'transparent',
+                color:        copiado ? '#166534' : '#64748b',
+                border:       `1px solid ${copiado ? '#bbf7d0' : '#e2e8f0'}`,
+                borderRadius: '8px',
+                padding:      '0.6rem',
+                fontSize:     '0.85rem',
+                fontWeight:   600,
                 cursor:       'pointer',
                 transition:   'all 0.2s',
               }}
             >
-              {copiado ? '¡Link copiado!' : 'Copiar link'}
+              {copiado ? '¡Copiado!' : 'Copiar mensaje'}
             </button>
           </div>
         )}
@@ -158,6 +187,14 @@ export function FormularioRegistro({ slug, token, refId, puestos }: FormularioRe
           <input
             type="text" value={nombre} onChange={e => setNombre(e.target.value)}
             required placeholder="María García López" autoComplete="name"
+            style={estiloInput}
+          />
+        </Campo>
+
+        <Campo label="Apodo">
+          <input
+            type="text" value={apodo} onChange={e => setApodo(e.target.value)}
+            placeholder="Como le dicen normalmente"
             style={estiloInput}
           />
         </Campo>

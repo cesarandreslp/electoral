@@ -20,6 +20,7 @@ type CommitmentStatus =
 interface Elector {
   id:               string
   name:             string
+  apodo:            string | null
   phone:            string | null
   commitmentStatus: CommitmentStatus
   lastContact:      string | null
@@ -144,42 +145,60 @@ export default function FichaElectorPwaPage() {
           </a>
         )}
 
-        {/* Botón: compartir mi propio QR — quien se registre con él queda bajo mí */}
-        {elector.myQrToken && (
-          <button
-            onClick={() => {
-              const link = `${window.location.origin}/registro/${elector.myQrToken}?c=${data?.tenantSlug ?? ''}`
-              navigator.clipboard.writeText(link).then(() => {
-                setCopiado(true)
-                setTimeout(() => setCopiado(false), 2500)
-              }).catch(() => {
-                const el = document.createElement('input')
-                el.value = link
-                document.body.appendChild(el)
-                el.select()
-                document.execCommand('copy')
-                document.body.removeChild(el)
-                setCopiado(true)
-                setTimeout(() => setCopiado(false), 2500)
-              })
-            }}
-            style={{
-              display:      'inline-block',
-              marginTop:    '0.5rem',
-              marginLeft:   elector.phone ? '0.5rem' : '0',
-              background:   copiado ? '#dcfce7' : '#f1f5f9',
-              color:        copiado ? '#166534' : '#475569',
-              border:       'none',
-              padding:      '0.5rem 1rem',
-              borderRadius: '8px',
-              fontSize:     '0.875rem',
-              fontWeight:   600,
-              cursor:       'pointer',
-            }}
-          >
-            {copiado ? '¡Copiado!' : '🔗 Copiar mi QR de captación'}
-          </button>
-        )}
+        {/* Compartir mi propio QR — quien se registre con él queda bajo mí. Mensaje
+            personalizado con el apodo (o nombre) para que se sienta cercano, no un link pelado. */}
+        {elector.myQrToken && (() => {
+          const link = `${window.location.origin}/registro/${elector.myQrToken}?c=${data?.tenantSlug ?? ''}`
+          const comoLoLlaman = elector.apodo?.trim() || elector.name
+          const mensaje = `¡Hola! Soy ${comoLoLlaman} 👋 Te invito a que te registres, es rápido: ${link}`
+
+          function copiarMensaje() {
+            navigator.clipboard.writeText(mensaje).then(() => {
+              setCopiado(true)
+              setTimeout(() => setCopiado(false), 2500)
+            }).catch(() => {
+              const el = document.createElement('input')
+              el.value = mensaje
+              document.body.appendChild(el)
+              el.select()
+              document.execCommand('copy')
+              document.body.removeChild(el)
+              setCopiado(true)
+              setTimeout(() => setCopiado(false), 2500)
+            })
+          }
+
+          return (
+            <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(mensaje)}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{
+                  display: 'inline-block', background: '#25D366', color: '#fff',
+                  padding: '0.5rem 1rem', borderRadius: '8px', textDecoration: 'none',
+                  fontSize: '0.875rem', fontWeight: 600,
+                }}
+              >
+                📲 Compartir por WhatsApp
+              </a>
+              <button
+                onClick={copiarMensaje}
+                style={{
+                  background:   copiado ? '#dcfce7' : '#f1f5f9',
+                  color:        copiado ? '#166534' : '#475569',
+                  border:       'none',
+                  padding:      '0.5rem 1rem',
+                  borderRadius: '8px',
+                  fontSize:     '0.875rem',
+                  fontWeight:   600,
+                  cursor:       'pointer',
+                }}
+              >
+                {copiado ? '¡Copiado!' : 'Copiar mensaje'}
+              </button>
+            </div>
+          )
+        })()}
       </div>
 
       {/* Botones de estado — grandes, optimizados para touch */}

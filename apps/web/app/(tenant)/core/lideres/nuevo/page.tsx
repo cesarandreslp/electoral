@@ -8,6 +8,7 @@ function NuevoLiderForm() {
   const searchParams = useSearchParams()
   const [cedula,         setCedula]         = useState('')
   const [nombre,         setNombre]         = useState('')
+  const [apodo,          setApodo]          = useState('')
   const [zona,           setZona]           = useState('')
   const [telefono,       setTelefono]       = useState('')
   const [meta,           setMeta]           = useState(0)
@@ -34,6 +35,7 @@ function NuevoLiderForm() {
       const input: CreateLeaderInput = {
         cedula,
         name:            nombre,
+        apodo:           apodo || undefined,
         zone:            zona || undefined,
         phone:           telefono || undefined,
         targetVotes:     meta,
@@ -71,6 +73,16 @@ function NuevoLiderForm() {
             type="text" value={nombre} onChange={e => setNombre(e.target.value)}
             required placeholder="Juan Pérez" style={estiloInput}
           />
+        </Campo>
+
+        <Campo label="Apodo">
+          <input
+            type="text" value={apodo} onChange={e => setApodo(e.target.value)}
+            placeholder="Como le dicen normalmente (ej: Nacho, La Cucha)" style={estiloInput}
+          />
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '3px' }}>
+            Se usa en el mensaje de invitación cuando comparte su QR — hace que sea más cercano.
+          </div>
         </Campo>
 
         <Campo label="Zona / Barrio">

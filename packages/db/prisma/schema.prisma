@@ -149,6 +149,7 @@ model Voter {
   // Se calcula con: createHash('sha256').update(cedula.trim()).digest('hex')
   cedulaHash       String?
   name             String
+  apodo            String? // Como le dicen normalmente — para mensajes de invitación más cercanos
   // CIFRADO: campo PII — se cifra con AES-256 antes de persistir. Ver lib/crypto.ts
   phone            String?
   address          String? // Dirección física del elector

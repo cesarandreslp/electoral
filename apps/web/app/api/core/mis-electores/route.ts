@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
       select: {
         id:               true,
         name:             true,
+        apodo:            true,   // como le dicen — para el mensaje de invitación
         phone:            true,   // Cifrado en DB — se descifra abajo para click-to-call
         commitmentStatus: true,
         lastContact:      true,

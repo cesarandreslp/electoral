@@ -21,6 +21,7 @@ import { verificarRateLimit }     from './_lib/rate-limit'
 
 export interface RegistroQRInput {
   nombre:     string
+  apodo?:     string
   cedula:     string
   telefono?:  string
   direccion?: string
@@ -154,6 +155,7 @@ export async function registrarseConQR(
       cedula:       encrypt(cedula),
       cedulaHash,
       name:         nombre,
+      apodo:        data.apodo?.trim() || undefined,
       phone:        data.telefono ? encrypt(data.telefono) : undefined,
       address:      data.direccion || undefined,
       leaderId:     qr.leaderId,
