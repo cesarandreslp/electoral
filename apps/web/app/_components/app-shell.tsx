@@ -1,29 +1,6 @@
 import Link from 'next/link'
-import { auth } from '@campaignos/auth'
-import { getTenantDb } from '@campaignos/db'
-import { getTenantConnection } from '@/lib/tenant'
+import { getBranding } from '@/lib/branding'
 import { LogoutButton } from './logout-button'
-
-const SUPERADMIN_TENANT_ID = '__superadmin__'
-
-/** Branding del tenant activo (logo + color). Null/vacío = branding Vectra por defecto. */
-async function getBranding(): Promise<{ logoUrl: string | null; primaryColor: string | null }> {
-  const session  = await auth()
-  const tenantId = session?.user?.tenantId
-  if (!tenantId || tenantId === SUPERADMIN_TENANT_ID) {
-    return { logoUrl: null, primaryColor: null }
-  }
-  try {
-    const db  = getTenantDb(await getTenantConnection(tenantId))
-    const cfg = await db.tenantConfig.findUnique({
-      where:  { tenantId },
-      select: { logoUrl: true, primaryColor: true },
-    })
-    return { logoUrl: cfg?.logoUrl ?? null, primaryColor: cfg?.primaryColor ?? null }
-  } catch {
-    return { logoUrl: null, primaryColor: null }
-  }
-}
 
 export interface NavItem {
   href:   string

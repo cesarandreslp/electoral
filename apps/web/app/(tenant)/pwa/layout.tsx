@@ -1,11 +1,16 @@
 import { redirect } from 'next/navigation'
 import { requireAuthOrRedirect } from '@/lib/auth-helpers'
+import { getBranding } from '@/lib/branding'
 import { LogoutButton } from '@/app/_components/logout-button'
 
 /**
  * Antes /pwa no tenía guardia a nivel de página — dependía solo de que la API
  * devolviera 401. Se agrega acá porque ahora también entran electores
  * (rol ELECTOR) por su propio login, no solo staff con cuenta de admin.
+ *
+ * También es donde faltaba el branding de campaña (logo/color) que sí tiene
+ * el AppShell de /core — la PWA no pasa por ahí, quedaba con la marca
+ * genérica de Vectra.
  */
 export default async function PwaLayout({ children }: { children: React.ReactNode }) {
   const session = await requireAuthOrRedirect(
@@ -18,10 +23,25 @@ export default async function PwaLayout({ children }: { children: React.ReactNod
   }
 
   const esElector = session.user.role === 'ELECTOR'
+  const { logoUrl, primaryColor } = await getBranding()
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0.75rem 1rem 0' }}>
+      <div
+        style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '0.75rem 1rem 0', maxWidth: '480px', margin: '0 auto', boxSizing: 'border-box',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {logoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoUrl} alt={session.user.tenantName ?? 'Campaña'} style={{ height: '28px', width: 'auto', objectFit: 'contain' }} />
+          )}
+          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: primaryColor ?? '#0f172a' }}>
+            {session.user.tenantName}
+          </span>
+        </div>
         <LogoutButton
           tono="claro"
           redirectTo={esElector ? `/electores/login?c=${session.user.tenantSlug ?? ''}` : '/login'}
