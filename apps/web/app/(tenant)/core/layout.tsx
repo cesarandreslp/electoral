@@ -24,6 +24,7 @@ export default async function CoreLayout({ children }: { children: React.ReactNo
           { href: '/core/importar',  label: 'Importar' } as NavItem,
           { href: '/core/qr',        label: 'QR de captación' } as NavItem,
           { href: '/core/territorio', label: 'Territorio' } as NavItem,
+          { href: '/core/agenda',    label: 'Agenda' } as NavItem,
         ]
       : []),
     { href: '/core/alertas', label: 'Alertas', badge: <BadgeNotificaciones /> },

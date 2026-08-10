@@ -1,0 +1,114 @@
+'use server'
+
+import { requireModule } from '@/lib/auth-helpers'
+import { getTenantDb } from '@campaignos/db'
+import { getTenantConnection } from '@/lib/tenant'
+
+const ROLES_ADMIN = ['ADMIN_CAMPANA', 'COORDINADOR'] as const
+
+export interface AnfitrionOption {
+  id: string
+  name: string
+  isCandidate: boolean
+}
+
+/** Candidato + jefes de debate — para elegir de quién ver la agenda/convocatorias. */
+export async function getAnfitrionesAdmin(): Promise<AnfitrionOption[]> {
+  const session = await requireModule('CORE', [...ROLES_ADMIN])
+  const db = getTenantDb(await getTenantConnection(session.user.tenantId))
+
+  return db.voter.findMany({
+    where:   { tenantId: session.user.tenantId, OR: [{ isCandidate: true }, { tieneAgenda: true }] },
+    select:  { id: true, name: true, isCandidate: true },
+    orderBy: [{ isCandidate: 'desc' }, { name: 'asc' }],
+  })
+}
+
+export interface EntradaAgendaAdmin {
+  id:             string
+  startsAt:       string
+  endsAt:         string
+  disponible:     boolean
+  titulo:         string | null
+  reservanteName: string | null
+  motivo:         string | null
+}
+
+/** Agenda completa (compromisos + huecos, reservados o no) de un anfitrión puntual. */
+export async function getAgendaDeAnfitrion(anfitrionId: string): Promise<EntradaAgendaAdmin[]> {
+  const session = await requireModule('CORE', [...ROLES_ADMIN])
+  const db = getTenantDb(await getTenantConnection(session.user.tenantId))
+
+  const entradas = await db.agendaEntrada.findMany({
+    where:   { tenantId: session.user.tenantId, anfitrionId },
+    include: { reservante: { select: { name: true } } },
+    orderBy: { startsAt: 'asc' },
+  })
+
+  return entradas.map((e) => ({
+    id: e.id, startsAt: e.startsAt.toISOString(), endsAt: e.endsAt.toISOString(),
+    disponible: e.disponible, titulo: e.titulo,
+    reservanteName: e.reservante?.name ?? null, motivo: e.motivo,
+  }))
+}
+
+export interface ConvocatoriaAdminListado {
+  id:                 string
+  titulo:             string
+  startsAt:           string
+  lugar:              string | null
+  totalDestinatarios: number
+  destinatarios:      string[]
+}
+
+/** Convocatorias que ha enviado un anfitrión puntual, con la lista de a quién. */
+export async function getConvocatoriasDeAnfitrion(anfitrionId: string): Promise<ConvocatoriaAdminListado[]> {
+  const session = await requireModule('CORE', [...ROLES_ADMIN])
+  const db = getTenantDb(await getTenantConnection(session.user.tenantId))
+
+  const convocatorias = await db.convocatoria.findMany({
+    where:   { tenantId: session.user.tenantId, convocanteId: anfitrionId },
+    include: { destinatarios: { include: { voter: { select: { name: true } } } } },
+    orderBy: { startsAt: 'desc' },
+  })
+
+  return convocatorias.map((c) => ({
+    id: c.id, titulo: c.titulo, startsAt: c.startsAt.toISOString(), lugar: c.lugar,
+    totalDestinatarios: c.destinatarios.length,
+    destinatarios: c.destinatarios.map((d) => d.voter.name),
+  }))
+}
+
+export interface ReunionReclutamientoAdmin {
+  id:              string
+  title:           string
+  date:            string
+  organizadorName: string
+  prospectos:      { name: string; phone: string | null; notes: string | null }[]
+}
+
+/** Reuniones de reclutamiento de TODOS los electores — para medir crecimiento de base. */
+export async function getReunionesReclutamiento(): Promise<ReunionReclutamientoAdmin[]> {
+  const session = await requireModule('CORE', [...ROLES_ADMIN])
+  const db = getTenantDb(await getTenantConnection(session.user.tenantId))
+
+  // Meeting.leaderId es un string suelto (sin @relation) — se resuelve el
+  // nombre del organizador aparte, en un solo lote.
+  const reuniones = await db.meeting.findMany({
+    where:   { tenantId: session.user.tenantId, tipo: 'RECLUTAMIENTO' },
+    include: { prospectos: true },
+    orderBy: { date: 'desc' },
+  })
+
+  const organizadores = await db.voter.findMany({
+    where:  { id: { in: [...new Set(reuniones.map((r) => r.leaderId))] } },
+    select: { id: true, name: true },
+  })
+  const nombrePorId = new Map(organizadores.map((v) => [v.id, v.name]))
+
+  return reuniones.map((r) => ({
+    id: r.id, title: r.title, date: r.date.toISOString(),
+    organizadorName: nombrePorId.get(r.leaderId) ?? '(desconocido)',
+    prospectos: r.prospectos.map((p) => ({ name: p.name, phone: p.phone, notes: p.notes })),
+  }))
+}
