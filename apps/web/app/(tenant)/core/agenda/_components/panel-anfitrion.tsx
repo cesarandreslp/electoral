@@ -5,14 +5,33 @@ import {
   getAgendaDeAnfitrion, getConvocatoriasDeAnfitrion,
   type AnfitrionOption, type EntradaAgendaAdmin, type ConvocatoriaAdminListado,
 } from '../actions'
+import { CalendarioMensual, type EventoCalendario } from '@/app/_components/calendario-mensual'
+
+function claveFechaLocal(iso: string): string {
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function colorEntrada(e: EntradaAgendaAdmin): string {
+  if (!e.disponible) return '#64748b'
+  return e.reservanteName ? '#2563eb' : '#16a34a'
+}
+
+function labelEntrada(e: EntradaAgendaAdmin): string {
+  const hora = new Date(e.startsAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
+  if (!e.disponible) return `${hora} ${e.titulo}`
+  return e.reservanteName ? `${hora} Reservado` : `${hora} Libre`
+}
 
 export function PanelAnfitrion({ anfitriones }: { anfitriones: AnfitrionOption[] }) {
   const [anfitrionId, setAnfitrionId] = useState(anfitriones[0]?.id ?? '')
   const [agenda, setAgenda] = useState<EntradaAgendaAdmin[]>([])
   const [convocatorias, setConvocatorias] = useState<ConvocatoriaAdminListado[]>([])
+  const [diaSeleccionado, setDiaSeleccionado] = useState<Date | null>(null)
 
   useEffect(() => {
     if (!anfitrionId) return
+    setDiaSeleccionado(null)
     void getAgendaDeAnfitrion(anfitrionId).then(setAgenda)
     void getConvocatoriasDeAnfitrion(anfitrionId).then(setConvocatorias)
   }, [anfitrionId])
@@ -25,6 +44,14 @@ export function PanelAnfitrion({ anfitriones }: { anfitriones: AnfitrionOption[]
     )
   }
 
+  const eventos: EventoCalendario[] = agenda.map((e) => ({
+    id: e.id, fecha: claveFechaLocal(e.startsAt), label: labelEntrada(e), color: colorEntrada(e),
+  }))
+
+  const entradasDelDia = diaSeleccionado
+    ? agenda.filter((e) => claveFechaLocal(e.startsAt) === claveFechaLocal(diaSeleccionado.toISOString()))
+    : []
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <select
@@ -36,18 +63,25 @@ export function PanelAnfitrion({ anfitriones }: { anfitriones: AnfitrionOption[]
         ))}
       </select>
 
+      <CalendarioMensual eventos={eventos} onDiaClick={(fecha) => setDiaSeleccionado(fecha)} />
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1rem' }}>
         <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.25rem' }}>
-          <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.75rem' }}>Agenda</h3>
-          {agenda.length === 0 && <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Sin entradas.</div>}
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.75rem' }}>
+            {diaSeleccionado
+              ? diaSeleccionado.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })
+              : 'Detalle del día'}
+          </h3>
+          {!diaSeleccionado && <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Toca un día del calendario para ver el detalle.</div>}
+          {diaSeleccionado && entradasDelDia.length === 0 && <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Sin entradas ese día.</div>}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-            {agenda.map((e) => (
+            {entradasDelDia.map((e) => (
               <div key={e.id} style={{ fontSize: '0.85rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem' }}>
                 <div style={{ fontWeight: 600 }}>
                   {e.disponible ? (e.reservanteName ? `Reservado — ${e.reservanteName}` : 'Hueco disponible') : e.titulo}
                 </div>
                 <div style={{ color: '#94a3b8', fontSize: '0.78rem' }}>
-                  {new Date(e.startsAt).toLocaleString('es-CO')} – {new Date(e.endsAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(e.startsAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })} – {new Date(e.endsAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
                   {e.motivo ? ` · ${e.motivo}` : ''}
                 </div>
               </div>
