@@ -2,6 +2,7 @@ import Link                      from 'next/link'
 import { auth }                  from '@campaignos/auth'
 import { listLeaders }           from '../actions'
 import { BarraProgreso }         from './_components/barra-progreso'
+import { UMBRAL_LIDER_DIRECTOS } from '@/lib/lideres'
 
 export const metadata = { title: 'Líderes' }
 
@@ -30,7 +31,7 @@ export default async function LideresPage({ searchParams }: Props) {
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Líderes</h1>
         {esAdmin && (
           <Link
-            href="/core/lideres/nuevo"
+            href="/core/electores/nuevo"
             style={{
               background:     '#0f172a',
               color:          '#fff',
@@ -40,7 +41,7 @@ export default async function LideresPage({ searchParams }: Props) {
               fontSize:       '0.875rem',
             }}
           >
-            + Nuevo líder
+            + Nuevo elector
           </Link>
         )}
       </div>
@@ -63,8 +64,10 @@ export default async function LideresPage({ searchParams }: Props) {
 
       {raices.length === 0 ? (
         <div style={{ color: '#64748b', marginTop: '2rem' }}>
-          {params.q ? 'Ningún líder coincide con la búsqueda.' : 'No hay líderes registrados todavía.'}
-          {esAdmin && !params.q && <> <Link href="/core/lideres/nuevo">Crear el primero →</Link></>}
+          {params.q
+            ? 'Ningún líder coincide con la búsqueda.'
+            : `Todavía nadie llega a ${UMBRAL_LIDER_DIRECTOS} electores directos — un elector se vuelve "líder" automáticamente al alcanzarlos.`}
+          {esAdmin && !params.q && <> <Link href="/core/electores/nuevo">Crear electores →</Link></>}
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>

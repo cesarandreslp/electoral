@@ -1,16 +1,23 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
-import { useRouter }               from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createVoter, listVoterOptions, listVotingStations, type CreateVoterInput, type CommitmentStatus, type StationOption } from '../../actions'
 
 export default function NuevoElectorPage() {
+  const searchParams = useSearchParams()
+  // Prellenado al venir de "+ Elector" en la ficha de un elector con red
+  // (antes existía un flujo aparte de "crear líder" — ya no: todos se crean
+  // como electores, "líder" es una etiqueta que aparece sola al llegar a 10
+  // directos, no algo que se elige al crear a alguien).
+  const leaderIdInicial = searchParams.get('leaderId') ?? ''
+
   const [cedula,    setCedula]    = useState('')
   const [nombre,    setNombre]    = useState('')
   const [apodo,     setApodo]     = useState('')
   const [telefono,  setTelefono]  = useState('')
   const [direccion, setDireccion] = useState('')
-  const [leaderId,  setLeaderId]  = useState('')
+  const [leaderId,  setLeaderId]  = useState(leaderIdInicial)
   const [estado,    setEstado]    = useState<CommitmentStatus>('SIN_CONTACTAR')
   const [puestoId,  setPuestoId]  = useState('')
   const [mesaId,    setMesaId]    = useState('')
@@ -22,8 +29,7 @@ export default function NuevoElectorPage() {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
-  // Cargar candidatos a líder (cualquier elector, para poder asignar el primer
-  // follower de un líder recién creado) y puestos de votación al montar.
+  // Cargar candidatos a "reporta a" (cualquier elector) y puestos de votación al montar.
   useEffect(() => {
     listVoterOptions().then((ls) => setLideres(ls.map((l) => ({ id: l.id, name: l.name }))))
     listVotingStations().then(setPuestos)
@@ -52,7 +58,7 @@ export default function NuevoElectorPage() {
         setExito(true)
         // Limpiar para crear otro
         setCedula(''); setNombre(''); setApodo(''); setTelefono(''); setDireccion('')
-        setLeaderId(''); setEstado('SIN_CONTACTAR'); setPuestoId(''); setMesaId('')
+        setLeaderId(leaderIdInicial); setEstado('SIN_CONTACTAR'); setPuestoId(''); setMesaId('')
         setTimeout(() => setExito(false), 3000)
       } else {
         setError(res.error)
@@ -110,12 +116,12 @@ export default function NuevoElectorPage() {
           </div>
         </Campo>
 
-        <Campo label="Líder asignado">
+        <Campo label="Reporta a (opcional)">
           <select
             value={leaderId} onChange={e => setLeaderId(e.target.value)}
             style={{ ...estiloInput, background: '#fff' }}
           >
-            <option value="">— Sin líder asignado —</option>
+            <option value="">— Nadie (electo directo) —</option>
             {lideres.map((l) => (
               <option key={l.id} value={l.id}>{l.name}</option>
             ))}

@@ -13,6 +13,8 @@ import { getTenantConnection } from '@/lib/tenant'
 import { getTenantDb }         from '@campaignos/db'
 import { chatZhipu }           from '@campaignos/ai'
 import { getTenantAiKeys }     from '@/lib/tenant-ai'
+import { idsLideres }          from '@/app/(tenant)/core/actions'
+import { UMBRAL_LIDER_DIRECTOS } from '@/lib/lideres'
 import { revalidatePath }      from 'next/cache'
 
 // ── Tipos exportados ──────────────────────────────────────────────────────────
@@ -119,6 +121,9 @@ export async function getAnalyticsDashboard(): Promise<DashboardKpi> {
   const hace7dias   = new Date(hoy.getTime() - 7 * 24 * 60 * 60 * 1000)
   const hace30dias  = new Date(hoy.getTime() - 30 * 24 * 60 * 60 * 1000)
 
+  // Líder = >= UMBRAL_LIDER_DIRECTOS electores directos (ver core/actions.ts).
+  const liderIds = await idsLideres(tenantId, db)
+
   const [
     totalRegistrados,
     byStatus,
@@ -137,12 +142,13 @@ export async function getAnalyticsDashboard(): Promise<DashboardKpi> {
       where:  { tenantId },
     }),
 
-    db.voter.count({ where: { tenantId, followers: { some: {} } } }),
+    Promise.resolve(liderIds.size),
 
     // Líderes con al menos un elector registrado en los últimos 7 días
     db.voter.count({
       where: {
         tenantId,
+        id: { in: [...liderIds] },
         followers: { some: { createdAt: { gte: hace7dias } } },
       },
     }),
@@ -237,7 +243,13 @@ export async function getAnalysisByTerritory(): Promise<TerritoryRow[]> {
       COUNT(v.id) FILTER (
         WHERE v."commitmentStatus" IN ('COMPROMETIDO', 'VOTO_SEGURO')
       )::bigint                                                       AS comprometidos,
-      COUNT(DISTINCT l.id) FILTER (WHERE l.status = 'ACTIVO')::bigint AS lideres_activos,
+      COUNT(DISTINCT l.id) FILTER (
+        WHERE l.status = 'ACTIVO' AND l.id IN (
+          SELECT "leaderId" FROM "Voter"
+          WHERE "tenantId" = ${tenantId} AND "leaderId" IS NOT NULL
+          GROUP BY "leaderId" HAVING COUNT(*) >= ${UMBRAL_LIDER_DIRECTOS}
+        )
+      )::bigint                                                       AS lideres_activos,
       COALESCE(SUM(DISTINCT l."targetVotes"), 0)::bigint              AS meta
     FROM "Voter" v
     JOIN "VotingTable"   vt ON v."votingTableId" = vt.id
@@ -261,7 +273,13 @@ export async function getAnalysisByTerritory(): Promise<TerritoryRow[]> {
       COUNT(v.id) FILTER (
         WHERE v."commitmentStatus" IN ('COMPROMETIDO', 'VOTO_SEGURO')
       )::bigint                                                       AS comprometidos,
-      COUNT(DISTINCT l.id) FILTER (WHERE l.status = 'ACTIVO')::bigint AS lideres_activos,
+      COUNT(DISTINCT l.id) FILTER (
+        WHERE l.status = 'ACTIVO' AND l.id IN (
+          SELECT "leaderId" FROM "Voter"
+          WHERE "tenantId" = ${tenantId} AND "leaderId" IS NOT NULL
+          GROUP BY "leaderId" HAVING COUNT(*) >= ${UMBRAL_LIDER_DIRECTOS}
+        )
+      )::bigint                                                       AS lideres_activos,
       COALESCE(SUM(DISTINCT l."targetVotes"), 0)::bigint              AS meta
     FROM "Voter" v
     LEFT JOIN "Voter" l ON v."leaderId" = l.id
@@ -327,8 +345,11 @@ export async function getLeaderAnalytics(filters?: LeaderFilters): Promise<Leade
   const where: Record<string, unknown> = { tenantId }
   if (filters?.zona) where.zone = filters.zona
 
+  // Líder = >= UMBRAL_LIDER_DIRECTOS electores directos (ver core/actions.ts).
+  const liderIds = await idsLideres(tenantId, db)
+
   const leaders = await db.voter.findMany({
-    where: { ...where, followers: { some: {} } },
+    where: { ...where, id: { in: [...liderIds] } },
     select: {
       id:          true,
       name:        true,
@@ -510,7 +531,7 @@ export async function generarAnalisisLider(leaderId: string): Promise<LeaderAnal
 
     // Promedio de electores por líder en todo el tenant
     db.voter.count({ where: { tenantId } }).then(async total => {
-      const lideres = await db.voter.count({ where: { tenantId, followers: { some: {} } } })
+      const lideres = (await idsLideres(tenantId, db)).size
       return lideres > 0 ? Math.round(total / lideres) : 0
     }),
   ])

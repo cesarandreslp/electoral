@@ -94,13 +94,13 @@ export default async function FichaLiderPage({ params }: Props) {
           </Link>
           {esAdmin && (
             <Link
-              href={`/core/lideres/nuevo?parent=${id}`}
+              href={`/core/electores/nuevo?leaderId=${id}`}
               style={{
                 background: '#e2e8f0', color: '#0f172a', padding: '0.5rem 1rem',
                 borderRadius: '6px', textDecoration: 'none', fontSize: '0.875rem',
               }}
             >
-              + Sub-líder
+              + Elector
             </Link>
           )}
           {esAdmin && (
@@ -165,7 +165,7 @@ export default async function FichaLiderPage({ params }: Props) {
         <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
           <h2 style={{ fontSize: '1rem', fontWeight: 600 }}>Electores ({total})</h2>
           {esAdmin && (
-            <Link href="/core/electores/nuevo" style={{ color: '#1e40af', fontSize: '0.875rem' }}>
+            <Link href={`/core/electores/nuevo?leaderId=${id}`} style={{ color: '#1e40af', fontSize: '0.875rem' }}>
               + Agregar elector
             </Link>
           )}

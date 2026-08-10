@@ -16,6 +16,7 @@ import { geocodeAddress }             from '@/lib/geocode'
 import { puntoEnPoligono }            from '@/lib/geometry'
 import { crearQrPropio }              from '@/lib/qr'
 import { calcularIndiceCompromiso }   from '@/lib/compromiso'
+import { UMBRAL_LIDER_DIRECTOS }      from '@/lib/lideres'
 import { chatGroq }                   from '@campaignos/ai'
 import { getTenantAiKeys }            from '@/lib/tenant-ai'
 import { revalidatePath }             from 'next/cache'
@@ -118,6 +119,22 @@ async function obtenerDbTenant(tenantId: string) {
   return getTenantDb(connectionString)
 }
 
+/** Ids de electores que califican como "líder" según UMBRAL_LIDER_DIRECTOS. */
+export async function idsLideres(
+  tenantId: string, db: ReturnType<typeof getTenantDb>,
+): Promise<Set<string>> {
+  const conteos = await db.voter.groupBy({
+    by:     ['leaderId'],
+    where:  { tenantId, leaderId: { not: null } },
+    _count: { id: true },
+  })
+  const ids = new Set<string>()
+  for (const c of conteos) {
+    if (c.leaderId && c._count.id >= UMBRAL_LIDER_DIRECTOS) ids.add(c.leaderId)
+  }
+  return ids
+}
+
 /**
  * IDs de un elector y todo su sub-árbol (directos + todos los niveles),
  * incluyéndolo a él. Usado para acotar qué ve un usuario con rol LIDER —
@@ -178,67 +195,10 @@ export async function profundidadSubarbol(
 }
 
 // ── Acciones de líderes ───────────────────────────────────────────────────────
-
-/**
- * Crea un nuevo líder en la campaña.
- * Solo ADMIN_CAMPANA y COORDINADOR pueden crear líderes.
- */
-export async function createLeader(
-  data: CreateLeaderInput,
-): Promise<{ success: true; leaderId: string } | { success: false; error: string }> {
-  try {
-    const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
-    const db      = await obtenerDbTenant(session.user.tenantId)
-
-    // Validar que parentLeaderId pertenezca al mismo tenant
-    if (data.parentLeaderId) {
-      const padre = await db.voter.findFirst({
-        where: { id: data.parentLeaderId, tenantId: session.user.tenantId },
-      })
-      if (!padre) {
-        return { success: false, error: 'El líder superior no existe en esta campaña.' }
-      }
-    }
-
-    // Cifrar campos PII y calcular hash de cédula para deduplicación
-    const cedulaNorm    = data.cedula.trim()
-    const cedulaHash    = calcularCedulaHash(cedulaNorm)
-    const cedulaCifrada = encrypt(cedulaNorm)
-    const phoneCifrado  = data.phone ? encrypt(data.phone) : undefined
-
-    const duplicado = await db.voter.findFirst({
-      where: { tenantId: session.user.tenantId, cedulaHash },
-    })
-    if (duplicado) {
-      return { success: false, error: 'Ya existe un elector con esa cédula en esta campaña.' }
-    }
-
-    const lider = await db.voter.create({
-      data: {
-        tenantId:    session.user.tenantId,
-        cedula:      cedulaCifrada,
-        cedulaHash,
-        name:        data.name,
-        apodo:       data.apodo?.trim() || undefined,
-        phone:       phoneCifrado,
-        zone:        data.zone,
-        leaderId:    data.parentLeaderId,
-        targetVotes: data.targetVotes,
-      },
-    })
-    await crearQrPropio(lider.id, session.user.tenantId, db)
-
-    revalidatePath('/core/lideres')
-    return { success: true, leaderId: lider.id }
-
-  } catch (err: any) {
-    if (err?.code === 'P2002') {
-      return { success: false, error: 'Ya existe un elector con esa cédula en esta campaña.' }
-    }
-    console.error('[createLeader]', err instanceof Error ? err.message : err)
-    return { success: false, error: 'Error al crear el líder.' }
-  }
-}
+// No existe "crear líder": todos se crean como electores (createVoter, más
+// abajo). "Líder" es una etiqueta que aparece sola al llegar a
+// UMBRAL_LIDER_DIRECTOS electores directos — lo único que se edita aquí es
+// lo que solo tiene sentido una vez alguien actúa como tal (zona, meta).
 
 /**
  * Actualiza datos de un líder existente.
@@ -324,8 +284,8 @@ export async function setCandidato(id: string, isCandidate: boolean): Promise<{ 
 }
 
 /**
- * Lista líderes (Voters con al menos un follower) con métricas de avance.
- * Los LIDER solo ven sus propios datos.
+ * Lista líderes (Voters con >= UMBRAL_LIDER_DIRECTOS electores directos) con
+ * métricas de avance. Los LIDER solo ven sus propios datos.
  */
 export async function listLeaders(filters?: LeaderFilters): Promise<LeaderSummary[]> {
   const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
@@ -344,7 +304,9 @@ export async function listLeaders(filters?: LeaderFilters): Promise<LeaderSummar
   // El candidato es el líder natural de la raíz, pero no debe aparecer en el
   // panel — sigue siendo visible al entrar directo a su ficha por id.
   condiciones.push(
-    filters?.id ? { id: filters.id } : { followers: { some: {} }, isCandidate: false },
+    filters?.id
+      ? { id: filters.id }
+      : { id: { in: [...(await idsLideres(session.user.tenantId, db))] }, isCandidate: false },
   )
   if (idsPermitidos) condiciones.push({ id: { in: [...idsPermitidos] } })
   if (filters?.zone)           condiciones.push({ zone: filters.zone })
@@ -945,8 +907,9 @@ export async function getCoreStats(): Promise<CoreStats> {
 
   // Voter lleva tenantId (defensa en profundidad además de la DB aislada).
   // VotingStation/VotingTable son territoriales (DIVIPOLA) — sin tenantId.
+  const liderIds = await idsLideres(session.user.tenantId, db)
   const [lideres, electores, puestos, mesas] = await Promise.all([
-    db.voter.count({ where: { tenantId: session.user.tenantId, followers: { some: {} }, isCandidate: false } }),
+    db.voter.count({ where: { tenantId: session.user.tenantId, isCandidate: false, id: { in: [...liderIds] } } }),
     db.voter.count({ where: { tenantId: session.user.tenantId } }),
     db.votingStation.count(),
     db.votingTable.count(),
@@ -1011,9 +974,10 @@ export async function getLeaderRanking(limit?: number): Promise<LeaderRankingEnt
   }
 
   const ranking = todos
-    // solo quienes tienen al menos 1 follower (son líderes); el candidato cuenta
-    // para el sub-árbol de quien sí aparece, pero no se lista él mismo.
-    .filter((v) => hijosPorLider.has(v.id) && !v.isCandidate)
+    // Solo quienes califican como líder (>= UMBRAL_LIDER_DIRECTOS directos) —
+    // las líneas indirectas ya suman a totalDownline, pero no deciden esto.
+    // El candidato cuenta para el sub-árbol de quien sí aparece, pero no se lista él mismo.
+    .filter((v) => (hijosPorLider.get(v.id)?.length ?? 0) >= UMBRAL_LIDER_DIRECTOS && !v.isCandidate)
     .map((v) => {
       const s = subarbol(v.id)
       return {
