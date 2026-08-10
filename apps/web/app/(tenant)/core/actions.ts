@@ -15,6 +15,9 @@ import { getTenantDb, encrypt, Prisma } from '@campaignos/db'
 import { geocodeAddress }             from '@/lib/geocode'
 import { puntoEnPoligono }            from '@/lib/geometry'
 import { crearQrPropio }              from '@/lib/qr'
+import { calcularIndiceCompromiso }   from '@/lib/compromiso'
+import { chatGroq }                   from '@campaignos/ai'
+import { getTenantAiKeys }            from '@/lib/tenant-ai'
 import { revalidatePath }             from 'next/cache'
 import type { Cargo }                 from './configuracion/actions'
 
@@ -525,6 +528,188 @@ export async function updateVoterCommitment(
   } catch (err) {
     console.error('[updateVoterCommitment]', err instanceof Error ? err.message : err)
     return { success: false, error: 'Error al actualizar el estado de compromiso.' }
+  }
+}
+
+// ── Veredicto IA de compromiso (elector) ──────────────────────────────────────
+// Mismo patrón que generarAnalisisLider() en analytics/actions.ts, pero a
+// nivel elector: evalúa encuestas + reuniones + masificación en vez de
+// avance de meta + recencia de contacto.
+
+export interface CompromisoAnalysisResult {
+  id:                string
+  perfilTipo:        string
+  indiceCompromiso:  number
+  veredicto:         string
+  planAccion:        { accion: string; tiempo: string; responsable: string }[] | null
+  senalesDetectadas: { señal: string; peso: 'ALTO' | 'MEDIO' | 'BAJO' }[]
+  justificacion:     string
+  generadoEn:        string
+}
+
+const SYSTEM_PROMPT_COMPROMISO = `Eres un analista de comportamiento político especializado en campañas electorales colombianas. Evalúa el nivel de compromiso de este elector de base con la campaña, a partir de su participación en tres actividades medibles: encuestas respondidas, asistencia a reuniones convocadas por su líder, y cuánta gente registró bajo su propio link/QR (masificación).
+
+Entrega tu análisis en este formato JSON exacto:
+{
+  "perfilTipo": string (Activista | Participativo | Ocasional | Desconectado),
+  "indiceCompromiso": number (0-100),
+  "veredicto": "COMPROMETIDO" | "EN_SEGUIMIENTO" | "EN_RIESGO",
+  "senalesDetectadas": [{ "señal": string, "peso": "ALTO"|"MEDIO"|"BAJO" }],
+  "planAccion": [{ "accion": string, "tiempo": string, "responsable": string }] | null,
+  "justificacion": string
+}
+
+Si el veredicto es COMPROMETIDO, planAccion puede ser null (ya está aportando, no hace falta un plan). Si es EN_SEGUIMIENTO o EN_RIESGO, planAccion debe sugerir 1 a 3 acciones concretas para reactivarlo.
+Responde SOLO con el JSON, sin texto adicional ni markdown.`
+
+/**
+ * Devuelve el veredicto IA de compromiso ya cacheado (< 24h) sin llamar a la
+ * IA — para precargar la ficha del elector al abrirla sin gastar una llamada
+ * si ya hay uno reciente. null = no hay ninguno todavía (hay que generarlo).
+ */
+export async function getAnalisisCompromisoCacheado(voterId: string): Promise<CompromisoAnalysisResult | null> {
+  const session = await requireModule('CORE')
+  const db      = await obtenerDbTenant(session.user.tenantId)
+
+  if (session.user.role === 'LIDER' || session.user.role === 'ELECTOR') {
+    if (!session.user.voterId) return null
+    const permitidos = await idsSubarbol(session.user.voterId, session.user.tenantId, db)
+    if (!permitidos.has(voterId)) return null
+  }
+
+  const hace24h = new Date(Date.now() - 24 * 60 * 60 * 1000)
+  const reciente = await db.compromisoAnalysis.findFirst({
+    where:   { tenantId: session.user.tenantId, voterId, generadoEn: { gte: hace24h } },
+    orderBy: { generadoEn: 'desc' },
+  })
+  return reciente ? formatCompromisoAnalysis(reciente) : null
+}
+
+/**
+ * Genera (o reutiliza uno reciente, < 24h) el veredicto IA de compromiso de
+ * un elector. Cualquier rol con acceso a ese elector puede pedirlo — LIDER/
+ * ELECTOR solo dentro de su propio sub-árbol, igual que updateVoterCommitment.
+ */
+export async function generarAnalisisCompromiso(voterId: string): Promise<CompromisoAnalysisResult> {
+  const session = await requireModule('CORE')
+  const db      = await obtenerDbTenant(session.user.tenantId)
+
+  if (session.user.role === 'LIDER' || session.user.role === 'ELECTOR') {
+    if (!session.user.voterId) throw new Error('Tu usuario no está vinculado a un elector.')
+    const permitidos = await idsSubarbol(session.user.voterId, session.user.tenantId, db)
+    if (!permitidos.has(voterId)) throw new Error('No tienes acceso a este elector.')
+  }
+
+  const hace24h = new Date(Date.now() - 24 * 60 * 60 * 1000)
+  const reciente = await db.compromisoAnalysis.findFirst({
+    where:   { tenantId: session.user.tenantId, voterId, generadoEn: { gte: hace24h } },
+    orderBy: { generadoEn: 'desc' },
+  })
+  if (reciente) return formatCompromisoAnalysis(reciente)
+
+  const elector = await db.voter.findFirstOrThrow({
+    where:  { id: voterId, tenantId: session.user.tenantId },
+    select: { name: true, apodo: true, commitmentStatus: true, lastContact: true, createdAt: true },
+  })
+
+  // Mismas señales que lib/compromiso.ts — se recalculan aquí para pasarlas
+  // como contexto crudo a la IA (no solo el score ya reducido a 0-100).
+  const campania = await db.surveyCampaign.findFirst({
+    where:   { tenantId: session.user.tenantId, isActive: true, isSurveyEnabled: true },
+    include: { cargos: { include: { preguntas: { select: { id: true } } } } },
+  })
+  const preguntaIdsActivas = campania?.cargos.flatMap((c) => c.preguntas.map((p) => p.id)) ?? []
+
+  const [encuestasRespondidas, reunionesAsistidas, personasCaptadas] = await Promise.all([
+    preguntaIdsActivas.length > 0
+      ? db.surveyResponse.count({ where: { voterId, surveyPreguntaId: { in: preguntaIdsActivas } } })
+      : Promise.resolve(0),
+    db.meetingAttendance.count({ where: { voterId } }),
+    db.voter.count({ where: { tenantId: session.user.tenantId, leaderId: voterId } }),
+  ])
+
+  const indiceCalculado = calcularIndiceCompromiso({
+    encuestasRespondidas,
+    encuestasTotal: preguntaIdsActivas.length,
+    reunionesAsistidas,
+    personasCaptadas,
+  })
+
+  const contexto = {
+    elector: {
+      nombre:         elector.apodo?.trim() || elector.name,
+      fechaRegistro:  elector.createdAt.toISOString().slice(0, 10),
+      estadoManual:   elector.commitmentStatus,
+      ultimoContacto: elector.lastContact?.toISOString().slice(0, 10) ?? 'sin contacto',
+    },
+    actividad: {
+      encuestasRespondidas,
+      encuestasTotal: preguntaIdsActivas.length,
+      reunionesAsistidas,
+      personasCaptadas,
+      indiceCalculado: indiceCalculado.score, // heurística sin IA, como referencia
+    },
+  }
+
+  // Groq (tiempo real), no Zhipu — es lo que este tenant tiene configurado y
+  // funcionando; el "análisis" de Zhipu queda para cuando el líder analytics
+  // lo necesite, esto es una evaluación puntual por elector bajo demanda.
+  const { groq } = await getTenantAiKeys(session.user.tenantId)
+  const respuesta = await chatGroq(SYSTEM_PROMPT_COMPROMISO, JSON.stringify(contexto), groq)
+
+  let resultado: {
+    perfilTipo:        string
+    indiceCompromiso:  number
+    veredicto:         string
+    senalesDetectadas: { señal: string; peso: string }[]
+    planAccion:        { accion: string; tiempo: string; responsable: string }[] | null
+    justificacion:     string
+  }
+  try {
+    resultado = JSON.parse(respuesta)
+  } catch {
+    throw new Error('El agente IA retornó un JSON inválido. Intente regenerar el análisis.')
+  }
+
+  if (
+    typeof resultado.perfilTipo !== 'string' ||
+    typeof resultado.indiceCompromiso !== 'number' ||
+    !Array.isArray(resultado.senalesDetectadas) ||
+    typeof resultado.veredicto !== 'string' ||
+    typeof resultado.justificacion !== 'string'
+  ) {
+    throw new Error('El análisis del agente IA no tiene el formato esperado. Campos obligatorios faltantes.')
+  }
+
+  const saved = await db.compromisoAnalysis.create({
+    data: {
+      tenantId:          session.user.tenantId,
+      voterId,
+      perfilTipo:        resultado.perfilTipo,
+      indiceCompromiso:  resultado.indiceCompromiso,
+      veredicto:         resultado.veredicto,
+      planAccion:        resultado.planAccion ?? undefined,
+      senalesDetectadas: resultado.senalesDetectadas,
+      justificacion:      resultado.justificacion,
+    },
+  })
+
+  return formatCompromisoAnalysis(saved)
+}
+
+function formatCompromisoAnalysis(analysis: {
+  id: string; perfilTipo: string; indiceCompromiso: number; veredicto: string
+  planAccion: unknown; senalesDetectadas: unknown; justificacion: string; generadoEn: Date
+}): CompromisoAnalysisResult {
+  return {
+    id:                analysis.id,
+    perfilTipo:        analysis.perfilTipo,
+    indiceCompromiso:  analysis.indiceCompromiso,
+    veredicto:         analysis.veredicto,
+    planAccion:        analysis.planAccion as CompromisoAnalysisResult['planAccion'],
+    senalesDetectadas: analysis.senalesDetectadas as CompromisoAnalysisResult['senalesDetectadas'],
+    justificacion:     analysis.justificacion,
+    generadoEn:        analysis.generadoEn.toISOString(),
   }
 }
 

@@ -342,6 +342,25 @@ model LeaderAnalysis {
   @@index([tenantId, leaderId, generadoEn])
 }
 
+/// Análisis de compromiso de un ELECTOR (no líder) generado por el agente IA
+/// (Groq) — mismo patrón que LeaderAnalysis, evaluando encuestas + reuniones
+/// + masificación (ver lib/compromiso.ts para el índice heurístico que se le
+/// pasa como contexto). Se cachea por 24 horas.
+model CompromisoAnalysis {
+  id                String   @id @default(cuid())
+  tenantId          String
+  voterId           String
+  perfilTipo        String // Activista | Participativo | Ocasional | Desconectado
+  indiceCompromiso  Int // 0-100
+  veredicto         String // COMPROMETIDO | EN_SEGUIMIENTO | EN_RIESGO
+  planAccion        Json? // null si veredicto es COMPROMETIDO (ya está aportando)
+  senalesDetectadas Json // Array de { señal, peso: ALTO|MEDIO|BAJO }
+  justificacion     String
+  generadoEn        DateTime @default(now())
+
+  @@index([tenantId, voterId, generadoEn])
+}
+
 /// Cargo de elección popular al que aspira el candidato de la campaña.
 enum ElectionOffice {
   ALCALDE
