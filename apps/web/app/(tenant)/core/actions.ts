@@ -11,7 +11,7 @@
 import { requireAuth, requireModule } from '@/lib/auth-helpers'
 import { getTenantConnection }        from '@/lib/tenant'
 import { calcularCedulaHash }         from '@/lib/cedula-hash'
-import { getTenantDb, encrypt, Prisma } from '@campaignos/db'
+import { getTenantDb, encrypt, decrypt, Prisma } from '@campaignos/db'
 import { geocodeAddress }             from '@/lib/geocode'
 import { puntoEnPoligono }            from '@/lib/geometry'
 import { crearQrPropio }              from '@/lib/qr'
@@ -804,6 +804,61 @@ export async function listVoters(
     voters: electores as VoterSummary[],
     total,
     pages,
+  }
+}
+
+export interface VoterDetalle {
+  id:               string
+  name:             string
+  apodo:            string | null
+  // Descifrado server-side, a diferencia de VoterSummary — acá sí hace
+  // falta (ficha de un único elector, mismo precedente que
+  // /api/core/mis-electores para click-to-call).
+  phone:            string | null
+  address:          string | null
+  commitmentStatus: CommitmentStatus
+  lastContact:      Date | null
+  notes:            string | null
+  leaderId:         string | null
+  leaderName:       string | null
+  isCandidate:      boolean
+}
+
+/** Ficha de un elector puntual — para /core/electores/[id]. */
+export async function getVoterDetalle(id: string): Promise<VoterDetalle | null> {
+  const session = await requireModule('CORE')
+  const db      = await obtenerDbTenant(session.user.tenantId)
+
+  if (session.user.role === 'LIDER') {
+    if (!session.user.voterId) return null
+    const permitidos = await idsSubarbol(session.user.voterId, session.user.tenantId, db)
+    if (!permitidos.has(id)) return null
+  }
+
+  const v = await db.voter.findFirst({
+    where:  { id, tenantId: session.user.tenantId },
+    select: {
+      id: true, name: true, apodo: true, phone: true, address: true,
+      commitmentStatus: true, lastContact: true, notes: true,
+      leaderId: true, isCandidate: true,
+      leader: { select: { name: true } },
+    },
+  })
+  if (!v) return null
+
+  let phonePlain: string | null = null
+  if (v.phone) {
+    try {
+      phonePlain = decrypt(v.phone)
+    } catch {
+      console.error(`[getVoterDetalle] phone no descifrable para voter ${v.id}`)
+    }
+  }
+
+  return {
+    id: v.id, name: v.name, apodo: v.apodo, phone: phonePlain, address: v.address,
+    commitmentStatus: v.commitmentStatus, lastContact: v.lastContact, notes: v.notes,
+    leaderId: v.leaderId, leaderName: v.leader?.name ?? null, isCandidate: v.isCandidate,
   }
 }
 

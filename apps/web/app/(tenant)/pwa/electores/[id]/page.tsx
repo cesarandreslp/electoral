@@ -10,7 +10,7 @@ import { useState, useTransition } from 'react'
 import { useRouter, useParams }    from 'next/navigation'
 import useSWR                      from 'swr'
 import { IconPhone, IconWhatsapp, IconCopy, IconCheck } from '@/app/_components/icons'
-import { VeredictoCompromiso } from './_components/veredicto-compromiso'
+import { VeredictoCompromiso } from '@/app/(tenant)/_components/veredicto-compromiso'
 
 type CommitmentStatus =
   | 'SIN_CONTACTAR'

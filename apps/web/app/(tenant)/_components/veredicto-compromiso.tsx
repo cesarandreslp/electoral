@@ -16,7 +16,12 @@ const COLORES_PESO: Record<string, { bg: string; text: string }> = {
   BAJO:  { bg: '#e0f2fe', text: '#0c4a6e' },
 }
 
-/** Ficha de veredicto IA de compromiso — mismo patrón que analytics/lideres/[id]/analisis, adaptado a móvil. */
+/**
+ * Ficha de veredicto IA de compromiso — mismo patrón que
+ * analytics/lideres/[id]/analisis. Vive en el _components compartido del
+ * tenant porque la usan tanto la ficha de elector de la PWA como la del
+ * panel admin (/core/electores/[id]).
+ */
 export function VeredictoCompromiso({ voterId }: { voterId: string }) {
   const [analisis, setAnalisis] = useState<CompromisoAnalysisResult | null>(null)
   const [cargandoCache, setCargandoCache] = useState(true)

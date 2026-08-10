@@ -119,7 +119,9 @@ export default async function ElectoresPage({ searchParams }: Props) {
               {voters.map((v) => (
                 <tr key={v.id} style={{ borderTop: '1px solid #f1f5f9' }}>
                   <Td>
-                    <div style={{ fontWeight: 500 }}>{v.name}</div>
+                    <Link href={`/core/electores/${v.id}`} style={{ fontWeight: 500, color: '#0f172a', textDecoration: 'none' }}>
+                      {v.name}
+                    </Link>
                     {v.notes && (
                       <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>{v.notes}</div>
                     )}

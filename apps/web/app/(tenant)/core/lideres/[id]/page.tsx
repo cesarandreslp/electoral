@@ -164,7 +164,11 @@ export default async function FichaLiderPage({ params }: Props) {
             <tbody>
               {voters.map((v) => (
                 <tr key={v.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                  <Td>{v.name}</Td>
+                  <Td>
+                    <Link href={`/core/electores/${v.id}`} style={{ color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>
+                      {v.name}
+                    </Link>
+                  </Td>
                   <Td>
                     <EstadoBadge status={v.commitmentStatus} />
                   </Td>
