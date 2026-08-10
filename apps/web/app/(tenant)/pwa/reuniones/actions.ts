@@ -15,7 +15,11 @@ export interface ReunionListado {
 
 /** Reuniones convocadas por el elector logueado, con quién asistió. */
 export async function listarReuniones(): Promise<ReunionListado[]> {
-  const session = await requireAuth(['ELECTOR', 'LIDER'])
+  // Mismos roles que puede tener cualquier sesión dentro de /pwa (ver
+  // pwa/layout.tsx) — el control real de acceso es tener voterId, no el rol:
+  // staff (ADMIN_CAMPANA/COORDINADOR/TESTIGO) normalmente no lo tiene y
+  // recibe listas vacías en vez de un throw que rompería la pantalla.
+  const session = await requireAuth(['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO', 'ELECTOR'])
   if (!session.user.voterId) return []
 
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
@@ -36,7 +40,7 @@ export async function listarReuniones(): Promise<ReunionListado[]> {
 
 /** Convoca una nueva reunión. */
 export async function crearReunion(title: string, date: string) {
-  const session = await requireAuth(['ELECTOR', 'LIDER'])
+  const session = await requireAuth(['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO', 'ELECTOR'])
   if (!session.user.voterId) return { success: false, error: 'Cuenta sin elector enlazado.' }
   if (!title.trim()) return { success: false, error: 'Falta el título.' }
 
@@ -57,7 +61,7 @@ export async function crearReunion(title: string, date: string) {
 
 /** Marca o quita la asistencia de un elector de su propia red a una reunión que convocó. */
 export async function marcarAsistencia(meetingId: string, voterId: string, asistio: boolean) {
-  const session = await requireAuth(['ELECTOR', 'LIDER'])
+  const session = await requireAuth(['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO', 'ELECTOR'])
   if (!session.user.voterId) return { success: false, error: 'Cuenta sin elector enlazado.' }
 
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))

@@ -24,7 +24,7 @@ interface SuscripcionPush {
 
 /** Guarda la suscripción push del elector logueado (requiere Voter enlazado). */
 export async function suscribirPush(sub: SuscripcionPush) {
-  const session = await requireAuth(['ELECTOR', 'LIDER'])
+  const session = await requireAuth(['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO', 'ELECTOR'])
   if (!session.user.voterId) {
     return { success: false, error: 'Esta cuenta no tiene un elector enlazado.' }
   }
@@ -52,7 +52,7 @@ export async function suscribirPush(sub: SuscripcionPush) {
 
 /** Borra la suscripción push (el elector desactivó las notificaciones). */
 export async function desuscribirPush(endpoint: string) {
-  const session = await requireAuth(['ELECTOR', 'LIDER'])
+  const session = await requireAuth(['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO', 'ELECTOR'])
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
   await db.voterPushSubscription.deleteMany({

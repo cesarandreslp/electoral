@@ -21,7 +21,11 @@ export interface PreguntaPendiente {
  * no ha respondido — para el flujo in-app (sin WhatsApp).
  */
 export async function getEncuestaPendiente(): Promise<PreguntaPendiente[]> {
-  const session = await requireAuth(['ELECTOR', 'LIDER'])
+  // Mismos roles que puede tener cualquier sesión dentro de /pwa (ver
+  // pwa/layout.tsx) — el control real de acceso es tener voterId, no el rol:
+  // staff (ADMIN_CAMPANA/COORDINADOR/TESTIGO) normalmente no lo tiene y
+  // recibe listas vacías en vez de un throw que rompería la pantalla.
+  const session = await requireAuth(['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO', 'ELECTOR'])
   if (!session.user.voterId || !session.user.activeModules.includes('ENCUESTAS')) return []
 
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
@@ -67,7 +71,7 @@ type Respuesta =
 
 /** Guarda la respuesta del elector logueado a una pregunta de encuesta. */
 export async function responderPreguntaApp(preguntaId: string, respuesta: Respuesta) {
-  const session = await requireAuth(['ELECTOR', 'LIDER'])
+  const session = await requireAuth(['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO', 'ELECTOR'])
   if (!session.user.voterId) return { success: false, error: 'Cuenta sin elector enlazado.' }
 
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
