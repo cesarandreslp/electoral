@@ -5,6 +5,7 @@ import { listLeaders, listVoters, getArbolOrganizacion } from '../../actions'
 import { getCoberturaPropiaEncuesta } from '@/app/(tenant)/encuestas/actions'
 import { BarraProgreso } from '../_components/barra-progreso'
 import { BotonCandidato } from '../_components/boton-candidato'
+import { BotonJefeDebate } from '../../_components/boton-jefe-debate'
 import { Organigrama }   from '../_components/organigrama'
 
 export const metadata = { title: 'Ficha de líder' }
@@ -59,11 +60,20 @@ export default async function FichaLiderPage({ params }: Props) {
                 CANDIDATO
               </span>
             )}
+            {lider.tieneAgenda && (
+              <span style={{
+                marginLeft: '0.6rem', verticalAlign: 'middle', background: '#eff6ff', color: '#1e40af',
+                padding: '0.15rem 0.5rem', borderRadius: 999, fontSize: '0.7rem', fontWeight: 600,
+              }}>
+                JEFE DE DEBATE
+              </span>
+            )}
           </h1>
           {lider.zone && <div style={{ color: '#64748b', fontSize: '0.875rem' }}>{lider.zone}</div>}
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           {esAdminCampana && <BotonCandidato id={id} esCandidato={lider.isCandidate} />}
+          {esAdminCampana && <BotonJefeDebate id={id} tieneAgenda={lider.tieneAgenda} />}
           <Link
             href={`/core/lideres/${id}/arbol`}
             style={{

@@ -169,6 +169,9 @@ model Voter {
   // campaña — se excluye del panel de líderes y del ranking (sigue contando para
   // el sub-árbol de quien sí aparece). A lo sumo uno por tenant.
   isCandidate      Boolean          @default(false)
+  // "Jefe de debate" — además del candidato (que siempre tiene agenda),
+  // el admin puede marcar a otros con agenda propia reservable por electores.
+  tieneAgenda      Boolean          @default(false)
   votingTableId    String? // Mesa donde está inscrito
   commitmentStatus CommitmentStatus @default(SIN_CONTACTAR)
   lastContact      DateTime? // Último contacto registrado
@@ -188,6 +191,12 @@ model Voter {
   surveyMessageLogs  SurveyMessageLog[]
   pushSubscriptions  VoterPushSubscription[]
   meetingAttendances MeetingAttendance[]
+
+  // Agenda reservable (candidato / jefes de debate) y convocatorias top-down
+  agendaPropia            AgendaEntrada[]             @relation("AgendaAnfitrion")
+  agendaReservas          AgendaEntrada[]              @relation("AgendaReservante")
+  convocatoriasCreadas    Convocatoria[]
+  convocatoriasRecibidas  ConvocatoriaDestinatario[]
 
   leader      Voter?       @relation("VoterHierarchy", fields: [leaderId], references: [id])
   followers   Voter[]      @relation("VoterHierarchy")
@@ -949,23 +958,35 @@ model VoterPushSubscription {
   @@index([voterId])
 }
 
-/// Reunión convocada por un elector (líder implícito) para su gente — señal
-/// de compromiso: quién asiste a las actividades de la campaña.
+/// RED_INTERNA: reunión con la propia red ya registrada — cuenta para el
+/// índice de compromiso (lib/compromiso.ts). RECLUTAMIENTO: reunión para
+/// gente que podría adherirse a la campaña, todavía sin registrar — no
+/// cuenta para el índice (sus asistentes no son Voter, ver MeetingProspecto).
+enum MeetingTipo {
+  RED_INTERNA
+  RECLUTAMIENTO
+}
+
+/// Reunión convocada por un elector (líder implícito) — con su gente ya
+/// registrada (RED_INTERNA, señal de compromiso) o con prospectos para
+/// hacer crecer la base (RECLUTAMIENTO).
 model Meeting {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   tenantId  String
   leaderId  String // Voter que convocó
   title     String
   date      DateTime
-  createdAt DateTime @default(now())
+  tipo      MeetingTipo @default(RED_INTERNA)
+  createdAt DateTime    @default(now())
 
-  attendees MeetingAttendance[]
+  attendees  MeetingAttendance[]
+  prospectos MeetingProspecto[]
 
   @@index([tenantId, leaderId])
 }
 
-/// Asistencia confirmada de un elector a una reunión — la fila existe solo
-/// si asistió (lista de presentes, no de invitados).
+/// Asistencia confirmada de un elector YA REGISTRADO a una reunión RED_INTERNA
+/// — la fila existe solo si asistió (lista de presentes, no de invitados).
 model MeetingAttendance {
   id        String @id @default(cuid())
   meetingId String
@@ -975,5 +996,76 @@ model MeetingAttendance {
   voter   Voter   @relation(fields: [voterId], references: [id], onDelete: Cascade)
 
   @@unique([meetingId, voterId])
+  @@index([voterId])
+}
+
+/// Prospecto que asistió a una reunión de RECLUTAMIENTO — solo nombre/nota,
+/// nunca crea un Voter. Si luego se une a la campaña, se registra aparte por
+/// el flujo normal de QR/link (sin relación automática con esto).
+model MeetingProspecto {
+  id        String  @id @default(cuid())
+  meetingId String
+  name      String
+  phone     String? // en texto plano — a diferencia de Voter.phone, no es un elector, es solo una nota de contacto
+  notes     String?
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@index([meetingId])
+}
+
+/// Hueco de agenda del candidato o un "jefe de debate" (Voter.tieneAgenda) —
+/// mismo modelo para lo que el anfitrión publica como disponible (sin
+/// título, hasta reservarse) y lo que bloquea como compromiso propio
+/// (con título, NUNCA visible para el elector). El elector solo consulta
+/// disponible=true AND reservadoPor=null.
+model AgendaEntrada {
+  id           String   @id @default(cuid())
+  tenantId     String
+  anfitrionId  String // Voter con agenda propia (candidato o jefe de debate)
+  startsAt     DateTime
+  endsAt       DateTime
+  disponible   Boolean // true = hueco publicado para reservar; false = compromiso privado del anfitrión
+  titulo       String? // solo compromisos (disponible=false) — nunca se expone a electores
+  reservadoPor String? // Voter del elector que reservó (solo si disponible=true)
+  motivo       String? // lo que puso el elector al reservar
+  createdAt    DateTime @default(now())
+
+  anfitrion  Voter  @relation("AgendaAnfitrion", fields: [anfitrionId], references: [id], onDelete: Cascade)
+  reservante Voter? @relation("AgendaReservante", fields: [reservadoPor], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, anfitrionId, startsAt])
+}
+
+/// Convocatoria del candidato o un jefe de debate hacia electores (algunos o
+/// todos) — a diferencia de Meeting (que convoca cualquier elector a su
+/// propia gente), esto es específicamente la convocatoria "de arriba hacia
+/// abajo" de la dirección de campaña.
+model Convocatoria {
+  id           String   @id @default(cuid())
+  tenantId     String
+  convocanteId String // Voter con agenda propia que convoca
+  titulo       String
+  startsAt     DateTime
+  lugar        String?
+  createdAt    DateTime @default(now())
+
+  convocante    Voter                      @relation(fields: [convocanteId], references: [id], onDelete: Cascade)
+  destinatarios ConvocatoriaDestinatario[]
+
+  @@index([tenantId, convocanteId])
+}
+
+/// Un elector convocado a una Convocatoria — la fila existe para cada
+/// destinatario, sea porque se eligió "todos" o una selección puntual.
+model ConvocatoriaDestinatario {
+  id             String @id @default(cuid())
+  convocatoriaId String
+  voterId        String
+
+  convocatoria Convocatoria @relation(fields: [convocatoriaId], references: [id], onDelete: Cascade)
+  voter        Voter        @relation(fields: [voterId], references: [id], onDelete: Cascade)
+
+  @@unique([convocatoriaId, voterId])
   @@index([voterId])
 }

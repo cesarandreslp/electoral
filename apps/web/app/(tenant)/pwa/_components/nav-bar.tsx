@@ -9,7 +9,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { IconUsers, IconCalendar, IconClipboard } from '@/app/_components/icons'
+import { IconUsers, IconCalendar, IconClipboard, IconClock } from '@/app/_components/icons'
 
 interface NavBarProps {
   mostrarEncuestas: boolean
@@ -21,6 +21,7 @@ export function NavBar({ mostrarEncuestas }: NavBarProps) {
   const tabs = [
     { href: '/pwa', label: 'Mis electores', icon: IconUsers, activo: pathname === '/pwa' },
     { href: '/pwa/reuniones', label: 'Reuniones', icon: IconCalendar, activo: pathname.startsWith('/pwa/reuniones') },
+    { href: '/pwa/agenda', label: 'Agenda', icon: IconClock, activo: pathname.startsWith('/pwa/agenda') },
     ...(mostrarEncuestas
       ? [{ href: '/pwa/encuestas', label: 'Encuesta', icon: IconClipboard, activo: pathname.startsWith('/pwa/encuestas') }]
       : []),

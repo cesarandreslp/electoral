@@ -64,6 +64,7 @@ export interface LeaderSummary {
   totalElectores: number
   comprometidos:  number
   isCandidate:    boolean
+  tieneAgenda:    boolean
   pctAvance:      number // 0-100
   parentLeaderId: string | null
 }
@@ -353,6 +354,32 @@ export async function setCandidato(id: string, isCandidate: boolean): Promise<{ 
 }
 
 /**
+ * Marca o quita a un elector como "jefe de debate" — con agenda propia
+ * reservable por otros electores, igual que el candidato (que siempre la
+ * tiene, sin necesidad de este flag). A diferencia del candidato, puede
+ * haber varios a la vez.
+ */
+export async function setTieneAgenda(id: string, tieneAgenda: boolean): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await requireModule('CORE', ['ADMIN_CAMPANA'])
+    const db      = await obtenerDbTenant(session.user.tenantId)
+
+    const existente = await db.voter.findFirst({ where: { id, tenantId: session.user.tenantId } })
+    if (!existente) return { success: false, error: 'Elector no encontrado.' }
+
+    await db.voter.update({ where: { id }, data: { tieneAgenda } })
+
+    revalidatePath('/core/lideres')
+    revalidatePath('/core/electores')
+    return { success: true }
+
+  } catch (err) {
+    console.error('[setTieneAgenda]', err instanceof Error ? err.message : err)
+    return { success: false, error: 'Error al actualizar el jefe de debate.' }
+  }
+}
+
+/**
  * Lista líderes (Voters con >= UMBRAL_LIDER_DIRECTOS electores directos) con
  * métricas de avance. Los LIDER solo ven sus propios datos.
  */
@@ -418,6 +445,7 @@ export async function listLeaders(filters?: LeaderFilters): Promise<LeaderSummar
       totalElectores: l.followers.length,
       comprometidos,
       isCandidate:    l.isCandidate,
+      tieneAgenda:    l.tieneAgenda,
       pctAvance:      l.targetVotes > 0
         ? Math.round((comprometidos / l.targetVotes) * 100)
         : 0,
@@ -822,6 +850,7 @@ export interface VoterDetalle {
   leaderId:         string | null
   leaderName:       string | null
   isCandidate:      boolean
+  tieneAgenda:      boolean
 }
 
 /** Ficha de un elector puntual — para /core/electores/[id]. */
@@ -840,7 +869,7 @@ export async function getVoterDetalle(id: string): Promise<VoterDetalle | null> 
     select: {
       id: true, name: true, apodo: true, phone: true, address: true,
       commitmentStatus: true, lastContact: true, notes: true,
-      leaderId: true, isCandidate: true,
+      leaderId: true, isCandidate: true, tieneAgenda: true,
       leader: { select: { name: true } },
     },
   })
@@ -859,6 +888,7 @@ export async function getVoterDetalle(id: string): Promise<VoterDetalle | null> 
     id: v.id, name: v.name, apodo: v.apodo, phone: phonePlain, address: v.address,
     commitmentStatus: v.commitmentStatus, lastContact: v.lastContact, notes: v.notes,
     leaderId: v.leaderId, leaderName: v.leader?.name ?? null, isCandidate: v.isCandidate,
+    tieneAgenda: v.tieneAgenda,
   }
 }
 

@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { auth } from '@campaignos/auth'
 import { getVoterDetalle } from '../../actions'
 import { getCoberturaPropiaEncuesta } from '@/app/(tenant)/encuestas/actions'
 import { SelectorEstado } from '../_components/selector-estado'
+import { BotonJefeDebate } from '../../_components/boton-jefe-debate'
 import { VeredictoCompromiso } from '@/app/(tenant)/_components/veredicto-compromiso'
 
 export const metadata = { title: 'Ficha de elector' }
@@ -23,6 +25,9 @@ export default async function FichaElectorPage({ params }: Props) {
   const { id } = await params
   const elector = await getVoterDetalle(id)
   if (!elector) notFound()
+
+  const session = await auth()
+  const esAdminCampana = session?.user?.role === 'ADMIN_CAMPANA'
 
   // Best-effort: si el rol no califica (ej. TESTIGO) o falla, simplemente no se
   // muestra el dato — no es motivo para romper la ficha completa del elector.
@@ -46,6 +51,14 @@ export default async function FichaElectorPage({ params }: Props) {
                 padding: '0.15rem 0.5rem', borderRadius: 999, fontSize: '0.7rem', fontWeight: 600,
               }}>
                 CANDIDATO
+              </span>
+            )}
+            {elector.tieneAgenda && (
+              <span style={{
+                marginLeft: '0.6rem', verticalAlign: 'middle', background: '#eff6ff', color: '#1e40af',
+                padding: '0.15rem 0.5rem', borderRadius: 999, fontSize: '0.7rem', fontWeight: 600,
+              }}>
+                JEFE DE DEBATE
               </span>
             )}
           </h1>
@@ -79,6 +92,12 @@ export default async function FichaElectorPage({ params }: Props) {
           <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.35rem' }}>Actualizar estado</div>
           <SelectorEstado voterId={elector.id} estadoActual={elector.commitmentStatus} />
         </div>
+
+        {esAdminCampana && (
+          <div>
+            <BotonJefeDebate id={elector.id} tieneAgenda={elector.tieneAgenda} />
+          </div>
+        )}
       </div>
 
       {cobertura && cobertura.captados > 0 && (
