@@ -1,7 +1,7 @@
 import Link             from 'next/link'
 import { notFound }    from 'next/navigation'
 import { auth }        from '@campaignos/auth'
-import { listLeaders, listVoters } from '../../actions'
+import { listLeaders, listVoters, getSubarbolCompleto, type NodoOrganizacion } from '../../actions'
 import { BarraProgreso } from '../_components/barra-progreso'
 import { BotonCandidato } from '../_components/boton-candidato'
 
@@ -11,45 +11,22 @@ interface Props {
   params: Promise<{ id: string }>
 }
 
-interface NodoArbol {
-  id:             string
-  name:           string
-  zone:           string | null
-  totalElectores: number
-  children:       NodoArbol[]
-}
-
 export default async function FichaLiderPage({ params }: Props) {
   const { id }  = await params
   const session = await auth()
   const esAdmin = ['ADMIN_CAMPANA', 'COORDINADOR'].includes(session?.user?.role ?? '')
   const esAdminCampana = session?.user?.role === 'ADMIN_CAMPANA'
 
-  // Obtener datos del líder y sus electores en paralelo.
   // `misDatos` busca puntualmente por id (funciona aunque el líder sea recién
-  // creado y todavía no tenga followers); `todosLideres` solo trae a quienes
-  // YA actúan como líder, para construir el árbol de sub-líderes.
-  const [todosLideres, misDatos, datosElectores] = await Promise.all([
-    listLeaders(),
+  // creado y todavía no tenga followers, o ya no llegue al umbral).
+  const [misDatos, datosElectores, subLideres] = await Promise.all([
     listLeaders({ id }),
     listVoters({ leaderId: id }),
+    getSubarbolCompleto(id),
   ])
 
-  const lider = misDatos[0] ?? todosLideres.find((l) => l.id === id)
+  const lider = misDatos[0]
   if (!lider) notFound()
-
-  // Árbol multinivel de sub-líderes (jerarquía parentLeaderId), construido en memoria.
-  const construirSubarbol = (padreId: string): NodoArbol[] =>
-    todosLideres
-      .filter((l) => l.parentLeaderId === padreId)
-      .map((l) => ({
-        id:             l.id,
-        name:           l.name,
-        zone:           l.zone,
-        totalElectores: l.totalElectores,
-        children:       construirSubarbol(l.id),
-      }))
-  const subLideres = construirSubarbol(id)
 
   const { voters, total } = datosElectores
 
@@ -128,11 +105,13 @@ export default async function FichaLiderPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Árbol multinivel de sub-líderes */}
+      {/* Árbol de organización — toda la cadena de gente con su propia red debajo,
+          no solo quienes ya califican como líder (por eso no se llama "Sub-líderes":
+          un conector con <10 directos igual debe verse para no cortar la cadena). */}
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.25rem', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Sub-líderes</h2>
+        <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Organización debajo</h2>
         {subLideres.length === 0 ? (
-          <div style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Este líder no tiene sub-líderes.</div>
+          <div style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Nadie en su red tiene electores propios todavía.</div>
         ) : (
           <ArbolLideres nodos={subLideres} nivel={0} />
         )}
@@ -213,8 +192,8 @@ const COLORES_ESTADO: Record<string, { bg: string; text: string }> = {
   VOTO_SEGURO:   { bg: '#bbf7d0', text: '#14532d' },
 }
 
-/** Render recursivo del árbol de sub-líderes con sangría por nivel. */
-function ArbolLideres({ nodos, nivel }: { nodos: NodoArbol[]; nivel: number }) {
+/** Render recursivo del árbol de organización con sangría por nivel. */
+function ArbolLideres({ nodos, nivel }: { nodos: NodoOrganizacion[]; nivel: number }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
       {nodos.map((n) => (
@@ -228,7 +207,15 @@ function ArbolLideres({ nodos, nivel }: { nodos: NodoArbol[]; nivel: number }) {
               {n.name}
             </Link>
             {n.zone && <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>· {n.zone}</span>}
-            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>· {n.totalElectores} electores</span>
+            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>· {n.directos} directos</span>
+            {n.esLider && (
+              <span style={{
+                background: '#dbeafe', color: '#1e40af', padding: '0.05rem 0.4rem',
+                borderRadius: 999, fontSize: '0.65rem', fontWeight: 700,
+              }}>
+                LÍDER
+              </span>
+            )}
           </div>
           {n.children.length > 0 && <ArbolLideres nodos={n.children} nivel={nivel + 1} />}
         </div>

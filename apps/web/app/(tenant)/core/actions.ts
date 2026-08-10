@@ -194,6 +194,65 @@ export async function profundidadSubarbol(
   return profundidad
 }
 
+export interface NodoOrganizacion {
+  id:       string
+  name:     string
+  zone:     string | null
+  directos: number
+  esLider:  boolean // >= UMBRAL_LIDER_DIRECTOS
+  children: NodoOrganizacion[]
+}
+
+/**
+ * Árbol de la organización de un elector: TODA la cadena de gente que tiene
+ * su propia gente debajo, sin importar si cada uno individualmente llega al
+ * umbral de líder — antes esta vista solo incluía a quienes YA calificaban
+ * como líder (listLeaders), así que un conector con <10 directos (ej. un
+ * elector con 4 electores, uno de los cuales sí es líder) desaparecía del
+ * árbol y "cortaba" la cadena visualmente, aunque el dato seguía intacto.
+ * Los electores sin gente propia no aparecen acá (ya están en la tabla
+ * plana de "Electores" de la ficha) — solo los conectores, recursivamente.
+ */
+export async function getSubarbolCompleto(raizId: string): Promise<NodoOrganizacion[]> {
+  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const db      = await obtenerDbTenant(session.user.tenantId)
+
+  if (session.user.role === 'LIDER') {
+    if (!session.user.voterId) return []
+    const permitidos = await idsSubarbol(session.user.voterId, session.user.tenantId, db)
+    if (!permitidos.has(raizId)) return []
+  }
+
+  const todos = await db.voter.findMany({
+    where:  { tenantId: session.user.tenantId },
+    select: { id: true, name: true, zone: true, leaderId: true },
+  })
+  const hijosPorLider = new Map<string, typeof todos>()
+  for (const v of todos) {
+    if (!v.leaderId) continue
+    const lista = hijosPorLider.get(v.leaderId) ?? []
+    lista.push(v)
+    hijosPorLider.set(v.leaderId, lista)
+  }
+
+  function construir(id: string): NodoOrganizacion[] {
+    const hijos = hijosPorLider.get(id) ?? []
+    return hijos
+      .filter((h) => (hijosPorLider.get(h.id)?.length ?? 0) > 0)
+      .map((h) => {
+        const propios = hijosPorLider.get(h.id) ?? []
+        return {
+          id: h.id, name: h.name, zone: h.zone,
+          directos: propios.length,
+          esLider:  propios.length >= UMBRAL_LIDER_DIRECTOS,
+          children: construir(h.id),
+        }
+      })
+  }
+
+  return construir(raizId)
+}
+
 // ── Acciones de líderes ───────────────────────────────────────────────────────
 // No existe "crear líder": todos se crean como electores (createVoter, más
 // abajo). "Líder" es una etiqueta que aparece sola al llegar a
