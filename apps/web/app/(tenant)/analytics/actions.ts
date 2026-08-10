@@ -561,8 +561,13 @@ export async function generarAnalisisLider(leaderId: string): Promise<LeaderAnal
     },
   }
 
-  // Llamar al agente Zhipu Flash (clave propia del tenant si la configuró)
+  // Llamar al agente Zhipu Flash — SOLO con la clave propia del tenant. Si no
+  // la configuró, cortar acá: nunca caer en silencio a process.env.ZHIPU_API_KEY
+  // (el default de chatZhipu) y cobrar el análisis contra la cuota del SaaS.
   const { zhipu } = await getTenantAiKeys(tenantId)
+  if (!zhipu) {
+    throw new Error('Este tenant no tiene configurada su propia clave de IA (Zhipu). Configúrala en Configuración antes de generar el análisis.')
+  }
   const respuesta = await chatZhipu(SYSTEM_PROMPT_ANALISIS, JSON.stringify(contexto), zhipu)
 
   // Parsear y validar JSON

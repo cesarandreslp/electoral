@@ -23,6 +23,14 @@ export class CandidateMatcher {
       return null
     }
 
+    // Sin clave propia del tenant: no identificar (en vez de caer en silencio
+    // a process.env.GROQ_API_KEY y cobrar la clasificación contra el SaaS).
+    // Mismo resultado que una respuesta ambigua — la encuesta queda guardada,
+    // solo sin candidato asociado.
+    if (!groqApiKey) {
+      return null
+    }
+
     const candidatosFormat = candidatos
       .map((c) => {
         const codeInfo = c.code ? ` | Código de lista: ${c.code}` : ''

@@ -413,17 +413,24 @@ export async function submitPhotoE14(
     const base64      = Buffer.from(arrayBuffer).toString('base64')
     const mimeType    = imageResponse.headers.get('content-type') ?? 'image/jpeg'
 
-    // Llamar a ambas IAs en paralelo (claves propias del tenant si las configuró)
+    // Llamar a ambas IAs en paralelo — SOLO con claves propias del tenant. Si
+    // el tenant no configuró una de las dos, esa IA simplemente no participa
+    // del consenso (en vez de caer en silencio a la clave global del SaaS);
+    // el resto del flujo ya sabe degradar a una sola fuente o a captura manual.
     const { groq: groqKey, zhipu: zhipuKey } = await getTenantAiKeys(tenantId)
     const [groqResult, zhipuResult] = await Promise.all([
-      extractE14WithGroq(base64, mimeType, groqKey).catch(err => {
-        console.error('[Groq E14]', err instanceof Error ? err.message : err)
-        return null
-      }),
-      extractE14WithZhipu(base64, mimeType, zhipuKey).catch(err => {
-        console.error('[Zhipu E14]', err instanceof Error ? err.message : err)
-        return null
-      }),
+      groqKey
+        ? extractE14WithGroq(base64, mimeType, groqKey).catch(err => {
+            console.error('[Groq E14]', err instanceof Error ? err.message : err)
+            return null
+          })
+        : Promise.resolve(null),
+      zhipuKey
+        ? extractE14WithZhipu(base64, mimeType, zhipuKey).catch(err => {
+            console.error('[Zhipu E14]', err instanceof Error ? err.message : err)
+            return null
+          })
+        : Promise.resolve(null),
     ])
 
     // Si ninguna IA respondió
