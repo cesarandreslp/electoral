@@ -2,6 +2,7 @@ import Link             from 'next/link'
 import { notFound }    from 'next/navigation'
 import { auth }        from '@campaignos/auth'
 import { listLeaders, listVoters, getArbolOrganizacion } from '../../actions'
+import { getCoberturaPropiaEncuesta } from '@/app/(tenant)/encuestas/actions'
 import { BarraProgreso } from '../_components/barra-progreso'
 import { BotonCandidato } from '../_components/boton-candidato'
 import { Organigrama }   from '../_components/organigrama'
@@ -28,6 +29,9 @@ export default async function FichaLiderPage({ params }: Props) {
 
   const lider = misDatos[0]
   if (!lider) notFound()
+
+  // Best-effort — un rol sin acceso (ej. TESTIGO) simplemente no ve el dato.
+  const cobertura = await getCoberturaPropiaEncuesta(id).catch(() => null)
 
   const { voters, total } = datosElectores
 
@@ -105,6 +109,16 @@ export default async function FichaLiderPage({ params }: Props) {
           <BarraProgreso valor={lider.comprometidos} meta={lider.targetVotes} pct={lider.pctAvance} />
         </div>
       </div>
+
+      {cobertura && cobertura.captados > 0 && (
+        <div style={{
+          background: cobertura.respondieron > 0 ? '#eef2ff' : '#f8fafc',
+          border: `1px solid ${cobertura.respondieron > 0 ? '#c7d2fe' : '#e2e8f0'}`,
+          borderRadius: '8px', padding: '0.875rem 1rem', marginBottom: '1.5rem', fontSize: '0.85rem',
+        }}>
+          <strong>{cobertura.respondieron} de {cobertura.captados}</strong> personas que registró con su propio QR/link respondieron la encuesta activa.
+        </div>
+      )}
 
       {/* Organigrama — toda la cadena de gente con su propia red debajo, no
           solo quienes ya califican como líder (un conector con <10 directos

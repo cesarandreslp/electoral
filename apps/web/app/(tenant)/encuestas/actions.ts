@@ -1,11 +1,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { requireModule } from '@/lib/auth-helpers'
+import { requireModule, requireAuth } from '@/lib/auth-helpers'
 import { getTenantDb, encrypt } from '@campaignos/db'
 import { getTenantConnection } from '@/lib/tenant'
 import { enviarPendientesTenant, type ResultadoEnvio } from '@/lib/encuestas/enviar-pendientes'
 import { enviarPushATenant } from '@/lib/push'
+import { idsSubarbol } from '@/app/(tenant)/core/actions'
 
 /**
  * Obtiene las campañas de encuestas del tenant.
@@ -332,4 +333,110 @@ export async function getSurveyStatsByCampaign(campaignId: string) {
     rawResponsesByText: responsesByText,
     metadata: { preguntas, candidatos },
   }
+}
+
+// ── Cobertura por captación (quién compartió la encuesta) ─────────────────────
+// No existe un "compartir encuesta" separado de compartir el QR/link propio:
+// cuando alguien se registra bajo el link de un elector y luego responde la
+// encuesta activa, eso es la señal de que ese elector "la compartió y
+// funcionó". Cruza Voter.leaderId (captación) con SurveyResponse.
+
+async function preguntaIdsCampaniaActiva(
+  db: ReturnType<typeof getTenantDb>, tenantId: string, campaignId?: string,
+): Promise<string[]> {
+  const campania = campaignId
+    ? await db.surveyCampaign.findFirst({
+        where:   { id: campaignId, tenantId },
+        include: { cargos: { include: { preguntas: { select: { id: true } } } } },
+      })
+    : await db.surveyCampaign.findFirst({
+        where:   { tenantId, isActive: true, isSurveyEnabled: true },
+        include: { cargos: { include: { preguntas: { select: { id: true } } } } },
+      })
+  return campania?.cargos.flatMap((c) => c.preguntas.map((p) => p.id)) ?? []
+}
+
+export interface CoberturaEncuestaEntry {
+  id:           string
+  name:         string
+  captados:     number
+  respondieron: number
+}
+
+/**
+ * Ranking de electores por "captó gente que sí respondió la encuesta" —
+ * responde directamente "¿quién la compartió?" para el gerente de campaña.
+ * Sin campaignId, usa la campaña activa; solo incluye a quien tenga al
+ * menos 1 captado que respondió (si nadie de los suyos respondió, no
+ * "compartió" nada que haya funcionado).
+ */
+export async function getCoberturaEncuestaPorCaptacion(campaignId?: string): Promise<CoberturaEncuestaEntry[]> {
+  const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const db      = getTenantDb(await getTenantConnection(session.user.tenantId))
+
+  const preguntaIds = await preguntaIdsCampaniaActiva(db, session.user.tenantId, campaignId)
+  if (preguntaIds.length === 0) return []
+
+  const todos = await db.voter.findMany({
+    where:  { tenantId: session.user.tenantId },
+    select: { id: true, name: true, leaderId: true },
+  })
+  const hijosPorLider = new Map<string, typeof todos>()
+  for (const v of todos) {
+    if (!v.leaderId) continue
+    const lista = hijosPorLider.get(v.leaderId) ?? []
+    lista.push(v)
+    hijosPorLider.set(v.leaderId, lista)
+  }
+
+  const respuestas = await db.surveyResponse.groupBy({
+    by:    ['voterId'],
+    where: { tenantId: session.user.tenantId, surveyPreguntaId: { in: preguntaIds } },
+  })
+  const respondieronSet = new Set(respuestas.map((r) => r.voterId))
+
+  const entradas: CoberturaEncuestaEntry[] = []
+  for (const [liderId, hijos] of hijosPorLider) {
+    const respondieron = hijos.filter((h) => respondieronSet.has(h.id)).length
+    if (respondieron === 0) continue
+    entradas.push({
+      id: liderId, name: todos.find((t) => t.id === liderId)?.name ?? '—',
+      captados: hijos.length, respondieron,
+    })
+  }
+
+  return entradas.sort((a, b) => b.respondieron - a.respondieron)
+}
+
+/**
+ * Cobertura de UN elector puntual — para el badge en su ficha (core/electores
+ * y core/lideres). null = módulo apagado, sin campaña activa, o sin acceso.
+ */
+export async function getCoberturaPropiaEncuesta(voterId: string): Promise<{ captados: number; respondieron: number } | null> {
+  const session = await requireAuth(['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'ELECTOR'])
+  if (!session.user.activeModules.includes('ENCUESTAS') || !session.user.activeModules.includes('CORE')) return null
+
+  const db = getTenantDb(await getTenantConnection(session.user.tenantId))
+
+  if (session.user.role === 'LIDER' || session.user.role === 'ELECTOR') {
+    if (!session.user.voterId) return null
+    const permitidos = await idsSubarbol(session.user.voterId, session.user.tenantId, db)
+    if (!permitidos.has(voterId)) return null
+  }
+
+  const preguntaIds = await preguntaIdsCampaniaActiva(db, session.user.tenantId)
+  if (preguntaIds.length === 0) return null
+
+  const captados = await db.voter.findMany({
+    where:  { tenantId: session.user.tenantId, leaderId: voterId },
+    select: { id: true },
+  })
+  if (captados.length === 0) return { captados: 0, respondieron: 0 }
+
+  const respuestas = await db.surveyResponse.groupBy({
+    by:    ['voterId'],
+    where: { voterId: { in: captados.map((c) => c.id) }, surveyPreguntaId: { in: preguntaIds } },
+  })
+
+  return { captados: captados.length, respondieron: respuestas.length }
 }

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getVoterDetalle } from '../../actions'
+import { getCoberturaPropiaEncuesta } from '@/app/(tenant)/encuestas/actions'
 import { SelectorEstado } from '../_components/selector-estado'
 import { VeredictoCompromiso } from '@/app/(tenant)/_components/veredicto-compromiso'
 
@@ -22,6 +23,10 @@ export default async function FichaElectorPage({ params }: Props) {
   const { id } = await params
   const elector = await getVoterDetalle(id)
   if (!elector) notFound()
+
+  // Best-effort: si el rol no califica (ej. TESTIGO) o falla, simplemente no se
+  // muestra el dato — no es motivo para romper la ficha completa del elector.
+  const cobertura = await getCoberturaPropiaEncuesta(id).catch(() => null)
 
   const c = COLORES_ESTADO[elector.commitmentStatus] ?? { bg: '#f1f5f9', text: '#475569' }
 
@@ -75,6 +80,16 @@ export default async function FichaElectorPage({ params }: Props) {
           <SelectorEstado voterId={elector.id} estadoActual={elector.commitmentStatus} />
         </div>
       </div>
+
+      {cobertura && cobertura.captados > 0 && (
+        <div style={{
+          background: cobertura.respondieron > 0 ? '#eef2ff' : '#f8fafc',
+          border: `1px solid ${cobertura.respondieron > 0 ? '#c7d2fe' : '#e2e8f0'}`,
+          borderRadius: '8px', padding: '0.875rem 1rem', marginBottom: '1.5rem', fontSize: '0.85rem',
+        }}>
+          <strong>{cobertura.respondieron} de {cobertura.captados}</strong> personas que registró con su propio QR/link respondieron la encuesta activa.
+        </div>
+      )}
 
       <VeredictoCompromiso voterId={elector.id} />
     </div>
