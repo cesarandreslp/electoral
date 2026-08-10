@@ -651,10 +651,15 @@ export async function generarAnalisisCompromiso(voterId: string): Promise<Compro
     },
   }
 
-  // Groq (tiempo real), no Zhipu — es lo que este tenant tiene configurado y
-  // funcionando; el "análisis" de Zhipu queda para cuando el líder analytics
-  // lo necesite, esto es una evaluación puntual por elector bajo demanda.
+  // Groq (tiempo real), no Zhipu — es lo que este tenant tiene configurado.
+  // Si el tenant no configuró su propia clave, se corta acá: NUNCA se cae a
+  // la clave global del SaaS a nombre de un tenant (costo/cuota del SaaS,
+  // no del tenant) — a diferencia de chatGroq()/chatZhipu(), que sí caen al
+  // env global cuando su parámetro apiKey llega undefined.
   const { groq } = await getTenantAiKeys(session.user.tenantId)
+  if (!groq) {
+    throw new Error('Este tenant no tiene configurada su propia clave de IA (Groq). Configúrala en Configuración antes de generar el veredicto.')
+  }
   const respuesta = await chatGroq(SYSTEM_PROMPT_COMPROMISO, JSON.stringify(contexto), groq)
 
   let resultado: {
