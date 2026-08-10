@@ -204,29 +204,33 @@ export interface NodoOrganizacion {
 }
 
 /**
- * Árbol de la organización de un elector: TODA la cadena de gente que tiene
- * su propia gente debajo, sin importar si cada uno individualmente llega al
- * umbral de líder — antes esta vista solo incluía a quienes YA calificaban
- * como líder (listLeaders), así que un conector con <10 directos (ej. un
- * elector con 4 electores, uno de los cuales sí es líder) desaparecía del
- * árbol y "cortaba" la cadena visualmente, aunque el dato seguía intacto.
- * Los electores sin gente propia no aparecen acá (ya están en la tabla
- * plana de "Electores" de la ficha) — solo los conectores, recursivamente.
+ * Árbol de organización de un elector (él como raíz + toda la cadena de
+ * gente que tiene su propia gente debajo), sin importar si cada uno
+ * individualmente llega al umbral de líder — antes esta vista solo incluía
+ * a quienes YA calificaban como líder (listLeaders), así que un conector
+ * con <10 directos (ej. alguien con 4 electores, uno de los cuales sí es
+ * líder) desaparecía del árbol y "cortaba" la cadena visualmente, aunque
+ * el dato seguía intacto. Los electores sin gente propia no aparecen como
+ * nodos (ya están en la tabla plana de "Electores" de la ficha) — solo la
+ * raíz y los conectores, recursivamente.
  */
-export async function getSubarbolCompleto(raizId: string): Promise<NodoOrganizacion[]> {
+export async function getArbolOrganizacion(raizId: string): Promise<NodoOrganizacion | null> {
   const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
   const db      = await obtenerDbTenant(session.user.tenantId)
 
   if (session.user.role === 'LIDER') {
-    if (!session.user.voterId) return []
+    if (!session.user.voterId) return null
     const permitidos = await idsSubarbol(session.user.voterId, session.user.tenantId, db)
-    if (!permitidos.has(raizId)) return []
+    if (!permitidos.has(raizId)) return null
   }
 
   const todos = await db.voter.findMany({
     where:  { tenantId: session.user.tenantId },
     select: { id: true, name: true, zone: true, leaderId: true },
   })
+  const raiz = todos.find((v) => v.id === raizId)
+  if (!raiz) return null
+
   const hijosPorLider = new Map<string, typeof todos>()
   for (const v of todos) {
     if (!v.leaderId) continue
@@ -235,7 +239,7 @@ export async function getSubarbolCompleto(raizId: string): Promise<NodoOrganizac
     hijosPorLider.set(v.leaderId, lista)
   }
 
-  function construir(id: string): NodoOrganizacion[] {
+  function construirHijos(id: string): NodoOrganizacion[] {
     const hijos = hijosPorLider.get(id) ?? []
     return hijos
       .filter((h) => (hijosPorLider.get(h.id)?.length ?? 0) > 0)
@@ -245,12 +249,18 @@ export async function getSubarbolCompleto(raizId: string): Promise<NodoOrganizac
           id: h.id, name: h.name, zone: h.zone,
           directos: propios.length,
           esLider:  propios.length >= UMBRAL_LIDER_DIRECTOS,
-          children: construir(h.id),
+          children: construirHijos(h.id),
         }
       })
   }
 
-  return construir(raizId)
+  const directosRaiz = hijosPorLider.get(raizId) ?? []
+  return {
+    id: raiz.id, name: raiz.name, zone: raiz.zone,
+    directos: directosRaiz.length,
+    esLider:  directosRaiz.length >= UMBRAL_LIDER_DIRECTOS,
+    children: construirHijos(raizId),
+  }
 }
 
 // ── Acciones de líderes ───────────────────────────────────────────────────────

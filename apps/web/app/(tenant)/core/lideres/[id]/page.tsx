@@ -1,9 +1,10 @@
 import Link             from 'next/link'
 import { notFound }    from 'next/navigation'
 import { auth }        from '@campaignos/auth'
-import { listLeaders, listVoters, getSubarbolCompleto, type NodoOrganizacion } from '../../actions'
+import { listLeaders, listVoters, getArbolOrganizacion } from '../../actions'
 import { BarraProgreso } from '../_components/barra-progreso'
 import { BotonCandidato } from '../_components/boton-candidato'
+import { Organigrama }   from '../_components/organigrama'
 
 export const metadata = { title: 'Ficha de líder' }
 
@@ -19,10 +20,10 @@ export default async function FichaLiderPage({ params }: Props) {
 
   // `misDatos` busca puntualmente por id (funciona aunque el líder sea recién
   // creado y todavía no tenga followers, o ya no llegue al umbral).
-  const [misDatos, datosElectores, subLideres] = await Promise.all([
+  const [misDatos, datosElectores, arbol] = await Promise.all([
     listLeaders({ id }),
     listVoters({ leaderId: id }),
-    getSubarbolCompleto(id),
+    getArbolOrganizacion(id),
   ])
 
   const lider = misDatos[0]
@@ -105,15 +106,13 @@ export default async function FichaLiderPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Árbol de organización — toda la cadena de gente con su propia red debajo,
-          no solo quienes ya califican como líder (por eso no se llama "Sub-líderes":
-          un conector con <10 directos igual debe verse para no cortar la cadena). */}
+      {/* Organigrama — toda la cadena de gente con su propia red debajo, no
+          solo quienes ya califican como líder (un conector con <10 directos
+          igual debe verse, para no cortar la cadena visualmente). */}
       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.25rem', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Organización debajo</h2>
-        {subLideres.length === 0 ? (
-          <div style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Nadie en su red tiene electores propios todavía.</div>
-        ) : (
-          <ArbolLideres nodos={subLideres} nivel={0} />
+        <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>Organigrama</h2>
+        {arbol ? <Organigrama raiz={arbol} /> : (
+          <div style={{ color: '#94a3b8', fontSize: '0.875rem' }}>No se pudo cargar el organigrama.</div>
         )}
       </div>
 
@@ -190,38 +189,6 @@ const COLORES_ESTADO: Record<string, { bg: string; text: string }> = {
   SIMPATIZANTE:  { bg: '#fef9c3', text: '#854d0e' },
   COMPROMETIDO:  { bg: '#dcfce7', text: '#166534' },
   VOTO_SEGURO:   { bg: '#bbf7d0', text: '#14532d' },
-}
-
-/** Render recursivo del árbol de organización con sangría por nivel. */
-function ArbolLideres({ nodos, nivel }: { nodos: NodoOrganizacion[]; nivel: number }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-      {nodos.map((n) => (
-        <div key={n.id}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingLeft: `${nivel * 1.25}rem` }}>
-            {nivel > 0 && <span style={{ color: '#cbd5e1' }}>└</span>}
-            <Link
-              href={`/core/lideres/${n.id}`}
-              style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a', textDecoration: 'none' }}
-            >
-              {n.name}
-            </Link>
-            {n.zone && <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>· {n.zone}</span>}
-            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>· {n.directos} directos</span>
-            {n.esLider && (
-              <span style={{
-                background: '#dbeafe', color: '#1e40af', padding: '0.05rem 0.4rem',
-                borderRadius: 999, fontSize: '0.65rem', fontWeight: 700,
-              }}>
-                LÍDER
-              </span>
-            )}
-          </div>
-          {n.children.length > 0 && <ArbolLideres nodos={n.children} nivel={nivel + 1} />}
-        </div>
-      ))}
-    </div>
-  )
 }
 
 function Metrica({ titulo, valor }: { titulo: string; valor: string }) {
