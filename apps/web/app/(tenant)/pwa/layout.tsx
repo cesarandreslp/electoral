@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { requireAuthOrRedirect } from '@/lib/auth-helpers'
 import { getBranding } from '@/lib/branding'
 import { LogoutButton } from '@/app/_components/logout-button'
+import { NavBar } from './_components/nav-bar'
 
 /**
  * Antes /pwa no tenía guardia a nivel de página — dependía solo de que la API
@@ -29,7 +30,7 @@ export default async function PwaLayout({ children }: { children: React.ReactNod
     // Sin este fondo explícito, el navegador aplica su oscurecimiento automático
     // a la página (se ve negra) — el resto de la app lo evita con bg-slate-50
     // del AppShell, pero /pwa no pasa por ahí.
-    <div style={{ minHeight: '100vh', background: '#f1f5f9' }}>
+    <div style={{ minHeight: '100vh', background: '#f1f5f9', paddingBottom: '4rem' }}>
       <div
         style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -51,6 +52,7 @@ export default async function PwaLayout({ children }: { children: React.ReactNod
         />
       </div>
       {children}
+      <NavBar mostrarEncuestas={session.user.activeModules.includes('ENCUESTAS')} />
     </div>
   )
 }

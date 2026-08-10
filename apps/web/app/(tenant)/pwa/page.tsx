@@ -95,26 +95,15 @@ export default function PwaHomePage() {
             </div>
           )}
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            onClick={() => router.push('/pwa/reuniones')}
-            style={{
-              background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '6px',
-              padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem', color: '#64748b',
-            }}
-          >
-            Reuniones
-          </button>
-          <button
-            onClick={() => mutate()}
-            style={{
-              background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '6px',
-              padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem', color: '#64748b',
-            }}
-          >
-            Actualizar
-          </button>
-        </div>
+        <button
+          onClick={() => mutate()}
+          style={{
+            background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '6px',
+            padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem', color: '#64748b',
+          }}
+        >
+          Actualizar
+        </button>
       </div>
 
       <SuscripcionPush />
