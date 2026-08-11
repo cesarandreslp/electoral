@@ -142,16 +142,51 @@ export interface DashboardDiaE {
 
 // ── CANDIDATOS ───────────────────────────────────────────────────────────────
 
+/**
+ * El candidato propio NO se captura acá: ya está marcado en CORE
+ * (Voter.isCandidate, ver setCandidato). Esta función lo refleja en la tabla
+ * Candidate — que sí necesita fila propia porque el E-14 referencia
+ * candidateId — creándolo la primera vez y sincronizando el nombre si cambió.
+ * Idempotente: se puede llamar en cada listCandidates() sin efectos raros.
+ */
+async function sincronizarCandidatoPropio(
+  db: ReturnType<typeof getTenantDb>,
+  tenantId: string,
+): Promise<void> {
+  const voterCandidato = await db.voter.findFirst({
+    where:  { tenantId, isCandidate: true },
+    select: { name: true },
+  })
+  const filaPropia = await db.candidate.findFirst({ where: { tenantId, isOwn: true } })
+
+  if (!voterCandidato) {
+    // Se desmarcó el candidato en CORE — la fila queda, pero deja de ser "propia"
+    // (no se borra: puede tener votos de E-14 ya transmitidos apuntando a ella).
+    if (filaPropia) await db.candidate.update({ where: { id: filaPropia.id }, data: { isOwn: false } })
+    return
+  }
+
+  if (!filaPropia) {
+    await db.candidate.create({
+      data: { tenantId, name: voterCandidato.name, isOwn: true, order: 0 },
+    })
+  } else if (filaPropia.name !== voterCandidato.name) {
+    await db.candidate.update({ where: { id: filaPropia.id }, data: { name: voterCandidato.name } })
+  }
+}
+
 export async function listCandidates(): Promise<CandidateView[]> {
   const { db, tenantId } = await getDbAndSession()
+  await sincronizarCandidatoPropio(db, tenantId)
   return db.candidate.findMany({
     where:   { tenantId },
-    orderBy: { order: 'asc' },
+    orderBy: [{ isOwn: 'desc' }, { order: 'asc' }], // el nuestro siempre primero
   })
 }
 
+/** Solo para candidatos RIVALES — el propio se toma de CORE (ver sincronizarCandidatoPropio). */
 export async function createCandidate(data: {
-  name: string; party?: string; isOwn?: boolean; order?: number
+  name: string; party?: string; order?: number
 }): Promise<{ success: boolean }> {
   try {
     const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'DIA_E_CONFIGURACION', 'edit')
@@ -160,7 +195,7 @@ export async function createCandidate(data: {
         tenantId,
         name:  data.name,
         party: data.party ?? null,
-        isOwn: data.isOwn ?? false,
+        isOwn: false,
         order: data.order ?? 0,
       },
     })
@@ -187,10 +222,20 @@ export async function updateCandidate(
   }
 }
 
-export async function deleteCandidate(id: string): Promise<void> {
-  const { db } = await getDbAndSession(['ADMIN_CAMPANA'], 'DIA_E_CONFIGURACION', 'edit')
+export async function deleteCandidate(id: string): Promise<{ success: boolean; error?: string }> {
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'DIA_E_CONFIGURACION', 'edit')
+
+  const candidato = await db.candidate.findFirst({ where: { id, tenantId } })
+  if (!candidato) return { success: false, error: 'Candidato no encontrado.' }
+  // El propio se administra desde CORE (ficha del elector → "Marcar como candidato"),
+  // no desde acá — si no, quedaría desincronizado con Voter.isCandidate.
+  if (candidato.isOwn) {
+    return { success: false, error: 'El candidato propio se cambia en CORE, en la ficha del elector.' }
+  }
+
   await db.candidate.delete({ where: { id } })
   revalidatePath('/dia-e/sala/configuracion')
+  return { success: true }
 }
 
 // ── ASIGNACIÓN DE TESTIGOS ───────────────────────────────────────────────────
