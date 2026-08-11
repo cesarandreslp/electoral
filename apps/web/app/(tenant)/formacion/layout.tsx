@@ -6,6 +6,7 @@ export default async function FormacionLayout({ children }: { children: React.Re
   const session = await requireAuthOrRedirect(
     ['ADMIN_CAMPANA', 'COORDINADOR', 'TESTIGO'],
     '/login',
+    ['FORMACION'],
   )
 
   if (!session.user.activeModules.includes('FORMACION')) {

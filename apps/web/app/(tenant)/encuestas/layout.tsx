@@ -6,6 +6,7 @@ export default async function EncuestasLayout({ children }: { children: React.Re
   const session = await requireAuthOrRedirect(
     ['ADMIN_CAMPANA', 'COORDINADOR'],
     '/login',
+    ['ENCUESTAS'],
   )
 
   if (!session.user.activeModules.includes('ENCUESTAS')) {

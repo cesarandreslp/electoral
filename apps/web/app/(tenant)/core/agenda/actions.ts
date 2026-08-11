@@ -1,6 +1,6 @@
 'use server'
 
-import { requireModule } from '@/lib/auth-helpers'
+import { requireModuleOrScreen } from '@/lib/auth-helpers'
 import { getTenantDb } from '@campaignos/db'
 import { getTenantConnection } from '@/lib/tenant'
 
@@ -14,7 +14,7 @@ export interface AnfitrionOption {
 
 /** Candidato + jefes de debate — para elegir de quién ver la agenda/convocatorias. */
 export async function getAnfitrionesAdmin(): Promise<AnfitrionOption[]> {
-  const session = await requireModule('CORE', [...ROLES_ADMIN])
+  const session = await requireModuleOrScreen('CORE', [...ROLES_ADMIN], 'CORE_AGENDA')
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
   return db.voter.findMany({
@@ -36,7 +36,7 @@ export interface EntradaAgendaAdmin {
 
 /** Agenda completa (compromisos + huecos, reservados o no) de un anfitrión puntual. */
 export async function getAgendaDeAnfitrion(anfitrionId: string): Promise<EntradaAgendaAdmin[]> {
-  const session = await requireModule('CORE', [...ROLES_ADMIN])
+  const session = await requireModuleOrScreen('CORE', [...ROLES_ADMIN], 'CORE_AGENDA')
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
   const entradas = await db.agendaEntrada.findMany({
@@ -63,7 +63,7 @@ export interface ConvocatoriaAdminListado {
 
 /** Convocatorias que ha enviado un anfitrión puntual, con la lista de a quién. */
 export async function getConvocatoriasDeAnfitrion(anfitrionId: string): Promise<ConvocatoriaAdminListado[]> {
-  const session = await requireModule('CORE', [...ROLES_ADMIN])
+  const session = await requireModuleOrScreen('CORE', [...ROLES_ADMIN], 'CORE_AGENDA')
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
   const convocatorias = await db.convocatoria.findMany({
@@ -89,7 +89,7 @@ export interface ReunionReclutamientoAdmin {
 
 /** Reuniones de reclutamiento de TODOS los electores — para medir crecimiento de base. */
 export async function getReunionesReclutamiento(): Promise<ReunionReclutamientoAdmin[]> {
-  const session = await requireModule('CORE', [...ROLES_ADMIN])
+  const session = await requireModuleOrScreen('CORE', [...ROLES_ADMIN], 'CORE_AGENDA')
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
   // Meeting.leaderId es un string suelto (sin @relation) — se resuelve el

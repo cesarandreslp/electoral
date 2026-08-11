@@ -8,6 +8,7 @@ export const runtime = 'nodejs'
 
 const RUTAS_PUBLICAS = [
   '/login',
+  '/superadmin/login',
   '/registro/',
   '/electores/login',
   '/no-autorizado',
@@ -144,11 +145,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── MODO 1 — single-host: dejar pasar ─────────────────────────────────────
-  // Sin sesión y ruta protegida → /login. Las rutas /superadmin/* y /(tenant)/*
-  // las protegen sus propios layouts contra el JWT.
+  // Sin sesión y ruta protegida → /login (o /superadmin/login si la ruta es
+  // del SaaS — son puertas de autenticación distintas, ver packages/auth).
+  // Las rutas /superadmin/* y /(tenant)/* las protegen igual sus propios layouts.
   if (!token) {
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    url.pathname = pathname.startsWith('/superadmin') ? '/superadmin/login' : '/login'
     url.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(url)
   }

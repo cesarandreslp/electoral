@@ -6,6 +6,7 @@ export default async function DiaELayout({ children }: { children: React.ReactNo
   const session = await requireAuthOrRedirect(
     ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'],
     '/login',
+    ['DIA_E'],
   )
 
   if (!session.user.activeModules.includes('DIA_E')) {

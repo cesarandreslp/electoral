@@ -19,3 +19,44 @@ export function puntoEnPoligono(punto: [number, number], poligono: [number, numb
 
   return dentro
 }
+
+const RADIO_TIERRA_KM = 6371
+
+/** Distancia en línea recta entre dos puntos (lat, lng) — fórmula haversine. */
+export function distanciaHaversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const radianes = (grados: number) => (grados * Math.PI) / 180
+  const dLat = radianes(b.lat - a.lat)
+  const dLng = radianes(b.lng - a.lng)
+  const sinLat = Math.sin(dLat / 2)
+  const sinLng = Math.sin(dLng / 2)
+  const h = sinLat * sinLat + Math.cos(radianes(a.lat)) * Math.cos(radianes(b.lat)) * sinLng * sinLng
+  return 2 * RADIO_TIERRA_KM * Math.asin(Math.sqrt(h))
+}
+
+/**
+ * Orden sugerido por cercanía (nearest-neighbor greedy) — parte del primer
+ * punto de la lista (se asume ya ordenada cronológicamente) y en cada paso
+ * salta al más cercano de los que quedan. No es óptimo (TSP es NP-difícil),
+ * pero es suficiente para una sugerencia editable a mano.
+ */
+export function sugerirOrdenPorCercania<T extends { id: string; lat: number; lng: number }>(puntos: T[]): string[] {
+  if (puntos.length === 0) return []
+  const restantes = [...puntos]
+  const orden: string[] = []
+
+  let actual = restantes.shift()!
+  orden.push(actual.id)
+
+  while (restantes.length > 0) {
+    let mejorIdx = 0
+    let mejorDist = Infinity
+    for (let i = 0; i < restantes.length; i++) {
+      const d = distanciaHaversineKm(actual, restantes[i])
+      if (d < mejorDist) { mejorDist = d; mejorIdx = i }
+    }
+    actual = restantes.splice(mejorIdx, 1)[0]
+    orden.push(actual.id)
+  }
+
+  return orden
+}

@@ -6,6 +6,7 @@ export default async function AnalyticsLayout({ children }: { children: React.Re
   const session = await requireAuthOrRedirect(
     ['ADMIN_CAMPANA', 'COORDINADOR'],
     '/login',
+    ['ANALYTICS'],
   )
 
   if (!session.user.activeModules.includes('ANALYTICS')) {

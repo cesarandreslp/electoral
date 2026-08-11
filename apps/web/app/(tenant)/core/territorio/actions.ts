@@ -7,7 +7,7 @@
  * cada tenant (aislamiento por base de datos, no por columna).
  */
 
-import { requireModule }       from '@/lib/auth-helpers'
+import { requireModuleOrScreen } from '@/lib/auth-helpers'
 import { getTenantConnection } from '@/lib/tenant'
 import { getTenantDb }         from '@campaignos/db'
 import { revalidatePath }      from 'next/cache'
@@ -44,7 +44,7 @@ type Resultado = { success: true } | { success: false; error: string }
 
 /** Municipio configurado para la elección (si existe), como default del selector de Territorio. */
 export async function getDefaultMunicipioDivipola(): Promise<string | null> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_TERRITORIO')
   const db      = await dbTenant(session.user.tenantId)
   const cfg     = await db.tenantConfig.findUnique({ where: { tenantId: session.user.tenantId } })
   return cfg?.electionMunicipalityDivipola ?? null
@@ -54,7 +54,7 @@ export async function getDefaultMunicipioDivipola(): Promise<string | null> {
 export async function getMunicipalityByDivipola(
   divipola: string,
 ): Promise<{ id: string; name: string; departmentCode: string } | null> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_TERRITORIO')
   const db      = await dbTenant(session.user.tenantId)
   const m = await db.municipality.findUnique({
     where: { divipola }, select: { id: true, name: true, department: { select: { code: true } } },
@@ -65,7 +65,7 @@ export async function getMunicipalityByDivipola(
 // ── Comunas / corregimientos ────────────────────────────────────────────────
 
 export async function listCommunes(municipalityId: string): Promise<CommuneSummary[]> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_TERRITORIO')
   const db      = await dbTenant(session.user.tenantId)
 
   const comunas = await db.commune.findMany({
@@ -83,7 +83,7 @@ export async function listCommunes(municipalityId: string): Promise<CommuneSumma
 export async function createCommune(
   data: { name: string; type: CommuneKind; municipalityId: string },
 ): Promise<Resultado & { communeId?: string }> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_TERRITORIO', 'edit')
   const db      = await dbTenant(session.user.tenantId)
 
   const nombre = data.name.trim()
@@ -105,7 +105,7 @@ export async function createCommune(
 export async function updateCommune(
   id: string, data: { name?: string; type?: CommuneKind },
 ): Promise<Resultado> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_TERRITORIO', 'edit')
   const db      = await dbTenant(session.user.tenantId)
 
   const nombre = data.name?.trim()
@@ -126,7 +126,7 @@ export async function updateCommune(
 // ── Barrios ──────────────────────────────────────────────────────────────────
 
 export async function listNeighborhoods(communeId: string): Promise<NeighborhoodSummary[]> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_TERRITORIO')
   const db      = await dbTenant(session.user.tenantId)
 
   const barrios = await db.neighborhood.findMany({
@@ -138,7 +138,7 @@ export async function listNeighborhoods(communeId: string): Promise<Neighborhood
 export async function createNeighborhood(
   data: { name: string; communeId: string },
 ): Promise<Resultado & { neighborhoodId?: string }> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_TERRITORIO', 'edit')
   const db      = await dbTenant(session.user.tenantId)
 
   const nombre = data.name.trim()
@@ -158,7 +158,7 @@ export async function createNeighborhood(
 }
 
 export async function updateNeighborhood(id: string, data: { name: string }): Promise<Resultado> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_TERRITORIO', 'edit')
   const db      = await dbTenant(session.user.tenantId)
 
   const nombre = data.name.trim()
@@ -173,7 +173,7 @@ export async function updateNeighborhood(id: string, data: { name: string }): Pr
 // ── Puestos de votación ────────────────────────────────────────────────────
 
 export async function listVotingStationsAdmin(municipalityId: string): Promise<VotingStationSummary[]> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_TERRITORIO')
   const db      = await dbTenant(session.user.tenantId)
 
   const puestos = await db.votingStation.findMany({
@@ -191,7 +191,7 @@ export async function listVotingStationsAdmin(municipalityId: string): Promise<V
 export async function createVotingStation(
   data: { name: string; address: string; municipalityId: string; lat?: number; lng?: number; specialLabel?: string },
 ): Promise<Resultado & { stationId?: string }> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_TERRITORIO', 'edit')
   const db      = await dbTenant(session.user.tenantId)
 
   const nombre = data.name.trim()
@@ -221,7 +221,7 @@ export async function updateVotingStation(
   id: string,
   data: { name?: string; address?: string; lat?: number; lng?: number; specialLabel?: string },
 ): Promise<Resultado> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_TERRITORIO', 'edit')
   const db      = await dbTenant(session.user.tenantId)
 
   const nombre = data.name?.trim()

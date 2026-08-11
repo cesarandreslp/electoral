@@ -19,7 +19,11 @@ export type UserRole =
   | 'COORDINADOR'
   | 'LIDER'
   | 'TESTIGO'
+  | 'PERSONALIZADO'
   | 'ELECTOR'
+
+/** Permisos resueltos de un CustomRole (role=PERSONALIZADO), por screenKey. */
+export type CustomPermissions = Record<string, { canView: boolean; canEdit: boolean }>
 
 // El tenantId del superadmin — debe coincidir con create-superadmin.ts
 export const SUPERADMIN_TENANT_ID = '__superadmin__'
@@ -42,6 +46,8 @@ declare module 'next-auth' {
       activeModules: string[]
       /** Voter.id de este usuario en la DB del tenant (null si no está vinculado) — acota "mi gente" para LIDER */
       voterId: string | null
+      /** Solo si role=PERSONALIZADO — permisos resueltos una vez en el login, igual que activeModules. */
+      customPermissions: CustomPermissions
     } & DefaultSession['user']
   }
 
@@ -53,6 +59,7 @@ declare module 'next-auth' {
     role: UserRole
     activeModules: string[]
     voterId: string | null
+    customPermissions: CustomPermissions
   }
 }
 
@@ -62,21 +69,41 @@ declare module 'next-auth' {
 // verdad del tenant es el JWT que se emite tras un login exitoso.
 
 interface ResultadoAuth {
-  id:            string
-  email:         string
-  name:          string
-  role:          UserRole
-  tenantId:      string
-  tenantSlug:    string | null
-  tenantName:    string | null
-  activeModules: string[]
-  voterId:       string | null
+  id:                string
+  email:             string
+  name:              string
+  role:              UserRole
+  tenantId:          string
+  tenantSlug:        string | null
+  tenantName:        string | null
+  activeModules:     string[]
+  voterId:           string | null
+  customPermissions: CustomPermissions
 }
 
-async function autenticarUsuario(email: string, password: string): Promise<ResultadoAuth | null> {
+/** Resuelve los permisos de un CustomRole una sola vez, para cachear en el JWT. */
+async function resolverCustomPermissions(customRoleId: string | null): Promise<CustomPermissions> {
+  if (!customRoleId) return {}
+  const permisos = await superadminDb.customRolePermission.findMany({ where: { roleId: customRoleId } })
+  const mapa: CustomPermissions = {}
+  for (const p of permisos) mapa[p.screenKey] = { canView: p.canView, canEdit: p.canEdit }
+  return mapa
+}
+
+/**
+ * @param soloSuperadmin - true desde el provider "superadmin" (/superadmin/login),
+ *   false desde el provider "credentials" (/login de tenant). Antes un mismo
+ *   email+contraseña de ADMIN_CAMPANA funcionaba en cualquiera de las dos
+ *   puertas — cada provider ahora exige que el usuario sea del lado que le
+ *   corresponde, o falla igual que credenciales inválidas.
+ */
+async function autenticarUsuario(email: string, password: string, soloSuperadmin: boolean): Promise<ResultadoAuth | null> {
   const usuario = await superadminDb.user.findUnique({ where: { email } })
 
   if (!usuario || !usuario.isActive) return null
+
+  const esSuperadmin = usuario.tenantId === SUPERADMIN_TENANT_ID
+  if (esSuperadmin !== soloSuperadmin) return null
 
   const passwordValida = await bcrypt.compare(password, usuario.passwordHash)
   if (!passwordValida) return null
@@ -84,15 +111,16 @@ async function autenticarUsuario(email: string, password: string): Promise<Resul
   // SUPERADMIN no tiene tenant asociado; sus módulos son vacíos.
   if (usuario.tenantId === SUPERADMIN_TENANT_ID) {
     return {
-      id:            usuario.id,
-      email:         usuario.email,
-      name:          usuario.name ?? usuario.email,
-      role:          usuario.role as UserRole,
-      tenantId:      SUPERADMIN_TENANT_ID,
-      tenantSlug:    null,
-      tenantName:    null,
-      activeModules: [],
-      voterId:       null,
+      id:                usuario.id,
+      email:             usuario.email,
+      name:              usuario.name ?? usuario.email,
+      role:              usuario.role as UserRole,
+      tenantId:          SUPERADMIN_TENANT_ID,
+      tenantSlug:        null,
+      tenantName:        null,
+      activeModules:     [],
+      voterId:           null,
+      customPermissions: {},
     }
   }
 
@@ -110,16 +138,21 @@ async function autenticarUsuario(email: string, password: string): Promise<Resul
   // Tenant inactivo o eliminado → bloquear login.
   if (!tenant || !tenant.isActive) return null
 
+  const customPermissions = usuario.role === 'PERSONALIZADO'
+    ? await resolverCustomPermissions(usuario.customRoleId)
+    : {}
+
   return {
-    id:            usuario.id,
-    email:         usuario.email,
-    name:          usuario.name ?? usuario.email,
-    role:          usuario.role as UserRole,
-    tenantId:      tenant.id,
-    tenantSlug:    tenant.slug,
-    tenantName:    tenant.name,
-    activeModules: tenant.modules.map((m) => m.moduleKey),
-    voterId:       usuario.voterId,
+    id:                usuario.id,
+    email:             usuario.email,
+    name:              usuario.name ?? usuario.email,
+    role:              usuario.role as UserRole,
+    tenantId:          tenant.id,
+    tenantSlug:        tenant.slug,
+    tenantName:        tenant.name,
+    activeModules:     tenant.modules.map((m) => m.moduleKey),
+    voterId:           usuario.voterId,
+    customPermissions,
   }
 }
 
@@ -166,15 +199,16 @@ async function autenticarElector(slug: string, cedula: string, telefono: string)
   if (soloDigitos(telefonoGuardado) !== soloDigitos(telefono)) return null
 
   return {
-    id:            `voter:${voter.id}`,
-    email:         '',
-    name:          voter.apodo?.trim() || voter.name,
-    role:          'ELECTOR',
-    tenantId:      tenant.id,
-    tenantSlug:    tenant.slug,
-    tenantName:    tenant.name,
-    activeModules: tenant.modules.map((m) => m.moduleKey),
-    voterId:       voter.id,
+    id:                `voter:${voter.id}`,
+    email:             '',
+    name:              voter.apodo?.trim() || voter.name,
+    role:              'ELECTOR',
+    tenantId:          tenant.id,
+    tenantSlug:        tenant.slug,
+    tenantName:        tenant.name,
+    activeModules:     tenant.modules.map((m) => m.moduleKey),
+    voterId:           voter.id,
+    customPermissions: {},
   }
 }
 
@@ -194,7 +228,27 @@ const nextAuth: NextAuthResult = NextAuth({
 
         if (!email || !password) return null
 
-        return autenticarUsuario(email, password)
+        return autenticarUsuario(email, password, false)
+      },
+    }),
+
+    // Login exclusivo del SUPERADMIN (/superadmin/login) — provider separado para
+    // que un email+contraseña de tenant nunca sirva para entrar al panel del SaaS,
+    // ni viceversa. Ver autenticarUsuario() arriba.
+    Credentials({
+      id:   'superadmin',
+      name: 'superadmin',
+      credentials: {
+        email:    { label: 'Correo electrónico', type: 'email' },
+        password: { label: 'Contraseña',         type: 'password' },
+      },
+      async authorize(credentials) {
+        const email    = credentials?.email    as string | undefined
+        const password = credentials?.password as string | undefined
+
+        if (!email || !password) return null
+
+        return autenticarUsuario(email, password, true)
       },
     }),
 
@@ -231,6 +285,7 @@ const nextAuth: NextAuthResult = NextAuth({
         token.role          = u.role
         token.activeModules = u.activeModules
         token.voterId       = u.voterId
+        token.customPermissions = u.customPermissions
       }
       return token
     },
@@ -243,6 +298,7 @@ const nextAuth: NextAuthResult = NextAuth({
       session.user.role          = token.role          as UserRole
       session.user.activeModules = token.activeModules as string[]
       session.user.voterId       = token.voterId        as string | null
+      session.user.customPermissions = token.customPermissions as CustomPermissions
       return session
     },
   },

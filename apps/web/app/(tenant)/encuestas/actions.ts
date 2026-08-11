@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { requireModule, requireAuth } from '@/lib/auth-helpers'
+import { requireModule, requireAuth, requireModuleOrScreen } from '@/lib/auth-helpers'
 import { getTenantDb, encrypt } from '@campaignos/db'
 import { getTenantConnection } from '@/lib/tenant'
 import { enviarPendientesTenant, type ResultadoEnvio } from '@/lib/encuestas/enviar-pendientes'
@@ -242,7 +242,7 @@ export async function getFidelidadStats() {
 }
 
 export async function getSurveyStats() {
-  const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'], 'ENCUESTAS')
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
   const [total, pending, contacted, consented, completed, rejected, responding] = await Promise.all([

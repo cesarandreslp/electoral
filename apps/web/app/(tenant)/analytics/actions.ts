@@ -8,7 +8,7 @@
  *   - Nunca retornan cédula ni connectionString al cliente
  */
 
-import { requireModule }       from '@/lib/auth-helpers'
+import { requireModule, requireModuleOrScreen } from '@/lib/auth-helpers'
 import { getTenantConnection } from '@/lib/tenant'
 import { getTenantDb }         from '@campaignos/db'
 import { chatZhipu }           from '@campaignos/ai'
@@ -104,8 +104,10 @@ export interface LeaderAnalysisResult {
 
 // ── Helpers internos ──────────────────────────────────────────────────────────
 
-async function getDbAndTenant() {
-  const session = await requireModule('ANALYTICS', ['ADMIN_CAMPANA', 'COORDINADOR'])
+async function getDbAndTenant(permitirPersonalizado = false) {
+  const session = permitirPersonalizado
+    ? await requireModuleOrScreen('ANALYTICS', ['ADMIN_CAMPANA', 'COORDINADOR'], 'ANALYTICS')
+    : await requireModule('ANALYTICS', ['ADMIN_CAMPANA', 'COORDINADOR'])
   const tenantId = session.user.tenantId
   const db = getTenantDb(await getTenantConnection(tenantId))
   return { db, tenantId }
@@ -114,7 +116,7 @@ async function getDbAndTenant() {
 // ── Dashboard KPIs ────────────────────────────────────────────────────────────
 
 export async function getAnalyticsDashboard(): Promise<DashboardKpi> {
-  const { db, tenantId } = await getDbAndTenant()
+  const { db, tenantId } = await getDbAndTenant(true)
 
   const ahora       = new Date()
   const hoy         = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate())

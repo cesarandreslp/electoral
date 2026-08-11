@@ -30,6 +30,10 @@ enum UserRole {
   COORDINADOR // Coordinador de zona o municipio
   LIDER // Líder comunitario con red de electores
   TESTIGO // Testigo electoral en mesa de votación
+  // Sus permisos reales viven en CustomRole/CustomRolePermission (User.customRoleId) —
+  // usado tanto para roles del "primer anillo" (agenda, logística, rutas) como para
+  // el candidato/jefe de debate con una cuenta de staff de solo lectura total.
+  PERSONALIZADO
 }
 
 /// Estado de compromiso de voto de un elector — funnel de contacto
@@ -135,8 +139,43 @@ model User {
   voterId      String?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
+  // Solo tiene sentido si role = PERSONALIZADO — de dónde salen sus permisos reales.
+  customRoleId String?
+  customRole   CustomRole? @relation(fields: [customRoleId], references: [id])
 
   @@index([tenantId])
+}
+
+/// Rol personalizado armado por el ADMIN_CAMPANA de un tenant — nombre +
+/// matriz de permisos por pantalla (CustomRolePermission). Vive en la DB del
+/// superadmin, junto a User, porque se resuelve en cada login.
+model CustomRole {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  createdAt DateTime @default(now())
+
+  permissions CustomRolePermission[]
+  users       User[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+/// Permiso de un CustomRole sobre una pantalla puntual (ver apps/web/lib/screens.ts
+/// para el registro de screenKeys válidos). canEdit sin canView no tiene efecto —
+/// la UI de armado de roles no debería permitirlo, pero el check en runtime solo
+/// mira el campo relevante a la acción pedida.
+model CustomRolePermission {
+  id        String  @id @default(cuid())
+  roleId    String
+  screenKey String
+  canView   Boolean @default(false)
+  canEdit   Boolean @default(false)
+
+  role CustomRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, screenKey])
 }
 
 /// Elector registrado en la campaña. "Líder" es un rol implícito: cualquier
@@ -1030,6 +1069,13 @@ model AgendaEntrada {
   reservadoPor String? // Voter del elector que reservó (solo si disponible=true)
   motivo       String? // lo que puso el elector al reservar
   createdAt    DateTime @default(now())
+  // Dirección física de la entrada (para logística/ruta) — geocodificada con
+  // el mismo mecanismo que Voter.address (ver lib/geocode.ts). lat/lng null
+  // hasta que se geocodifique o si la dirección no se pudo resolver.
+  direccion    String?
+  lat          Float?
+  lng          Float?
+  ordenRuta    Int? // posición manual dentro de la ruta sugerida del día (null = sin definir)
 
   anfitrion  Voter  @relation("AgendaAnfitrion", fields: [anfitrionId], references: [id], onDelete: Cascade)
   reservante Voter? @relation("AgendaReservante", fields: [reservadoPor], references: [id], onDelete: SetNull)
@@ -1047,8 +1093,14 @@ model Convocatoria {
   convocanteId String // Voter con agenda propia que convoca
   titulo       String
   startsAt     DateTime
-  lugar        String?
+  lugar        String? // nota/etiqueta libre (ej. "salón principal") — no se geocodifica
   createdAt    DateTime @default(now())
+  // Dirección física real de la reunión, aparte de 'lugar' — geocodificada
+  // igual que AgendaEntrada.direccion, para logística/ruta.
+  direccion    String?
+  lat          Float?
+  lng          Float?
+  ordenRuta    Int?
 
   convocante    Voter                      @relation(fields: [convocanteId], references: [id], onDelete: Cascade)
   destinatarios ConvocatoriaDestinatario[]

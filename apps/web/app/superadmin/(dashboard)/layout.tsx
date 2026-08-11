@@ -9,7 +9,7 @@ export default async function SuperadminDashboardLayout({
 }) {
   const session = await auth()
   if (!session?.user || session.user.role !== 'SUPERADMIN') {
-    redirect('/login')
+    redirect('/superadmin/login')
   }
 
   const nav: NavItem[] = [

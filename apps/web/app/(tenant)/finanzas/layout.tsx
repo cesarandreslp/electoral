@@ -6,6 +6,7 @@ export default async function FinanzasLayout({ children }: { children: React.Rea
   const session = await requireAuthOrRedirect(
     ['ADMIN_CAMPANA', 'COORDINADOR'],
     '/login',
+    ['FINANZAS'],
   )
 
   if (!session.user.activeModules.includes('FINANZAS')) {

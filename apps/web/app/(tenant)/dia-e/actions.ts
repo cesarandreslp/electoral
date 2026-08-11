@@ -6,7 +6,7 @@
  * groqResult y zhipuResult NUNCA se retornan al cliente — solo auditoría.
  */
 
-import { requireModule }       from '@/lib/auth-helpers'
+import { requireModule, requireModuleOrScreen } from '@/lib/auth-helpers'
 import { getTenantConnection } from '@/lib/tenant'
 import { getTenantDb, Prisma }  from '@campaignos/db'
 import {
@@ -19,8 +19,10 @@ import { revalidatePath }      from 'next/cache'
 
 // ── Helper ───────────────────────────────────────────────────────────────────
 
-async function getDbAndSession(roles: Parameters<typeof requireModule>[1] = []) {
-  const session  = await requireModule('DIA_E', roles)
+async function getDbAndSession(roles: Parameters<typeof requireModule>[1] = [], screenKey?: string) {
+  const session  = screenKey
+    ? await requireModuleOrScreen('DIA_E', roles, screenKey)
+    : await requireModule('DIA_E', roles)
   const tenantId = session.user.tenantId as string
   const userId   = session.user.id as string
   const conn     = await getTenantConnection(tenantId)
@@ -603,7 +605,7 @@ export async function getTransmissionStatus(votingTableId: string): Promise<Tran
 export async function listTransmissions(filters?: {
   verificationStatus?: string
 }): Promise<TransmissionView[]> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'DIA_E')
 
   const where: Record<string, unknown> = { tenantId }
   if (filters?.verificationStatus) {
@@ -801,7 +803,7 @@ export async function getElectionResults(): Promise<ElectionResultView[]> {
 }
 
 export async function getDashboardDiaE(): Promise<DashboardDiaE> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'DIA_E')
 
   const [
     mesasTotales,

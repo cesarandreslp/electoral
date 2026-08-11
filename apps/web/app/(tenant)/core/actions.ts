@@ -8,7 +8,7 @@
  *   - Nunca retornan cédula ni connectionString al cliente
  */
 
-import { requireAuth, requireModule } from '@/lib/auth-helpers'
+import { requireAuth, requireModule, requireModuleOrScreen } from '@/lib/auth-helpers'
 import { getTenantConnection }        from '@/lib/tenant'
 import { calcularCedulaHash }         from '@/lib/cedula-hash'
 import { getTenantDb, encrypt, decrypt, Prisma } from '@campaignos/db'
@@ -216,7 +216,7 @@ export interface NodoOrganizacion {
  * raíz y los conectores, recursivamente.
  */
 export async function getArbolOrganizacion(raizId: string): Promise<NodoOrganizacion | null> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'], 'CORE_LIDERES')
   const db      = await obtenerDbTenant(session.user.tenantId)
 
   if (session.user.role === 'LIDER') {
@@ -279,7 +279,7 @@ export async function updateLeader(
   data: Partial<CreateLeaderInput>,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+    const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_LIDERES', 'edit')
     const db      = await obtenerDbTenant(session.user.tenantId)
 
     // Verificar que el líder pertenece al tenant
@@ -329,7 +329,7 @@ export async function updateLeader(
  */
 export async function setCandidato(id: string, isCandidate: boolean): Promise<{ success: boolean; error?: string }> {
   try {
-    const session = await requireModule('CORE', ['ADMIN_CAMPANA'])
+    const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA'], 'CORE_LIDERES', 'edit')
     const db      = await obtenerDbTenant(session.user.tenantId)
 
     const existente = await db.voter.findFirst({ where: { id, tenantId: session.user.tenantId } })
@@ -361,7 +361,7 @@ export async function setCandidato(id: string, isCandidate: boolean): Promise<{ 
  */
 export async function setTieneAgenda(id: string, tieneAgenda: boolean): Promise<{ success: boolean; error?: string }> {
   try {
-    const session = await requireModule('CORE', ['ADMIN_CAMPANA'])
+    const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA'], 'CORE_LIDERES', 'edit')
     const db      = await obtenerDbTenant(session.user.tenantId)
 
     const existente = await db.voter.findFirst({ where: { id, tenantId: session.user.tenantId } })
@@ -384,7 +384,7 @@ export async function setTieneAgenda(id: string, tieneAgenda: boolean): Promise<
  * métricas de avance. Los LIDER solo ven sus propios datos.
  */
 export async function listLeaders(filters?: LeaderFilters): Promise<LeaderSummary[]> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'], 'CORE_LIDERES')
   const db      = await obtenerDbTenant(session.user.tenantId)
 
   // Los LIDER solo ven a su propio sub-árbol (ellos + todos sus descendientes),
@@ -461,7 +461,7 @@ export async function listLeaders(filters?: LeaderFilters): Promise<LeaderSummar
  * el momento en que se le asigna el primer follower.
  */
 export async function listVoterOptions(): Promise<VoterOption[]> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_ELECTORES')
   const db      = await obtenerDbTenant(session.user.tenantId)
 
   return db.voter.findMany({
@@ -482,7 +482,7 @@ export async function createVoter(
   data: CreateVoterInput,
 ): Promise<{ success: true; voterId: string } | { success: false; error: string }> {
   try {
-    const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+    const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_ELECTORES', 'edit')
     const db      = await obtenerDbTenant(session.user.tenantId)
 
     // Validar leaderId si se provee
@@ -557,7 +557,7 @@ export async function updateVoterCommitment(
   notes?:  string,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const session = await requireModule('CORE')
+    const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'], 'CORE_ELECTORES', 'edit')
     const db      = await obtenerDbTenant(session.user.tenantId)
 
     const elector = await db.voter.findFirst({
@@ -785,7 +785,7 @@ export async function listVoters(
   filters?:   VoterFilters,
   pagination: { page: number; pageSize: number } = { page: 1, pageSize: 50 },
 ): Promise<{ voters: VoterSummary[]; total: number; pages: number }> {
-  const session = await requireModule('CORE')
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'], ['CORE_ELECTORES', 'CORE_LIDERES'])
   const db      = await obtenerDbTenant(session.user.tenantId)
 
   // Los LIDER solo ven su propio sub-árbol; si no está vinculado a un Voter, no ve nada.
@@ -855,7 +855,7 @@ export interface VoterDetalle {
 
 /** Ficha de un elector puntual — para /core/electores/[id]. */
 export async function getVoterDetalle(id: string): Promise<VoterDetalle | null> {
-  const session = await requireModule('CORE')
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'], 'CORE_ELECTORES')
   const db      = await obtenerDbTenant(session.user.tenantId)
 
   if (session.user.role === 'LIDER') {
@@ -898,7 +898,7 @@ export async function getVoterDetalle(id: string): Promise<VoterDetalle | null> 
  * La cédula se cifra por cada registro.
  */
 export async function importVoters(rows: ImportVoterRow[]): Promise<ImportResult> {
-  const session  = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session  = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_IMPORTAR', 'edit')
   const tenantId = session.user.tenantId
   const db       = await obtenerDbTenant(tenantId)
 
@@ -1056,7 +1056,7 @@ export interface CoreStats {
 
 /** Conteos para el dashboard del módulo CORE. Accesible a todos los roles del tenant. */
 export async function getCoreStats(): Promise<CoreStats> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'], 'CORE_DASHBOARD')
   const db      = await obtenerDbTenant(session.user.tenantId)
 
   // Voter lleva tenantId (defensa en profundidad además de la DB aislada).
@@ -1089,7 +1089,7 @@ export interface LeaderRankingEntry {
  * hace listLeaders(). "Quién trae más gente", contando sub-líderes propios.
  */
 export async function getLeaderRanking(limit?: number): Promise<LeaderRankingEntry[]> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'], 'CORE_DASHBOARD')
   const db      = await obtenerDbTenant(session.user.tenantId)
 
   const todos = await db.voter.findMany({
@@ -1157,7 +1157,7 @@ export interface VoterGeo {
 
 /** Electores ya geocodificados (con lat/lng), para plotear en el mapa. */
 export async function getVotersGeo(): Promise<VoterGeo[]> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'], 'CORE_DASHBOARD')
   const db      = await obtenerDbTenant(session.user.tenantId)
 
   const rows = await db.voter.findMany({
@@ -1175,7 +1175,7 @@ export interface GeoStats { conCoords: number; pendientes: number }
 
 /** Conteo de electores ubicados vs. pendientes de geocodificar (tienen dirección, no coords). */
 export async function getGeoStats(): Promise<GeoStats> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'], 'CORE_DASHBOARD')
   const db      = await obtenerDbTenant(session.user.tenantId)
   const tenantId = session.user.tenantId
 
@@ -1193,7 +1193,7 @@ export async function getGeoStats(): Promise<GeoStats> {
  * no una acción síncrona — por ahora el admin la corre varias veces.
  */
 export async function geocodificarPendientes(): Promise<{ geocodificados: number; restantes: number }> {
-  const session  = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session  = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_DASHBOARD', 'edit')
   const db       = await obtenerDbTenant(session.user.tenantId)
   const tenantId = session.user.tenantId
 
@@ -1256,7 +1256,7 @@ export interface JurisdictionStats {
 
 /** Cuántos electores del tenant cuentan / no cuentan / no se puede determinar, según la config de elección. */
 export async function getJurisdictionStats(): Promise<JurisdictionStats> {
-  const session  = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const session  = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'], 'CORE_DASHBOARD')
   const db       = await obtenerDbTenant(session.user.tenantId)
   const tenantId = session.user.tenantId
 
@@ -1309,7 +1309,7 @@ export interface StationGeo {
 
 /** Puestos de votación con electores propios asignados, para la vista de mapa "por puesto". */
 export async function getVotingStationsGeo(): Promise<StationGeo[]> {
-  const session  = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const session  = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'], 'CORE_DASHBOARD')
   const db       = await obtenerDbTenant(session.user.tenantId)
   const tenantId = session.user.tenantId
 
@@ -1352,7 +1352,7 @@ export interface ComunaGeo {
 
 /** Comunas con polígono real y cuántos electores propios (geocodificados) caen dentro, para la vista de mapa "por comuna". */
 export async function getElectoresPorComuna(): Promise<ComunaGeo[]> {
-  const session  = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'])
+  const session  = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR', 'LIDER', 'TESTIGO'], 'CORE_DASHBOARD')
   const db       = await obtenerDbTenant(session.user.tenantId)
   const tenantId = session.user.tenantId
 
@@ -1379,7 +1379,7 @@ export interface StationOption {
 
 /** Puestos de votación del tenant con sus mesas, para el selector puesto→mesa. */
 export async function listVotingStations(): Promise<StationOption[]> {
-  const session = await requireModule('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('CORE', ['ADMIN_CAMPANA', 'COORDINADOR'], 'CORE_ELECTORES')
   const db      = await obtenerDbTenant(session.user.tenantId)
 
   return db.votingStation.findMany({

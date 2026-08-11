@@ -6,6 +6,7 @@ export default async function ComunicacionesLayout({ children }: { children: Rea
   const session = await requireAuthOrRedirect(
     ['ADMIN_CAMPANA', 'COORDINADOR'],
     '/login',
+    ['COMUNICACIONES'],
   )
 
   if (!session.user.activeModules.includes('COMUNICACIONES')) {

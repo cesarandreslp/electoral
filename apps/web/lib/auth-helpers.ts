@@ -101,12 +101,16 @@ export async function requireModule(
  * Versión para Server Components: redirige en lugar de lanzar.
  * Útil en layouts y páginas protegidas.
  *
- * @param rolesPermitidos - Lista de roles permitidos
- * @param rutaLogin       - Ruta de login a la que redirigir si no hay sesión
+ * @param rolesPermitidos    - Lista de roles permitidos
+ * @param rutaLogin          - Ruta de login a la que redirigir si no hay sesión
+ * @param screensPersonalizado - screenKeys de CustomRolePermission que también dan
+ *                                entrada (basta con canView en uno solo) — para dejar
+ *                                pasar usuarios role=PERSONALIZADO al layout del módulo.
  */
 export async function requireAuthOrRedirect(
   rolesPermitidos: UserRole[] = [],
   rutaLogin: string = '/login',
+  screensPersonalizado: string[] = [],
 ): Promise<SessionVerificada> {
   const session = await auth()
 
@@ -114,9 +118,52 @@ export async function requireAuthOrRedirect(
     redirect(rutaLogin)
   }
 
-  if (rolesPermitidos.length > 0 && !rolesPermitidos.includes(session.user.role)) {
+  const rolOk = rolesPermitidos.length === 0 || rolesPermitidos.includes(session.user.role)
+  const personalizadoOk = !rolOk
+    && session.user.role === 'PERSONALIZADO'
+    && screensPersonalizado.some((k) => session.user.customPermissions?.[k]?.canView)
+
+  if (!rolOk && !personalizadoOk) {
     redirect('/no-autorizado')
   }
 
   return session as unknown as SessionVerificada
+}
+
+// ── requireModuleOrScreen ─────────────────────────────────────────────────────
+
+/**
+ * Como requireModule, pero además deja pasar a un usuario role=PERSONALIZADO
+ * si su CustomRole tiene permiso sobre `screenKey` — sin tocar el chequeo de
+ * rol fijo existente (ADMIN_CAMPANA etc. siguen pasando exactamente igual).
+ *
+ * @param screenKey - Uno o varios screenKeys (ver apps/web/lib/screens.ts) — basta
+ *                    con permiso en cualquiera de ellos. Útil para funciones
+ *                    compartidas por más de una pantalla (ej. listVoters, usado
+ *                    tanto en Electores como en la ficha de Líder).
+ * @param accion    - 'view' (default) o 'edit' — cuál permiso de CustomRolePermission mirar.
+ */
+export async function requireModuleOrScreen(
+  moduleKey: string,
+  rolesPermitidos: UserRole[],
+  screenKey: string | string[],
+  accion: 'view' | 'edit' = 'view',
+): Promise<SessionVerificada> {
+  const session = await requireAuth()
+
+  if (rolesPermitidos.includes(session.user.role)) {
+    if (!session.user.activeModules.includes(moduleKey)) throw new ModuloInactivoError(moduleKey)
+    return session
+  }
+
+  if (session.user.role === 'PERSONALIZADO' && session.user.activeModules.includes(moduleKey)) {
+    const screenKeys = Array.isArray(screenKey) ? screenKey : [screenKey]
+    const tienePermiso = screenKeys.some((k) => {
+      const permiso = session.user.customPermissions[k]
+      return permiso && (accion === 'view' ? permiso.canView : permiso.canEdit)
+    })
+    if (tienePermiso) return session
+  }
+
+  throw new NoAutorizadoError([...rolesPermitidos, 'PERSONALIZADO'])
 }
