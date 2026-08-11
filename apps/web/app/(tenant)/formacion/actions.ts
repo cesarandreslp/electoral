@@ -25,7 +25,7 @@ async function getDbAndSession(
     ? await requireModuleOrScreen('FORMACION', roles, screenKey, accion)
     : await requireModule('FORMACION', roles)
   const tenantId = session.user.tenantId as string
-  const userId   = session.user.id as string
+  const userId   = session.user.userId
   const conn     = await getTenantConnection(tenantId)
   const db       = getTenantDb(conn)
   return { db, tenantId, userId, session }

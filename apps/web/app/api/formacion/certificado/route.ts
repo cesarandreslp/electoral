@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   try {
     const session  = await requireModule('FORMACION')
     const tenantId = session.user.tenantId as string
-    const userId   = session.user.id as string
+    const userId   = session.user.userId
     const conn     = await getTenantConnection(tenantId)
     const db       = getTenantDb(conn)
 

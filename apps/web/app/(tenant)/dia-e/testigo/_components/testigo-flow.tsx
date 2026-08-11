@@ -98,6 +98,9 @@ export function TestigoFlow({
         stationName={assignment.stationName}
         municipality={assignment.municipality}
         department={assignment.department}
+        departmentCode={assignment.departmentCode}
+        municipalityDivipola={assignment.municipalityDivipola}
+        cargo={assignment.cargo}
         candidates={candidates}
         extractedData={extracted?.data ?? null}
         extractedConfidence={extracted?.confidence ?? null}

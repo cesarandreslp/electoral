@@ -592,13 +592,18 @@ model Certificate {
 
 /// Candidato configurado para la elección del tenant.
 /// El orden determina cómo aparecen en el formulario E-14.
+/// Candidato del tarjetón, tal como aparece en el E-14 físico. Para alcaldía,
+/// gobernación y presidencia la foto y la agrupación NO son opcionales: es
+/// como el testigo identifica el renglón en el acta impresa (ver docs/e14.webp).
 model Candidate {
-  id       String  @id @default(cuid())
-  tenantId String
-  name     String
-  party    String?
-  isOwn    Boolean @default(false) // true = nuestro candidato
-  order    Int     @default(0)
+  id            String  @id @default(cuid())
+  tenantId      String
+  name          String
+  party         String? // agrupación: partido o movimiento
+  partyLogoUrl  String? // logo de la agrupación — Vercel Blob
+  photoUrl      String? // foto del candidato — Vercel Blob
+  isOwn         Boolean @default(false) // true = nuestro candidato (se sincroniza de Voter.isCandidate)
+  order         Int     @default(0) // número en el tarjetón
 
   @@index([tenantId])
 }
@@ -631,6 +636,14 @@ model E14Transmission {
   manualData        Json? // { candidateId: string, votes: number }[]
   manualTotal       Int?
   manualSubmittedAt DateTime?
+
+  // Bloque "NIVELACIÓN DE LA MESA" del E-14 físico — es la reconciliación que
+  // prueba que el conteo cuadra: cuánta gente votó (E-11) vs cuántos votos
+  // había en la urna. Si difieren, el acta tiene una inconsistencia que hay
+  // que reclamar en la mesa, no después.
+  nivelacionE11         Int? // TOTAL VOTANTES FORMULARIO E-11
+  nivelacionUrna        Int? // TOTAL VOTOS DEL CARGO EN LA URNA
+  nivelacionIncinerados Int? // TOTAL VOTOS INCINERADOS
 
   // Datos extraídos de la foto por IA
   photoUrl             String? // URL en Vercel Blob

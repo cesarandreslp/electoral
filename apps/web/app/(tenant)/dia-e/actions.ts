@@ -15,6 +15,7 @@ import {
   consensoE14,
 }                              from '@campaignos/ai'
 import { getTenantAiKeys }     from '@/lib/tenant-ai'
+import { put }                 from '@vercel/blob'
 import { revalidatePath }      from 'next/cache'
 
 // ── Helper ───────────────────────────────────────────────────────────────────
@@ -28,7 +29,7 @@ async function getDbAndSession(
     ? await requireModuleOrScreen('DIA_E', roles, screenKey, accion)
     : await requireModule('DIA_E', roles)
   const tenantId = session.user.tenantId as string
-  const userId   = session.user.id as string
+  const userId   = session.user.userId
   const conn     = await getTenantConnection(tenantId)
   const db       = getTenantDb(conn)
   return { db, tenantId, userId, session }
@@ -40,6 +41,8 @@ export interface CandidateView {
   id:    string
   name:  string
   party: string | null
+  partyLogoUrl: string | null
+  photoUrl:     string | null
   isOwn: boolean
   order: number
 }
@@ -66,6 +69,12 @@ export interface MyAssignment {
   stationAddress: string
   municipality:  string
   department:    string
+  // Códigos DIVIPOLA — el E-14 físico los imprime junto al nombre
+  // ("DEPARTAMENTO: 11 - CAUCA", "MUNICIPIO: 001 - POPAYAN").
+  departmentCode:       string
+  municipalityDivipola: string
+  /** Cargo en disputa (ALCALDE, CONCEJAL…) — encabeza el acta. De TenantConfig. */
+  cargo:         string | null
   isPrimary:     boolean
   confirmedAt:   Date | null
 }
@@ -178,32 +187,79 @@ async function sincronizarCandidatoPropio(
 export async function listCandidates(): Promise<CandidateView[]> {
   const { db, tenantId } = await getDbAndSession()
   await sincronizarCandidatoPropio(db, tenantId)
-  return db.candidate.findMany({
-    where:   { tenantId },
-    orderBy: [{ isOwn: 'desc' }, { order: 'asc' }], // el nuestro siempre primero
-  })
+  // Por número de tarjetón — es el orden del acta física, no "el nuestro primero".
+  return db.candidate.findMany({ where: { tenantId }, orderBy: { order: 'asc' } })
 }
 
-/** Solo para candidatos RIVALES — el propio se toma de CORE (ver sincronizarCandidatoPropio). */
-export async function createCandidate(data: {
-  name: string; party?: string; order?: number
-}): Promise<{ success: boolean }> {
+/** Sube un archivo a Vercel Blob y devuelve su URL; null si no vino archivo. */
+async function subirImagen(file: File | null, tenantId: string, prefijo: string): Promise<string | null> {
+  if (!file || file.size === 0) return null
+  const blob = await put(`dia-e/${tenantId}/${prefijo}-${Date.now()}-${file.name}`, file, { access: 'public' })
+  return blob.url
+}
+
+/**
+ * Alta de candidato RIVAL — el propio se toma de CORE (ver sincronizarCandidatoPropio).
+ * Recibe FormData porque trae foto y logo de la agrupación.
+ */
+export async function createCandidate(formData: FormData): Promise<{ success: boolean; error?: string }> {
   try {
     const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'DIA_E_CONFIGURACION', 'edit')
+
+    const name  = String(formData.get('name') ?? '').trim()
+    const party = String(formData.get('party') ?? '').trim()
+    const order = parseInt(String(formData.get('order') ?? '0')) || 0
+    if (!name) return { success: false, error: 'Falta el nombre del candidato.' }
+
+    const [photoUrl, partyLogoUrl] = await Promise.all([
+      subirImagen(formData.get('photo') as File | null, tenantId, 'foto'),
+      subirImagen(formData.get('partyLogo') as File | null, tenantId, 'logo'),
+    ])
+
     await db.candidate.create({
-      data: {
-        tenantId,
-        name:  data.name,
-        party: data.party ?? null,
-        isOwn: false,
-        order: data.order ?? 0,
-      },
+      data: { tenantId, name, party: party || null, partyLogoUrl, photoUrl, isOwn: false, order },
     })
     revalidatePath('/dia-e/sala/configuracion')
     return { success: true }
   } catch (err) {
     console.error('[createCandidate]', err instanceof Error ? err.message : err)
-    return { success: false }
+    return { success: false, error: 'No se pudo crear el candidato.' }
+  }
+}
+
+/**
+ * Completa foto / agrupación / número de tarjetón de un candidato ya existente
+ * — incluido el propio, cuyo NOMBRE sigue viniendo de CORE (no se toca acá).
+ */
+export async function actualizarDatosTarjeton(formData: FormData): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'DIA_E_CONFIGURACION', 'edit')
+
+    const id = String(formData.get('id') ?? '')
+    const candidato = await db.candidate.findFirst({ where: { id, tenantId } })
+    if (!candidato) return { success: false, error: 'Candidato no encontrado.' }
+
+    const party    = String(formData.get('party') ?? '').trim()
+    const ordenRaw = String(formData.get('order') ?? '')
+    const [photoUrl, partyLogoUrl] = await Promise.all([
+      subirImagen(formData.get('photo') as File | null, tenantId, 'foto'),
+      subirImagen(formData.get('partyLogo') as File | null, tenantId, 'logo'),
+    ])
+
+    await db.candidate.update({
+      where: { id },
+      data: {
+        ...(party      !== ''   && { party }),
+        ...(ordenRaw   !== ''   && { order: parseInt(ordenRaw) || 0 }),
+        ...(photoUrl     !== null && { photoUrl }),      // solo si subieron una nueva
+        ...(partyLogoUrl !== null && { partyLogoUrl }),
+      },
+    })
+    revalidatePath('/dia-e/sala/configuracion')
+    return { success: true }
+  } catch (err) {
+    console.error('[actualizarDatosTarjeton]', err instanceof Error ? err.message : err)
+    return { success: false, error: 'No se pudo actualizar.' }
   }
 }
 
@@ -342,14 +398,20 @@ export async function getMyAssignment(): Promise<MyAssignment | null> {
   })
   if (!assignment) return null
 
-  const table = await db.votingTable.findUnique({
-    where:   { id: assignment.votingTableId },
-    include: {
-      station: {
-        include: { municipality: { include: { department: true } } },
+  const [table, config] = await Promise.all([
+    db.votingTable.findUnique({
+      where:   { id: assignment.votingTableId },
+      include: {
+        station: {
+          include: { municipality: { include: { department: true } } },
+        },
       },
-    },
-  })
+    }),
+    db.tenantConfig.findUnique({
+      where:  { tenantId },
+      select: { electionOffice: true },
+    }),
+  ])
   if (!table) return null
 
   return {
@@ -360,6 +422,9 @@ export async function getMyAssignment(): Promise<MyAssignment | null> {
     stationAddress: table.station.address,
     municipality:   table.station.municipality.name,
     department:     table.station.municipality.department.name,
+    departmentCode:       table.station.municipality.department.code,
+    municipalityDivipola: table.station.municipality.divipola,
+    cargo:          config?.electionOffice ?? null,
     isPrimary:      assignment.isPrimary,
     confirmedAt:    assignment.confirmedAt,
   }
@@ -376,11 +441,12 @@ export async function exportAssignmentsCSV(): Promise<string> {
 
 // ── TRANSMISIÓN E-14 ─────────────────────────────────────────────────────────
 
-/** Transmite datos manuales del E-14 */
+/** Transmite datos manuales del E-14, incluido el bloque de nivelación de la mesa. */
 export async function submitManualE14(
   votingTableId: string,
   votes: { candidateId: string; votes: number }[],
   actaTotal: number,
+  nivelacion?: { e11: number; urna: number; incinerados: number },
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const { db, tenantId, userId } = await getDbAndSession(['TESTIGO'], 'DIA_E_TESTIGO', 'edit')
@@ -395,6 +461,14 @@ export async function submitManualE14(
 
     const manualTotal = votes.reduce((sum, v) => sum + v.votes, 0)
 
+    const datosNivelacion = nivelacion
+      ? {
+          nivelacionE11:         nivelacion.e11,
+          nivelacionUrna:        nivelacion.urna,
+          nivelacionIncinerados: nivelacion.incinerados,
+        }
+      : {}
+
     // Upsert la transmisión
     const existing = await db.e14Transmission.findUnique({
       where: { votingTableId },
@@ -407,6 +481,7 @@ export async function submitManualE14(
           manualData:        votes,
           manualTotal:       actaTotal,
           manualSubmittedAt: new Date(),
+          ...datosNivelacion,
         },
       })
     } else {
@@ -418,6 +493,7 @@ export async function submitManualE14(
           manualData:        votes,
           manualTotal:       actaTotal,
           manualSubmittedAt: new Date(),
+          ...datosNivelacion,
         },
       })
     }
@@ -685,7 +761,14 @@ export async function listTransmissions(filters?: {
 
   const tableMap = new Map(tables.map((t: { id: string; number: number; station: { name: string } }) => [t.id, t]))
   const userMap  = new Map(users.map((u: { id: string; email: string }) => [u.id, u]))
-  const ownCandidateNames = new Set(candidates.map((c: { name: string }) => c.name.toLowerCase()))
+  // El testigo transmite candidateId = Candidate.id; la IA, en cambio, devuelve
+  // el NOMBRE leído de la foto. Hay que reconocer las dos formas o los votos
+  // propios salen en blanco en la sala de situación.
+  const clavesPropias = new Set<string>()
+  for (const c of candidates as { id: string; name: string }[]) {
+    clavesPropias.add(c.id.toLowerCase())
+    clavesPropias.add(c.name.toLowerCase())
+  }
 
   return transmissions.map((tx: {
     id: string; votingTableId: string; witnessUserId: string
@@ -702,7 +785,7 @@ export async function listTransmissions(filters?: {
       { candidateId: string; votes: number }[] | null
     if (data) {
       for (const v of data) {
-        if (ownCandidateNames.has(v.candidateId.toLowerCase())) {
+        if (clavesPropias.has(v.candidateId.toLowerCase())) {
           ownVotes = (ownVotes ?? 0) + v.votes
         }
       }
@@ -837,7 +920,10 @@ export async function getElectionResults(): Promise<ElectionResultView[]> {
   }
 
   return candidates.map((c: { id: string; name: string; party: string | null; isOwn: boolean }) => {
-    const votes = votesByCand.get(c.name.toLowerCase()) ?? 0
+    // El acta se transmite con Candidate.id; la IA puede devolver el nombre.
+    // Se suman las dos formas para no perder votos según la vía de captura.
+    const votes = (votesByCand.get(c.id.toLowerCase()) ?? 0)
+                + (votesByCand.get(c.name.toLowerCase()) ?? 0)
     return {
       candidateId:   c.id,
       candidateName: c.name,
