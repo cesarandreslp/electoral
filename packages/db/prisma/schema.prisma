@@ -1076,6 +1076,7 @@ model AgendaEntrada {
   lat          Float?
   lng          Float?
   ordenRuta    Int? // posición manual dentro de la ruta sugerida del día (null = sin definir)
+  cumplido     Boolean  @default(false) // marcado por quien maneja la agenda al arrancar/completar la ruta
 
   anfitrion  Voter  @relation("AgendaAnfitrion", fields: [anfitrionId], references: [id], onDelete: Cascade)
   reservante Voter? @relation("AgendaReservante", fields: [reservadoPor], references: [id], onDelete: SetNull)
@@ -1101,6 +1102,7 @@ model Convocatoria {
   lat          Float?
   lng          Float?
   ordenRuta    Int?
+  cumplido     Boolean  @default(false)
 
   convocante    Voter                      @relation(fields: [convocanteId], references: [id], onDelete: Cascade)
   destinatarios ConvocatoriaDestinatario[]

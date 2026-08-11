@@ -1,8 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getRutaDia, guardarDireccionRuta, sugerirOrdenRuta, guardarOrdenRuta, type ItemRuta } from '../actions'
+import {
+  getRutaDia, guardarDireccionRuta, sugerirOrdenRuta, guardarOrdenRuta,
+  marcarCumplido, reagendarItem, type ItemRuta,
+} from '../actions'
 import { type AnfitrionOption } from '../../agenda/actions'
+import { MapaRutas } from './mapa-rutas'
 
 function hoyISO(): string {
   const d = new Date()
@@ -15,6 +19,8 @@ export function PanelRutas({ anfitriones }: { anfitriones: AnfitrionOption[] }) 
   const [items, setItems] = useState<ItemRuta[]>([])
   const [cargando, setCargando] = useState(false)
   const [direcciones, setDirecciones] = useState<Record<string, string>>({})
+  const [reagendando, setReagendando] = useState<string | null>(null)
+  const [nuevaHora, setNuevaHora] = useState('')
 
   async function cargar() {
     if (!anfitrionId) return
@@ -53,6 +59,27 @@ export function PanelRutas({ anfitriones }: { anfitriones: AnfitrionOption[] }) 
     if (!res.success) alert('No se pudo guardar el orden.')
   }
 
+  async function onToggleCumplido(id: string, tipo: ItemRuta['tipo'], cumplido: boolean) {
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, cumplido } : i))) // optimista
+    const res = await marcarCumplido(id, tipo, cumplido)
+    if (!res.success) await cargar() // revertir si falló
+  }
+
+  function abrirReagendar(item: ItemRuta) {
+    setReagendando(item.id)
+    const d = new Date(item.startsAt)
+    setNuevaHora(`${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`)
+  }
+
+  async function onReagendar(item: ItemRuta) {
+    if (!nuevaHora) return
+    const nuevaFecha = `${fecha}T${nuevaHora}:00`
+    const res = await reagendarItem(item.id, item.tipo, nuevaFecha)
+    if (!res.success) alert('No se pudo reagendar.')
+    setReagendando(null)
+    await cargar()
+  }
+
   if (anfitriones.length === 0) {
     return <div style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Todavía no hay candidato ni jefes de debate marcados.</div>
   }
@@ -79,6 +106,10 @@ export function PanelRutas({ anfitriones }: { anfitriones: AnfitrionOption[] }) 
       {cargando && <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Cargando...</div>}
       {!cargando && items.length === 0 && <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Sin reuniones ese día.</div>}
 
+      {!cargando && items.length > 0 && (
+        <MapaRutas items={items} onToggleCumplido={onToggleCumplido} />
+      )}
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {items.map((item, index) => (
           <div key={item.id} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.75rem 1rem' }}>
@@ -93,13 +124,45 @@ export function PanelRutas({ anfitriones }: { anfitriones: AnfitrionOption[] }) 
                   {item.lat === null && item.direccion ? ' (sin ubicar)' : ''}
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '0.25rem' }}>
+              <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                <button
+                  onClick={() => onToggleCumplido(item.id, item.tipo, !item.cumplido)}
+                  style={{
+                    border: '1px solid ' + (item.cumplido ? '#bbf7d0' : '#fecaca'),
+                    background: item.cumplido ? '#f0fdf4' : '#fef2f2', color: item.cumplido ? '#166534' : '#991b1b',
+                    borderRadius: '6px', padding: '0.25rem 0.6rem', fontSize: '0.75rem', cursor: 'pointer',
+                  }}
+                >
+                  {item.cumplido ? 'Cumplido' : 'Pendiente'}
+                </button>
+                <button onClick={() => abrirReagendar(item)}
+                  style={{ border: '1px solid #e2e8f0', background: '#f8fafc', borderRadius: '6px', padding: '0.25rem 0.5rem', fontSize: '0.75rem', cursor: 'pointer' }}>
+                  Reagendar
+                </button>
                 <button onClick={() => mover(index, -1)} disabled={index === 0}
                   style={{ border: '1px solid #e2e8f0', background: '#f8fafc', borderRadius: '6px', width: '26px', height: '26px', cursor: 'pointer' }}>↑</button>
                 <button onClick={() => mover(index, 1)} disabled={index === items.length - 1}
                   style={{ border: '1px solid #e2e8f0', background: '#f8fafc', borderRadius: '6px', width: '26px', height: '26px', cursor: 'pointer' }}>↓</button>
               </div>
             </div>
+
+            {reagendando === item.id && (
+              <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem' }}>
+                <input
+                  type="time" value={nuevaHora} onChange={(e) => setNuevaHora(e.target.value)}
+                  style={{ border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.35rem 0.6rem', fontSize: '0.8rem' }}
+                />
+                <button onClick={() => onReagendar(item)}
+                  style={{ border: 'none', background: '#0f172a', color: '#fff', borderRadius: '6px', padding: '0.35rem 0.7rem', fontSize: '0.8rem', cursor: 'pointer' }}>
+                  Confirmar
+                </button>
+                <button onClick={() => setReagendando(null)}
+                  style={{ border: 'none', background: 'none', color: '#64748b', fontSize: '0.8rem', cursor: 'pointer' }}>
+                  Cancelar
+                </button>
+              </div>
+            )}
+
             {!item.direccion && (
               <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem' }}>
                 <input
