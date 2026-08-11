@@ -20,7 +20,7 @@ export default async function FinanzasDashboardPage() {
       </h1>
 
       {/* Métricas principales */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
         <MetricCard label="Total gastos" value={formatCOP(data.totalGastos)} color="#dc2626" />
         <MetricCard label="Total donaciones" value={formatCOP(data.totalDonaciones)} color="#22c55e" />
         <MetricCard
@@ -61,7 +61,7 @@ export default async function FinanzasDashboardPage() {
       <ChartGastos data={data.gastosPorCategoria} />
 
       {/* Tablas compactas */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
         {/* Últimos 5 gastos */}
         <div style={{
           background: '#fff', borderRadius: '12px',

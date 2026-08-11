@@ -101,7 +101,7 @@ export default function InformesPage() {
             los gastos y donaciones registrados hasta la fecha. El PDF se almacenará y quedará
             disponible para descarga.
           </p>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             <button
               onClick={() => handleGenerate(confirmType)}
               style={{

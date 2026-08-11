@@ -11,7 +11,7 @@ export default async function AnalyticsDashboardPage() {
       <h1 style={{ margin: 0, fontSize: '1.5rem', color: '#0f172a' }}>Dashboard de Analítica</h1>
 
       {/* Fila 1 — Métricas globales de electores */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
         <KpiCard titulo="Total registrados" valor={kpi.totalRegistrados} />
         <KpiCard titulo="Comprometidos"     valor={kpi.comprometidos} color="#34d399" />
         <KpiCard titulo="Voto seguro"       valor={kpi.votoSeguro}    color="#22c55e" />
@@ -19,7 +19,7 @@ export default async function AnalyticsDashboardPage() {
       </div>
 
       {/* Fila 2 — Métricas de líderes */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
         <KpiCard titulo="Total líderes"    valor={kpi.totalLideres} />
         <KpiCard titulo="Líderes activos"  valor={kpi.lideresActivos}   color="#3b82f6" subtitulo="Actividad < 7 días" />
         <KpiCard titulo="Líderes inactivos" valor={kpi.lideresInactivos} color="#ef4444" subtitulo="Sin actividad > 7 días" />
@@ -27,7 +27,7 @@ export default async function AnalyticsDashboardPage() {
       </div>
 
       {/* Fila 3 — Progreso general */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
         <KpiCard
           titulo="% Avance global"
           valor={kpi.pctAvance !== null ? `${kpi.pctAvance}%` : '—'}

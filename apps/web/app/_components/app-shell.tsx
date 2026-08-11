@@ -90,7 +90,7 @@ export async function AppShell({
           </svg>
         </label>
         <div className="text-sm font-semibold truncate flex-1 text-center">{tenantName}</div>
-        <div className="text-[10px] opacity-60 uppercase tracking-wider w-10 text-right">{moduleName}</div>
+        <div className="text-[10px] opacity-60 uppercase tracking-wider w-12 truncate text-right shrink-0">{moduleName}</div>
       </header>
 
       {/* Backdrop — solo móvil cuando el sidebar está abierto */}

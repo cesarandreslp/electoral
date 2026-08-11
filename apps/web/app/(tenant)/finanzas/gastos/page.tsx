@@ -130,7 +130,7 @@ export default async function GastosPage() {
           <h3 style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', color: '#334155' }}>
             Totales por categoría
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem' }}>
             {result.byCategory.map(c => {
               const colors = CATEGORY_COLORS[c.category] ?? { bg: '#f1f5f9', color: '#334155' }
               return (

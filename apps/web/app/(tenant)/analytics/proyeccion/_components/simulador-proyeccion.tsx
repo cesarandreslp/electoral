@@ -76,7 +76,7 @@ export function SimuladorProyeccion({ data }: { data: ProjectionData }) {
       </div>
 
       {/* Escenarios */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
         <div style={{ ...cardStyle, borderLeft: '4px solid #94a3b8' }}>
           <div style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase' }}>Mínimo</div>
           <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#64748b' }}>{minimo}</div>

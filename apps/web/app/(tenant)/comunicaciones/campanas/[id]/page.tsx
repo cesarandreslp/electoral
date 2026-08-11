@@ -39,7 +39,7 @@ export default async function CampanaDetallePage({ params }: { params: Promise<{
       </div>
 
       {/* Métricas */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
         <MetricCard label="Destinatarios" value={campaign.totalRecipients} />
         <MetricCard label="Enviados" value={campaign.totalSent} color="#22c55e" />
         <MetricCard label="Fallidos" value={campaign.totalFailed} color="#ef4444" />

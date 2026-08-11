@@ -45,7 +45,7 @@ export default async function FichaLiderPage({ params }: Props) {
   return (
     <div style={{ maxWidth: '900px' }}>
       {/* Encabezado */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
         <div>
           <Link href="/core/lideres" style={{ color: '#64748b', fontSize: '0.875rem', textDecoration: 'none' }}>
             ← Líderes
@@ -71,7 +71,7 @@ export default async function FichaLiderPage({ params }: Props) {
           </h1>
           {lider.zone && <div style={{ color: '#64748b', fontSize: '0.875rem' }}>{lider.zone}</div>}
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
           {esAdminCampana && <BotonCandidato id={id} esCandidato={lider.isCandidate} />}
           {esAdminCampana && <BotonJefeDebate id={id} tieneAgenda={lider.tieneAgenda} />}
           <Link

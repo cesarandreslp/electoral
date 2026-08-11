@@ -14,7 +14,7 @@ export default async function ComunicacionesDashboardPage() {
       </h1>
 
       {/* Métricas */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
         <MetricCard label="Enviados" value={metrics.totalSent} color="#22c55e" />
         <MetricCard label="Tasa de éxito" value={`${metrics.successRate}%`} color="#3b82f6" />
         <MetricCard label="Campañas activas" value={metrics.activeCampaigns} color="#8b5cf6" />
