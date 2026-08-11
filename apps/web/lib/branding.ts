@@ -40,3 +40,26 @@ export async function getBrandingBySlug(slug: string): Promise<Branding & { tena
   const branding = await getBrandingByTenantId(tenant.id)
   return { ...branding, tenantId: tenant.id, tenantName: tenant.name }
 }
+
+const SIN_SLUG = { logoUrl: null, primaryColor: null, tenantId: null, tenantName: null }
+
+/**
+ * Branding derivado directamente del host, sin depender de que el middleware
+ * inyecte ?c=slug (eso solo pasa en MODO 2 del middleware, con
+ * TENANT_BASE_DOMAIN configurado — en dev local, con hosts tipo
+ * "demo-campana.localhost", nunca se dispara). Toma el primer segmento del
+ * hostname como candidato a slug; si no hay tenant con ese slug, cae al
+ * branding genérico de Vectra sin error — no es una fuente de verdad de
+ * tenant, solo cosmético para no mostrarle a un tenant real el logo de Vectra.
+ */
+export async function getBrandingFromHost(host: string | null): Promise<Branding & { tenantId: string | null; tenantName: string | null }> {
+  if (!host) return SIN_SLUG
+  const hostname = host.split(':')[0]
+  const partes = hostname.split('.')
+  if (partes.length < 2) return SIN_SLUG // "localhost" pelado, sin subdominio
+
+  const candidato = partes[0]
+  if (['www', 'api', 'admin', 'superadmin'].includes(candidato)) return SIN_SLUG
+
+  return getBrandingBySlug(candidato)
+}

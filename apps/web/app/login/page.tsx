@@ -1,6 +1,8 @@
 import { auth } from '@campaignos/auth'
 import { redirect } from 'next/navigation'
-import { getBrandingBySlug } from '@/lib/branding'
+import { headers } from 'next/headers'
+import { getBrandingBySlug, getBrandingFromHost } from '@/lib/branding'
+import { destinoPostLogin } from '@/lib/screens'
 import { LoginForm } from './_components/login-form'
 
 // El template del layout raíz ya añade " | Vectra"
@@ -30,12 +32,16 @@ export default async function LoginPage({
   const params  = await searchParams
 
   if (session?.user) {
-    const destino = params.callbackUrl
-      ?? (session.user.role === 'SUPERADMIN' ? '/superadmin' : '/')
+    const destino = params.callbackUrl ?? destinoPostLogin(session.user.role, session.user.customPermissions)
     redirect(destino)
   }
 
-  const branding = params.c ? await getBrandingBySlug(params.c) : null
+  // ?c=slug manda si viene (link compartido explícito); si no, se intenta
+  // derivar del host — así el equipo de una campaña entrando por su propio
+  // subdominio nunca ve el branding genérico de Vectra por accidente.
+  const branding = params.c
+    ? await getBrandingBySlug(params.c)
+    : await getBrandingFromHost((await headers()).get('host'))
 
   return (
     <LoginForm

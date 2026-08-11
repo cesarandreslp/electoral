@@ -9,28 +9,29 @@
 export interface ScreenDef {
   label:  string
   modulo: string // moduleKey tal cual vive en activeModules — para agrupar en la UI
+  path:   string // a dónde mandar a un rol personalizado cuyo primer permiso sea este
 }
 
 export const SCREENS: Record<string, ScreenDef> = {
-  CORE_DASHBOARD:     { label: 'Dashboard',        modulo: 'CORE' },
-  CORE_LIDERES:       { label: 'Líderes',           modulo: 'CORE' },
-  CORE_ELECTORES:     { label: 'Electores',         modulo: 'CORE' },
-  CORE_IMPORTAR:      { label: 'Importar',          modulo: 'CORE' },
-  CORE_QR:            { label: 'QR de captación',   modulo: 'CORE' },
-  CORE_TERRITORIO:    { label: 'Territorio',        modulo: 'CORE' },
-  CORE_AGENDA:        { label: 'Agenda',            modulo: 'CORE' },
-  CORE_LOGISTICA:     { label: 'Logística',         modulo: 'CORE' },
-  CORE_RUTAS:         { label: 'Rutas',             modulo: 'CORE' },
-  CORE_ALERTAS:       { label: 'Alertas',           modulo: 'CORE' },
-  CORE_CONFIGURACION: { label: 'Configuración',     modulo: 'CORE' },
+  CORE_DASHBOARD:     { label: 'Dashboard',        modulo: 'CORE', path: '/core' },
+  CORE_LIDERES:       { label: 'Líderes',           modulo: 'CORE', path: '/core/lideres' },
+  CORE_ELECTORES:     { label: 'Electores',         modulo: 'CORE', path: '/core/electores' },
+  CORE_IMPORTAR:      { label: 'Importar',          modulo: 'CORE', path: '/core/importar' },
+  CORE_QR:            { label: 'QR de captación',   modulo: 'CORE', path: '/core/qr' },
+  CORE_TERRITORIO:    { label: 'Territorio',        modulo: 'CORE', path: '/core/territorio' },
+  CORE_AGENDA:        { label: 'Agenda',            modulo: 'CORE', path: '/core/agenda' },
+  CORE_LOGISTICA:     { label: 'Logística',         modulo: 'CORE', path: '/core/logistica' },
+  CORE_RUTAS:         { label: 'Rutas',             modulo: 'CORE', path: '/core/rutas' },
+  CORE_ALERTAS:       { label: 'Alertas',           modulo: 'CORE', path: '/core/alertas' },
+  CORE_CONFIGURACION: { label: 'Configuración',     modulo: 'CORE', path: '/core/configuracion' },
 
   // Resto de módulos — granularidad de módulo completo por ahora (Fase 2 los desglosa).
-  ANALYTICS:      { label: 'Analytics',      modulo: 'ANALYTICS' },
-  FORMACION:      { label: 'Formación',      modulo: 'FORMACION' },
-  DIA_E:          { label: 'Día E',          modulo: 'DIA_E' },
-  COMUNICACIONES: { label: 'Comunicaciones', modulo: 'COMUNICACIONES' },
-  FINANZAS:       { label: 'Finanzas',       modulo: 'FINANZAS' },
-  ENCUESTAS:      { label: 'Encuestas',      modulo: 'ENCUESTAS' },
+  ANALYTICS:      { label: 'Analytics',      modulo: 'ANALYTICS',      path: '/analytics' },
+  FORMACION:      { label: 'Formación',      modulo: 'FORMACION',      path: '/formacion' },
+  DIA_E:          { label: 'Día E',          modulo: 'DIA_E',          path: '/dia-e/sala' },
+  COMUNICACIONES: { label: 'Comunicaciones', modulo: 'COMUNICACIONES', path: '/comunicaciones' },
+  FINANZAS:       { label: 'Finanzas',       modulo: 'FINANZAS',       path: '/finanzas' },
+  ENCUESTAS:      { label: 'Encuestas',      modulo: 'ENCUESTAS',      path: '/encuestas' },
 }
 
 export type ScreenKey = keyof typeof SCREENS
@@ -44,4 +45,17 @@ export function screensPorModulo(): Record<string, { key: string; label: string 
     agrupado[def.modulo] = lista
   }
   return agrupado
+}
+
+/**
+ * A dónde mandar a un usuario recién logueado. Los roles fijos siempre
+ * tienen algo que ver en /core; un rol PERSONALIZADO puede no tenerlo —
+ * lo mandamos a la primera pantalla con canView en su CustomRole.
+ */
+export function destinoPostLogin(role: string, customPermissions: Record<string, { canView: boolean; canEdit: boolean }>): string {
+  if (role === 'SUPERADMIN') return '/superadmin'
+  if (role !== 'PERSONALIZADO') return '/core'
+
+  const primeraPermitida = Object.entries(SCREENS).find(([key]) => customPermissions[key]?.canView)
+  return primeraPermitida ? primeraPermitida[1].path : '/no-autorizado'
 }

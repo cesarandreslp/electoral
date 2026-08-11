@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { auth } from '@campaignos/auth'
+import { destinoPostLogin } from '@/lib/screens'
 import { DemoButton } from './_components/demo-modal'
 
 // Sin title propio: hereda el `default` del layout raíz, que es este mismo
@@ -18,7 +19,7 @@ import { DemoButton } from './_components/demo-modal'
 export default async function HomePage() {
   const session = await auth()
   if (session?.user) {
-    redirect(session.user.role === 'SUPERADMIN' ? '/superadmin' : '/core')
+    redirect(destinoPostLogin(session.user.role, session.user.customPermissions))
   }
 
   return (
