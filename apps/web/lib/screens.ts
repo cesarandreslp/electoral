@@ -1,9 +1,8 @@
 /**
  * Registro de pantallas asignables a un CustomRole — usado tanto por la UI de
  * armado de roles (matriz de checkboxes en Configuración) como por cada
- * `requireScreen()` en el código. CORE está a granularidad de sub-pantalla
- * (mismo nivel que el menú lateral); el resto de módulos, por ahora, a
- * granularidad de módulo completo (ver plan — Fase 2 los desglosa).
+ * `requireModuleOrScreen()` en el código. Todos los módulos están a
+ * granularidad de sub-pantalla (mismo nivel que el menú lateral de cada uno).
  */
 
 export interface ScreenDef {
@@ -25,13 +24,41 @@ export const SCREENS: Record<string, ScreenDef> = {
   CORE_ALERTAS:       { label: 'Alertas',           modulo: 'CORE', path: '/core/alertas' },
   CORE_CONFIGURACION: { label: 'Configuración',     modulo: 'CORE', path: '/core/configuracion' },
 
-  // Resto de módulos — granularidad de módulo completo por ahora (Fase 2 los desglosa).
-  ANALYTICS:      { label: 'Analytics',      modulo: 'ANALYTICS',      path: '/analytics' },
-  FORMACION:      { label: 'Formación',      modulo: 'FORMACION',      path: '/formacion' },
-  DIA_E:          { label: 'Día E',          modulo: 'DIA_E',          path: '/dia-e/sala' },
-  COMUNICACIONES: { label: 'Comunicaciones', modulo: 'COMUNICACIONES', path: '/comunicaciones' },
-  FINANZAS:       { label: 'Finanzas',       modulo: 'FINANZAS',       path: '/finanzas' },
-  ENCUESTAS:      { label: 'Encuestas',      modulo: 'ENCUESTAS',      path: '/encuestas' },
+  ANALYTICS_DASHBOARD:     { label: 'Dashboard',     modulo: 'ANALYTICS', path: '/analytics' },
+  ANALYTICS_TERRITORIO:    { label: 'Territorio',    modulo: 'ANALYTICS', path: '/analytics/territorio' },
+  ANALYTICS_LIDERES:       { label: 'Líderes',       modulo: 'ANALYTICS', path: '/analytics/lideres' },
+  ANALYTICS_PROYECCION:    { label: 'Proyección',    modulo: 'ANALYTICS', path: '/analytics/proyeccion' },
+  ANALYTICS_CONFIGURACION: { label: 'Configuración', modulo: 'ANALYTICS', path: '/analytics/configuracion' },
+
+  FORMACION_MATERIALES:   { label: 'Materiales',      modulo: 'FORMACION', path: '/formacion' },
+  FORMACION_SESIONES:     { label: 'Sesiones',        modulo: 'FORMACION', path: '/formacion/sesiones' },
+  FORMACION_EVALUACIONES: { label: 'Evaluaciones',    modulo: 'FORMACION', path: '/formacion/evaluaciones' },
+  FORMACION_CERTIFICADOS: { label: 'Mis certificados', modulo: 'FORMACION', path: '/formacion/certificados' },
+  FORMACION_REPORTES:     { label: 'Reportes',        modulo: 'FORMACION', path: '/formacion/reportes' },
+
+  DIA_E_TESTIGO:        { label: 'Mi mesa (testigo)',   modulo: 'DIA_E', path: '/dia-e/testigo' },
+  DIA_E_SALA:           { label: 'Sala de situación',   modulo: 'DIA_E', path: '/dia-e/sala' },
+  DIA_E_RESULTADOS:     { label: 'Resultados',          modulo: 'DIA_E', path: '/dia-e/sala/resultados' },
+  DIA_E_ASIGNACIONES:   { label: 'Asignaciones',        modulo: 'DIA_E', path: '/dia-e/sala/asignaciones' },
+  DIA_E_INCIDENTES:     { label: 'Incidentes',          modulo: 'DIA_E', path: '/dia-e/sala/incidentes' },
+  DIA_E_CONFIGURACION:  { label: 'Configuración',       modulo: 'DIA_E', path: '/dia-e/sala/configuracion' },
+
+  COMUNICACIONES_DASHBOARD:       { label: 'Dashboard',        modulo: 'COMUNICACIONES', path: '/comunicaciones' },
+  COMUNICACIONES_CAMPANAS:        { label: 'Campañas',         modulo: 'COMUNICACIONES', path: '/comunicaciones/campanas' },
+  COMUNICACIONES_PLANTILLAS:      { label: 'Plantillas',       modulo: 'COMUNICACIONES', path: '/comunicaciones/plantillas' },
+  COMUNICACIONES_AUTOMATIZACIONES: { label: 'Automatizaciones', modulo: 'COMUNICACIONES', path: '/comunicaciones/automatizaciones' },
+  COMUNICACIONES_CONFIGURACION:   { label: 'Config SMTP',      modulo: 'COMUNICACIONES', path: '/comunicaciones/configuracion' },
+
+  FINANZAS_DASHBOARD:     { label: 'Dashboard',     modulo: 'FINANZAS', path: '/finanzas' },
+  FINANZAS_GASTOS:        { label: 'Gastos',        modulo: 'FINANZAS', path: '/finanzas/gastos' },
+  FINANZAS_DONACIONES:    { label: 'Donaciones',    modulo: 'FINANZAS', path: '/finanzas/donaciones' },
+  FINANZAS_INFORMES:      { label: 'Informes',      modulo: 'FINANZAS', path: '/finanzas/informes' },
+  FINANZAS_CONFIGURACION: { label: 'Configuración', modulo: 'FINANZAS', path: '/finanzas/configuracion' },
+
+  ENCUESTAS_DASHBOARD:     { label: 'Dashboard',       modulo: 'ENCUESTAS', path: '/encuestas' },
+  ENCUESTAS_CAMPANAS:      { label: 'Campañas',        modulo: 'ENCUESTAS', path: '/encuestas/campanas' },
+  ENCUESTAS_RESULTADOS:    { label: 'Resultados',      modulo: 'ENCUESTAS', path: '/encuestas/resultados' },
+  ENCUESTAS_CONFIGURACION: { label: 'Configuración API', modulo: 'ENCUESTAS', path: '/encuestas/configuracion' },
 }
 
 export type ScreenKey = keyof typeof SCREENS

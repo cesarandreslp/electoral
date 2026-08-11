@@ -1,4 +1,4 @@
-import { requireModule }       from '@/lib/auth-helpers'
+import { requireModuleOrScreen } from '@/lib/auth-helpers'
 import { getTenantConnection } from '@/lib/tenant'
 import { getTenantDb }         from '@campaignos/db'
 import { FichaAnalisis }       from './_components/ficha-analisis'
@@ -6,7 +6,7 @@ import type { LeaderAnalysisResult, RadarDimension } from '../../../actions'
 
 export default async function AnalisisLiderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: leaderId } = await params
-  const session = await requireModule('ANALYTICS', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('ANALYTICS', ['ADMIN_CAMPANA', 'COORDINADOR'], 'ANALYTICS_LIDERES')
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
   const tenantId = session.user.tenantId
 

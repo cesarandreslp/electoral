@@ -12,7 +12,7 @@ import { idsSubarbol } from '@/app/(tenant)/core/actions'
  * Obtiene las campañas de encuestas del tenant.
  */
 export async function getSurveyCampaigns() {
-  const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'], 'ENCUESTAS_CAMPANAS')
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
   return db.surveyCampaign.findMany({
@@ -33,7 +33,7 @@ export async function getSurveyCampaigns() {
  * Activa/Desactiva una campaña de encuesta.
  */
 export async function toggleSurveyEnabled(campaignId: string) {
-  const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA'])
+  const session = await requireModuleOrScreen('ENCUESTAS', ['ADMIN_CAMPANA'], 'ENCUESTAS_CAMPANAS', 'edit')
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
   const campaign = await db.surveyCampaign.findUnique({
@@ -70,7 +70,7 @@ export async function createSurveyCampaign(data: {
   }[]
 }) {
   try {
-    const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA'])
+    const session = await requireModuleOrScreen('ENCUESTAS', ['ADMIN_CAMPANA'], 'ENCUESTAS_CAMPANAS', 'edit')
     const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
     await db.surveyCampaign.create({
@@ -128,7 +128,7 @@ export async function createSurveyCampaign(data: {
  * configurado, igual que las claves de IA en /core/configuracion.
  */
 export async function getSurveyConfig() {
-  const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA'])
+  const session = await requireModuleOrScreen('ENCUESTAS', ['ADMIN_CAMPANA'], 'ENCUESTAS_CONFIGURACION')
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
   const config = await db.tenantConfig.findUnique({
@@ -166,7 +166,7 @@ export async function saveSurveyConfig(data: {
   surveyDailyLimit: number
 }) {
   try {
-    const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA'])
+    const session = await requireModuleOrScreen('ENCUESTAS', ['ADMIN_CAMPANA'], 'ENCUESTAS_CONFIGURACION', 'edit')
     const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
     const tokenCifrado = data.whatsappToken?.trim() ? encrypt(data.whatsappToken.trim()) : undefined
@@ -205,7 +205,7 @@ export async function saveSurveyConfig(data: {
  * No depende de que haya un cron externo corriendo.
  */
 export async function enviarEncuestasAhora(): Promise<ResultadoEnvio> {
-  const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA'])
+  const session = await requireModuleOrScreen('ENCUESTAS', ['ADMIN_CAMPANA'], 'ENCUESTAS_CONFIGURACION', 'edit')
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
   const resultado = await enviarPendientesTenant(session.user.tenantId, db)
@@ -220,7 +220,7 @@ export async function enviarEncuestasAhora(): Promise<ResultadoEnvio> {
  * complemento, no el reemplazo de esto.
  */
 export async function getFidelidadStats() {
-  const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'], 'ENCUESTAS_RESULTADOS')
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
   const grupos = await db.voter.groupBy({
@@ -242,7 +242,7 @@ export async function getFidelidadStats() {
 }
 
 export async function getSurveyStats() {
-  const session = await requireModuleOrScreen('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'], 'ENCUESTAS')
+  const session = await requireModuleOrScreen('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'], 'ENCUESTAS_DASHBOARD')
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
   const [total, pending, contacted, consented, completed, rejected, responding] = await Promise.all([
@@ -302,7 +302,7 @@ export async function getSurveyStats() {
  * (agregado de todo el tenant), esto solo trae lo de esta campaña.
  */
 export async function getSurveyStatsByCampaign(campaignId: string) {
-  const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'], 'ENCUESTAS_CAMPANAS')
   const db = getTenantDb(await getTenantConnection(session.user.tenantId))
 
   const campania = await db.surveyCampaign.findFirst({
@@ -371,7 +371,7 @@ export interface CoberturaEncuestaEntry {
  * "compartió" nada que haya funcionado).
  */
 export async function getCoberturaEncuestaPorCaptacion(campaignId?: string): Promise<CoberturaEncuestaEntry[]> {
-  const session = await requireModule('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'])
+  const session = await requireModuleOrScreen('ENCUESTAS', ['ADMIN_CAMPANA', 'COORDINADOR'], 'ENCUESTAS_CAMPANAS')
   const db      = getTenantDb(await getTenantConnection(session.user.tenantId))
 
   const preguntaIds = await preguntaIdsCampaniaActiva(db, session.user.tenantId, campaignId)

@@ -104,10 +104,8 @@ export interface LeaderAnalysisResult {
 
 // ── Helpers internos ──────────────────────────────────────────────────────────
 
-async function getDbAndTenant(permitirPersonalizado = false) {
-  const session = permitirPersonalizado
-    ? await requireModuleOrScreen('ANALYTICS', ['ADMIN_CAMPANA', 'COORDINADOR'], 'ANALYTICS')
-    : await requireModule('ANALYTICS', ['ADMIN_CAMPANA', 'COORDINADOR'])
+async function getDbAndTenant(screenKey: string, accion: 'view' | 'edit' = 'view') {
+  const session = await requireModuleOrScreen('ANALYTICS', ['ADMIN_CAMPANA', 'COORDINADOR'], screenKey, accion)
   const tenantId = session.user.tenantId
   const db = getTenantDb(await getTenantConnection(tenantId))
   return { db, tenantId }
@@ -116,7 +114,7 @@ async function getDbAndTenant(permitirPersonalizado = false) {
 // ── Dashboard KPIs ────────────────────────────────────────────────────────────
 
 export async function getAnalyticsDashboard(): Promise<DashboardKpi> {
-  const { db, tenantId } = await getDbAndTenant(true)
+  const { db, tenantId } = await getDbAndTenant('ANALYTICS_DASHBOARD')
 
   const ahora       = new Date()
   const hoy         = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate())
@@ -227,7 +225,7 @@ export async function getAnalyticsDashboard(): Promise<DashboardKpi> {
 // ── Análisis territorial ──────────────────────────────────────────────────────
 
 export async function getAnalysisByTerritory(): Promise<TerritoryRow[]> {
-  const { db, tenantId } = await getDbAndTenant()
+  const { db, tenantId } = await getDbAndTenant('ANALYTICS_TERRITORIO')
 
   // Electores CON mesa asignada → agrupados por municipio
   const conMesa = await db.$queryRaw<{
@@ -341,7 +339,7 @@ export async function exportTerritoryCSV(): Promise<string> {
 // ── Ranking de líderes ────────────────────────────────────────────────────────
 
 export async function getLeaderAnalytics(filters?: LeaderFilters): Promise<LeaderAnalyticsRow[]> {
-  const { db, tenantId } = await getDbAndTenant()
+  const { db, tenantId } = await getDbAndTenant('ANALYTICS_LIDERES')
 
   // Construir where dinámico
   const where: Record<string, unknown> = { tenantId }
@@ -486,7 +484,7 @@ Si el veredicto es PRESCINDIR, planAccion debe ser null.
 Responde SOLO con el JSON, sin texto adicional ni markdown.`
 
 export async function generarAnalisisLider(leaderId: string): Promise<LeaderAnalysisResult> {
-  const { db, tenantId } = await getDbAndTenant()
+  const { db, tenantId } = await getDbAndTenant('ANALYTICS_LIDERES', 'edit')
 
   // Verificar si ya existe un análisis reciente (< 24 horas)
   const hace24h = new Date(Date.now() - 24 * 60 * 60 * 1000)
@@ -727,7 +725,7 @@ async function formatAnalysis(
 // ── Proyección de votos ───────────────────────────────────────────────────────
 
 export async function getProjectionData(): Promise<ProjectionData> {
-  const { db, tenantId } = await getDbAndTenant()
+  const { db, tenantId } = await getDbAndTenant('ANALYTICS_PROYECCION')
 
   const [byStatus, config] = await Promise.all([
     db.voter.groupBy({
@@ -769,7 +767,7 @@ export async function getProjectionData(): Promise<ProjectionData> {
 // ── Configuración ─────────────────────────────────────────────────────────────
 
 export async function getAnalyticsConfig(): Promise<AnalyticsConfig> {
-  const { db, tenantId } = await getDbAndTenant()
+  const { db, tenantId } = await getDbAndTenant('ANALYTICS_CONFIGURACION')
 
   const config = await db.tenantConfig.findUnique({ where: { tenantId } })
 
@@ -785,7 +783,7 @@ export async function updateAnalyticsConfig(data: {
   metaVotos?:             number | null
   votosEleccionAnterior?: number | null
 }): Promise<void> {
-  const { db, tenantId } = await getDbAndTenant()
+  const { db, tenantId } = await getDbAndTenant('ANALYTICS_CONFIGURACION', 'edit')
 
   await db.tenantConfig.upsert({
     where:  { tenantId },

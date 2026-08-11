@@ -8,7 +8,7 @@
  *   - correctIndex de QuizQuestion NUNCA se envía al cliente
  */
 
-import { requireModule }       from '@/lib/auth-helpers'
+import { requireModule, requireModuleOrScreen } from '@/lib/auth-helpers'
 import { getTenantConnection } from '@/lib/tenant'
 import { getTenantDb, superadminDb } from '@campaignos/db'
 import { put }                 from '@vercel/blob'
@@ -16,8 +16,14 @@ import { revalidatePath }      from 'next/cache'
 
 // ── Helper ───────────────────────────────────────────────────────────────────
 
-async function getDbAndSession(roles: Parameters<typeof requireModule>[1] = []) {
-  const session  = await requireModule('FORMACION', roles)
+async function getDbAndSession(
+  roles: Parameters<typeof requireModule>[1] = [],
+  screenKey?: string,
+  accion: 'view' | 'edit' = 'view',
+) {
+  const session  = screenKey
+    ? await requireModuleOrScreen('FORMACION', roles, screenKey, accion)
+    : await requireModule('FORMACION', roles)
   const tenantId = session.user.tenantId as string
   const userId   = session.user.id as string
   const conn     = await getTenantConnection(tenantId)
@@ -184,7 +190,7 @@ export async function listMaterials(): Promise<MaterialView[]> {
  * Lista todos los materiales para admin (incluye inactivos y visibilidad global).
  */
 export async function listMaterialsAdmin(): Promise<(MaterialView & { isActive: boolean })[]> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'FORMACION_MATERIALES')
 
   const locales = await db.trainingMaterial.findMany({
     where:   { tenantId },
@@ -209,7 +215,7 @@ export async function createMaterial(formData: FormData): Promise<
   { success: true; id: string } | { success: false; error: string }
 > {
   try {
-    const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+    const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'FORMACION_MATERIALES', 'edit')
 
     const title       = formData.get('title') as string
     const description = (formData.get('description') as string) || null
@@ -261,7 +267,7 @@ export async function createMaterial(formData: FormData): Promise<
 
 /** Toggle activo/inactivo de un material del tenant */
 export async function toggleMaterial(id: string): Promise<void> {
-  const { db } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db } = await getDbAndSession(['ADMIN_CAMPANA'], 'FORMACION_MATERIALES', 'edit')
   const actual = await db.trainingMaterial.findUnique({ where: { id }, select: { isActive: true } })
   if (!actual) return
   await db.trainingMaterial.update({ where: { id }, data: { isActive: !actual.isActive } })
@@ -270,14 +276,14 @@ export async function toggleMaterial(id: string): Promise<void> {
 
 /** Elimina un material del tenant */
 export async function deleteMaterial(id: string): Promise<void> {
-  const { db } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db } = await getDbAndSession(['ADMIN_CAMPANA'], 'FORMACION_MATERIALES', 'edit')
   await db.trainingMaterial.delete({ where: { id } })
   revalidatePath('/formacion')
 }
 
 /** Oculta o muestra un material global para este tenant */
 export async function toggleGlobalMaterialVisibility(globalMaterialId: string): Promise<void> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'FORMACION_MATERIALES', 'edit')
 
   const existing = await db.tenantMaterialPreference.findUnique({
     where: { tenantId_globalMaterialId: { tenantId, globalMaterialId } },
@@ -367,7 +373,7 @@ export async function createSession(formData: FormData): Promise<
   { success: true; id: string } | { success: false; error: string }
 > {
   try {
-    const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+    const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'FORMACION_SESIONES', 'edit')
 
     const title       = formData.get('title') as string
     const description = (formData.get('description') as string) || null
@@ -433,7 +439,7 @@ export async function enrollInSession(sessionId: string): Promise<{ success: boo
 
 /** Confirmar asistencia de un usuario (solo admin) */
 export async function confirmAttendance(sessionId: string, userId: string): Promise<void> {
-  const { db } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db } = await getDbAndSession(['ADMIN_CAMPANA'], 'FORMACION_SESIONES', 'edit')
 
   await db.trainingAttendance.updateMany({
     where: { sessionId, userId },
@@ -445,7 +451,7 @@ export async function confirmAttendance(sessionId: string, userId: string): Prom
 
 /** Eliminar sesión (solo admin) */
 export async function deleteSession(sessionId: string): Promise<void> {
-  const { db } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db } = await getDbAndSession(['ADMIN_CAMPANA'], 'FORMACION_SESIONES', 'edit')
   // Eliminar asistencias primero, luego la sesión
   await db.trainingAttendance.deleteMany({ where: { sessionId } })
   await db.trainingSession.delete({ where: { id: sessionId } })
@@ -568,7 +574,7 @@ export async function createQuiz(data: {
   questions:    { text: string; options: string[]; correctIndex: number }[]
 }): Promise<{ success: true; id: string } | { success: false; error: string }> {
   try {
-    const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+    const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'FORMACION_EVALUACIONES', 'edit')
 
     if (!data.title || data.questions.length === 0) {
       return { success: false, error: 'Título y al menos una pregunta son obligatorios.' }
@@ -601,7 +607,7 @@ export async function createQuiz(data: {
 
 /** Elimina un quiz y todas sus preguntas/intentos (solo admin) */
 export async function deleteQuiz(quizId: string): Promise<void> {
-  const { db } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db } = await getDbAndSession(['ADMIN_CAMPANA'], 'FORMACION_EVALUACIONES', 'edit')
   // Cascade en QuizQuestion, pero QuizAttempt no tiene onDelete
   await db.quizAttempt.deleteMany({ where: { quizId } })
   await db.certificate.deleteMany({ where: { quizId } })
@@ -670,7 +676,7 @@ export async function saveCertificate(
 
 /** Métricas generales del módulo de formación */
 export async function getFormacionMetrics(): Promise<FormacionMetrics> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'FORMACION_REPORTES')
 
   const [
     totalMaterials,
@@ -704,7 +710,7 @@ export async function getFormacionMetrics(): Promise<FormacionMetrics> {
 
 /** Progreso de testigos para el reporte */
 export async function getWitnessProgress(): Promise<WitnessProgress[]> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'FORMACION_REPORTES')
 
   const witnesses = await db.user.findMany({
     where:   { tenantId, role: 'TESTIGO', isActive: true },

@@ -7,15 +7,21 @@
  * Montos siempre en pesos colombianos (COP).
  */
 
-import { requireModule }       from '@/lib/auth-helpers'
+import { requireModule, requireModuleOrScreen } from '@/lib/auth-helpers'
 import { getTenantConnection } from '@/lib/tenant'
 import { getTenantDb, Prisma, encrypt, decrypt } from '@campaignos/db'
 import { revalidatePath }      from 'next/cache'
 
 // ── Helper ───────────────────────────────────────────────────────────────────
 
-async function getDbAndSession(roles: Parameters<typeof requireModule>[1] = []) {
-  const session  = await requireModule('FINANZAS', roles)
+async function getDbAndSession(
+  roles: Parameters<typeof requireModule>[1] = [],
+  screenKey?: string,
+  accion: 'view' | 'edit' = 'view',
+) {
+  const session  = screenKey
+    ? await requireModuleOrScreen('FINANZAS', roles, screenKey, accion)
+    : await requireModule('FINANZAS', roles)
   const tenantId = session.user.tenantId as string
   const userId   = session.user.id as string
   const conn     = await getTenantConnection(tenantId)
@@ -102,7 +108,7 @@ export interface ReportView {
 // ── CONFIGURACIÓN ────────────────────────────────────────────────────────────
 
 export async function getFinanceConfig(): Promise<FinanceConfigView | null> {
-  const { db, tenantId } = await getDbAndSession()
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA','COORDINADOR'], 'FINANZAS_CONFIGURACION')
 
   const config = await db.financeConfig.findUnique({ where: { tenantId } })
   if (!config) return null
@@ -129,7 +135,7 @@ export async function updateFinanceConfig(data: {
   cedulaTesorero?:     string // se cifra antes de guardar
   cuentaBancaria?:     string // se cifra antes de guardar
 }) {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'FINANZAS_CONFIGURACION', 'edit')
 
   const payload: Record<string, unknown> = {
     cargoPostulado:     data.cargoPostulado ?? null,
@@ -165,7 +171,7 @@ export async function listExpenses(filters?: {
   dateTo?:   string
   status?:   string
 }): Promise<ExpenseListResult> {
-  const { db, tenantId } = await getDbAndSession()
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA','COORDINADOR'], 'FINANZAS_GASTOS')
 
   const where: Record<string, unknown> = { tenantId }
   if (filters?.category)  where.category = filters.category
@@ -237,7 +243,7 @@ export async function createExpense(data: CreateExpenseInput): Promise<{
   porcentajeUsado: number | null
   advertencia?: string
 }> {
-  const { db, tenantId, userId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'])
+  const { db, tenantId, userId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'FINANZAS_GASTOS', 'edit')
 
   // a) Obtener total actual de gastos ANTES de insertar
   const [aggregate, config] = await Promise.all([
@@ -311,7 +317,7 @@ export async function createExpense(data: CreateExpenseInput): Promise<{
 }
 
 export async function updateExpenseStatus(id: string, status: 'VERIFICADO' | 'OBSERVADO') {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'FINANZAS_GASTOS', 'edit')
 
   await db.expense.updateMany({
     where: { id, tenantId },
@@ -322,7 +328,7 @@ export async function updateExpenseStatus(id: string, status: 'VERIFICADO' | 'OB
 }
 
 export async function deleteExpense(id: string) {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'FINANZAS_GASTOS', 'edit')
 
   // Solo se puede eliminar si está en estado REGISTRADO
   const expense = await db.expense.findFirst({
@@ -346,7 +352,7 @@ export async function listDonations(filters?: {
   donorType?:  string
   isVerified?: boolean
 }): Promise<DonationView[]> {
-  const { db, tenantId } = await getDbAndSession()
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA','COORDINADOR'], 'FINANZAS_DONACIONES')
 
   const where: Record<string, unknown> = { tenantId }
   if (filters?.donorType)            where.donorType  = filters.donorType
@@ -396,7 +402,7 @@ export async function createDonation(data: CreateDonationInput): Promise<{
   donationId: string
   advertencia?: string
 }> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'FINANZAS_DONACIONES', 'edit')
 
   // Verificar si la donación individual supera el 10% del tope total
   const config = await db.financeConfig.findUnique({ where: { tenantId } })
@@ -436,7 +442,7 @@ export async function createDonation(data: CreateDonationInput): Promise<{
 }
 
 export async function verifyDonation(id: string) {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'FINANZAS_DONACIONES', 'edit')
 
   await db.donation.updateMany({
     where: { id, tenantId },
@@ -449,7 +455,7 @@ export async function verifyDonation(id: string) {
 // ── DASHBOARD ────────────────────────────────────────────────────────────────
 
 export async function getFinanceDashboard(): Promise<DashboardData> {
-  const { db, tenantId } = await getDbAndSession()
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA','COORDINADOR'], 'FINANZAS_DASHBOARD')
 
   const [
     expenseAgg,
@@ -560,7 +566,7 @@ export async function getFinanceDashboard(): Promise<DashboardData> {
 // ── INFORMES ─────────────────────────────────────────────────────────────────
 
 export async function listReports(): Promise<ReportView[]> {
-  const { db, tenantId } = await getDbAndSession()
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA','COORDINADOR'], 'FINANZAS_INFORMES')
 
   const reports = await db.financeReport.findMany({
     where:   { tenantId },
@@ -587,7 +593,7 @@ export async function listReports(): Promise<ReportView[]> {
  * La generación del PDF se hace en la API route /api/finanzas/generar-informe.
  */
 export async function getReportData(type: 'PARCIAL' | 'FINAL' | 'CNE') {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'FINANZAS_INFORMES')
 
   const [config, expenses, donations, expenseAgg, donationAgg] = await Promise.all([
     db.financeConfig.findUnique({ where: { tenantId } }),
@@ -665,7 +671,7 @@ export async function saveReport(data: {
   balance:        number
   fileUrl:        string
 }) {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'FINANZAS_INFORMES', 'edit')
 
   const report = await db.financeReport.create({
     data: {
@@ -699,7 +705,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 }
 
 export async function exportExpensesCsv(): Promise<string> {
-  const { db, tenantId } = await getDbAndSession()
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA','COORDINADOR'], 'FINANZAS_GASTOS')
 
   const expenses = await db.expense.findMany({
     where:   { tenantId },
@@ -723,7 +729,7 @@ export async function exportExpensesCsv(): Promise<string> {
 }
 
 export async function exportDonationsCsv(): Promise<string> {
-  const { db, tenantId } = await getDbAndSession()
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA','COORDINADOR'], 'FINANZAS_DONACIONES')
 
   const donations = await db.donation.findMany({
     where:   { tenantId },

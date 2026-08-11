@@ -19,9 +19,13 @@ import { revalidatePath }      from 'next/cache'
 
 // ── Helper ───────────────────────────────────────────────────────────────────
 
-async function getDbAndSession(roles: Parameters<typeof requireModule>[1] = [], screenKey?: string) {
+async function getDbAndSession(
+  roles: Parameters<typeof requireModule>[1] = [],
+  screenKey?: string,
+  accion: 'view' | 'edit' = 'view',
+) {
   const session  = screenKey
-    ? await requireModuleOrScreen('DIA_E', roles, screenKey)
+    ? await requireModuleOrScreen('DIA_E', roles, screenKey, accion)
     : await requireModule('DIA_E', roles)
   const tenantId = session.user.tenantId as string
   const userId   = session.user.id as string
@@ -150,7 +154,7 @@ export async function createCandidate(data: {
   name: string; party?: string; isOwn?: boolean; order?: number
 }): Promise<{ success: boolean }> {
   try {
-    const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+    const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'DIA_E_CONFIGURACION', 'edit')
     await db.candidate.create({
       data: {
         tenantId,
@@ -173,7 +177,7 @@ export async function updateCandidate(
   data: { name?: string; party?: string; isOwn?: boolean; order?: number },
 ): Promise<{ success: boolean }> {
   try {
-    const { db } = await getDbAndSession(['ADMIN_CAMPANA'])
+    const { db } = await getDbAndSession(['ADMIN_CAMPANA'], 'DIA_E_CONFIGURACION', 'edit')
     await db.candidate.update({ where: { id }, data })
     revalidatePath('/dia-e/sala/configuracion')
     return { success: true }
@@ -184,7 +188,7 @@ export async function updateCandidate(
 }
 
 export async function deleteCandidate(id: string): Promise<void> {
-  const { db } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db } = await getDbAndSession(['ADMIN_CAMPANA'], 'DIA_E_CONFIGURACION', 'edit')
   await db.candidate.delete({ where: { id } })
   revalidatePath('/dia-e/sala/configuracion')
 }
@@ -197,7 +201,7 @@ export async function assignWitness(
   isPrimary: boolean,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'])
+    const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'DIA_E_ASIGNACIONES', 'edit')
 
     // Verificar que el usuario es TESTIGO
     const user = await db.user.findUnique({
@@ -225,7 +229,7 @@ export async function assignWitness(
 export async function listWitnessAssignments(filters?: {
   hasWitness?: boolean
 }): Promise<WitnessAssignmentView[]> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'DIA_E_ASIGNACIONES')
 
   // Obtener todas las mesas con sus asignaciones
   const tables = await db.votingTable.findMany({
@@ -277,7 +281,7 @@ export async function listWitnessAssignments(filters?: {
 }
 
 export async function confirmWitnessAssignment(assignmentId: string): Promise<void> {
-  const { db } = await getDbAndSession(['TESTIGO'])
+  const { db } = await getDbAndSession(['TESTIGO'], 'DIA_E_TESTIGO', 'edit')
   await db.witnessAssignment.update({
     where: { id: assignmentId },
     data:  { confirmedAt: new Date() },
@@ -334,7 +338,7 @@ export async function submitManualE14(
   actaTotal: number,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { db, tenantId, userId } = await getDbAndSession(['TESTIGO'])
+    const { db, tenantId, userId } = await getDbAndSession(['TESTIGO'], 'DIA_E_TESTIGO', 'edit')
 
     // Verificar que el testigo está asignado a esta mesa
     const assignment = await db.witnessAssignment.findFirst({
@@ -396,7 +400,7 @@ export async function submitPhotoE14(
   error?: string
 }> {
   try {
-    const { db, tenantId, userId } = await getDbAndSession(['TESTIGO'])
+    const { db, tenantId, userId } = await getDbAndSession(['TESTIGO'], 'DIA_E_TESTIGO', 'edit')
 
     // Verificar asignación
     const assignment = await db.witnessAssignment.findFirst({
@@ -605,7 +609,7 @@ export async function getTransmissionStatus(votingTableId: string): Promise<Tran
 export async function listTransmissions(filters?: {
   verificationStatus?: string
 }): Promise<TransmissionView[]> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'DIA_E')
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'DIA_E_SALA')
 
   const where: Record<string, unknown> = { tenantId }
   if (filters?.verificationStatus) {
@@ -708,7 +712,7 @@ export async function reportIncident(data: {
 export async function listIncidents(filters?: {
   status?: string; severity?: string; type?: string
 }): Promise<IncidentView[]> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'DIA_E_INCIDENTES')
 
   const where: Record<string, unknown> = { tenantId }
   if (filters?.status) where.status = filters.status
@@ -740,7 +744,7 @@ export async function updateIncidentStatus(
   id: string,
   status: string,
 ): Promise<void> {
-  const { db } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'])
+  const { db } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'DIA_E_INCIDENTES', 'edit')
   await db.incident.update({
     where: { id },
     data: {
@@ -754,7 +758,7 @@ export async function updateIncidentStatus(
 // ── RESULTADOS AGREGADOS ─────────────────────────────────────────────────────
 
 export async function getElectionResults(): Promise<ElectionResultView[]> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'DIA_E_RESULTADOS')
 
   const candidates = await db.candidate.findMany({
     where:   { tenantId },
@@ -803,7 +807,7 @@ export async function getElectionResults(): Promise<ElectionResultView[]> {
 }
 
 export async function getDashboardDiaE(): Promise<DashboardDiaE> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'DIA_E')
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'DIA_E_SALA')
 
   const [
     mesasTotales,

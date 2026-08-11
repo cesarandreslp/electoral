@@ -7,7 +7,7 @@
  * El password SMTP siempre va CIFRADO en TenantConfig.smtpConfig.
  */
 
-import { requireModule }       from '@/lib/auth-helpers'
+import { requireModule, requireModuleOrScreen } from '@/lib/auth-helpers'
 import { getTenantConnection } from '@/lib/tenant'
 import { getTenantDb, Prisma, encrypt, decrypt } from '@campaignos/db'
 import { sendMessage, sendBatch } from '@campaignos/messaging'
@@ -16,8 +16,14 @@ import { revalidatePath }      from 'next/cache'
 
 // ── Helper ───────────────────────────────────────────────────────────────────
 
-async function getDbAndSession(roles: Parameters<typeof requireModule>[1] = []) {
-  const session  = await requireModule('COMUNICACIONES', roles)
+async function getDbAndSession(
+  roles: Parameters<typeof requireModule>[1] = [],
+  screenKey?: string,
+  accion: 'view' | 'edit' = 'view',
+) {
+  const session  = screenKey
+    ? await requireModuleOrScreen('COMUNICACIONES', roles, screenKey, accion)
+    : await requireModule('COMUNICACIONES', roles)
   const tenantId = session.user.tenantId as string
   const userId   = session.user.id as string
   const conn     = await getTenantConnection(tenantId)
@@ -249,7 +255,7 @@ export async function listTemplates(channel?: string): Promise<TemplateView[]> {
 }
 
 export async function listAllTemplates(): Promise<TemplateView[]> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_PLANTILLAS')
 
   const templates = await db.messageTemplate.findMany({
     where: { tenantId },
@@ -268,7 +274,7 @@ export async function createTemplate(data: {
   subject?: string
   body: string
 }): Promise<void> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_PLANTILLAS', 'edit')
 
   const variables = extractVariables(data.body)
 
@@ -290,7 +296,7 @@ export async function updateTemplate(
   id: string,
   data: { name?: string; subject?: string; body?: string }
 ): Promise<void> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_PLANTILLAS', 'edit')
 
   const updateData: Record<string, unknown> = {}
   if (data.name !== undefined) updateData.name = data.name
@@ -309,7 +315,7 @@ export async function updateTemplate(
 }
 
 export async function toggleTemplateActive(id: string): Promise<void> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_PLANTILLAS', 'edit')
 
   const template = await db.messageTemplate.findFirst({
     where: { id, tenantId },
@@ -351,7 +357,7 @@ export async function createCampaign(data: {
   segmentFilters: Record<string, unknown>
   scheduledAt?: string | null
 }): Promise<string> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_CAMPANAS', 'edit')
 
   // Verificar que la plantilla existe
   const template = await db.messageTemplate.findFirst({
@@ -387,7 +393,7 @@ export async function createCampaign(data: {
 }
 
 export async function previewCampaign(campaignId: string): Promise<CampaignPreview> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_CAMPANAS')
 
   const campaign = await db.messageCampaign.findFirst({
     where: { id: campaignId, tenantId },
@@ -417,7 +423,7 @@ export async function previewSegment(
   channel: string,
   filters: Record<string, unknown>
 ): Promise<{ total: number; sample: { name: string; type: string }[] }> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_CAMPANAS')
 
   const recipients = await resolveRecipients(filters, channel, db, tenantId)
 
@@ -428,7 +434,7 @@ export async function previewSegment(
 }
 
 export async function sendCampaign(campaignId: string): Promise<void> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_CAMPANAS', 'edit')
 
   // Verificar que la campaña existe y está en estado válido para envío
   const campaign = await db.messageCampaign.findFirst({
@@ -586,7 +592,7 @@ export async function listCampaigns(filters?: {
 }
 
 export async function getCampaignDetail(campaignId: string): Promise<CampaignDetail> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_CAMPANAS')
 
   const campaign = await db.messageCampaign.findFirst({
     where: { id: campaignId, tenantId },
@@ -637,7 +643,7 @@ export async function getCampaignDetail(campaignId: string): Promise<CampaignDet
 // ══════════════════════════════════════════════════════════════════════════════
 
 export async function listAutomations(): Promise<AutomationView[]> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_AUTOMATIZACIONES')
 
   const rules = await db.automationRule.findMany({
     where: { tenantId },
@@ -675,7 +681,7 @@ export async function createAutomation(data: {
   delayMinutes?: number
   conditions?: Record<string, unknown>
 }): Promise<void> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_AUTOMATIZACIONES', 'edit')
 
   // Verificar que la plantilla existe
   const template = await db.messageTemplate.findFirst({
@@ -699,7 +705,7 @@ export async function createAutomation(data: {
 }
 
 export async function toggleAutomation(id: string): Promise<void> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_AUTOMATIZACIONES', 'edit')
 
   const rule = await db.automationRule.findFirst({
     where: { id, tenantId },
@@ -803,7 +809,7 @@ export async function triggerAutomation(
 // ══════════════════════════════════════════════════════════════════════════════
 
 export async function getSmtpConfig(): Promise<SmtpConfigView | null> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_CONFIGURACION')
 
   const config = await db.tenantConfig.findUnique({
     where: { tenantId },
@@ -831,7 +837,7 @@ export async function updateSmtpConfig(data: {
   password?: string // solo se actualiza si se provee (no '********')
   from: string
 }): Promise<void> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_CONFIGURACION', 'edit')
 
   // Cargar config existente para preservar el password si no se actualiza
   const existing = await db.tenantConfig.findUnique({
@@ -876,7 +882,7 @@ export async function testSmtpConnection(testEmail: string): Promise<{
   success: boolean
   error?: string
 }> {
-  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'])
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA'], 'COMUNICACIONES_CONFIGURACION', 'edit')
 
   const config = await loadSmtpConfig(db, tenantId)
   if (!config) {
@@ -910,7 +916,7 @@ export async function getDashboardMetrics(): Promise<{
   thisWeekSent:      number
   recentCampaigns:   CampaignSummary[]
 }> {
-  const { db, tenantId } = await getDbAndSession()
+  const { db, tenantId } = await getDbAndSession(['ADMIN_CAMPANA', 'COORDINADOR'], 'COMUNICACIONES_DASHBOARD')
 
   // Métricas globales de mensajes
   const [sentCount, failedCount] = await Promise.all([
